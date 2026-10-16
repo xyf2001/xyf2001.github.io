@@ -1,0 +1,2 @@
+d91b0d9dc8192d6eebf227e38ee35e4f80321fc3db7f389622fd606f1f649330  ChromaticWars-Windows-x64.zip
+67c0a5d9d4dac2a080c1278b261b3a5285a3295afcc76795f3c7da5e0f0ecc03  ChromaticWars-Godot-Source.zip
