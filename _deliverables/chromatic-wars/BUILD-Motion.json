@@ -1,0 +1,33 @@
+{
+  "built_utc": "2026-10-16T10:51:43.282367+00:00",
+  "release_label": "1.4.2-motion",
+  "godot": "4.6.3.stable.official.7d41c59c4",
+  "target": "Windows x86_64, embedded PCK, Forward+/Vulkan",
+  "windows_os_execution": "NOT TESTED",
+  "physical_gpu_execution": "NOT TESTED",
+  "windows_exe_sha256": "b40dd406c1507dd3c540e785f1041efc9d3b0a31afa15f664dbc9945d474fb69",
+  "runtime_source_sha256": {
+    "assets/chinese_ui.otf": "00b1630b749eaecac4f8f040d50db77c117c9d34c3b02ded99b4fb7bddfea5a5",
+    "assets/字体许可.txt": "849f4ea9c214fa4ac3593b770c699f387534b11ce671264c1b10d85bdcb5997b",
+    "export_presets.cfg": "7a3eeda24649279bd8db3f9401075cc84bb8705cf9153902ee2c80ffdf7af784",
+    "project.godot": "9141c73a4972b9aab1107b7cc424ff72b40f5da526c3f48708741586617c10e5",
+    "scenes/main.tscn": "546a539b45d22dbd1212db4c311fb0d98eed00d38ba214af6c5633cf15007710",
+    "scripts/air_curtain.gd": "367f99ac288eb6a47ecaa3884527c6e96b9abf175f351673a27129243ef45072",
+    "scripts/battle_labels.gd": "0383c1adac6094487695cf78cd611b93cb7cd28a5459ba414bd818c1077131fe",
+    "scripts/game_settings.gd": "5e945275e896c6b26aa61edd6fa9baad5bfc3aa2db0fd7d22f15aac3392aff1c",
+    "scripts/game_ui.gd": "29e584b0869cdc85e2b5a15a68e4c3210d9dd435f3c492b955c3ecbc5f82dff3",
+    "scripts/gpu_collisions.gd": "92384eca69b2115c1820ed9fac5ca1bf050ecd40c4274ab5275d2ccc7c19879a",
+    "scripts/gpu_emitters.gd": "17b31d1f666dc0d8453cb452045d49c2d9af056a9f51ec7bbbd0f3f331c06940",
+    "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+    "scripts/gpu_world.gd": "b418bc449747748100a64c0437adbd4964e0a28bd3eece4ab8a24acf999826de",
+    "scripts/main.gd": "9951b0a5e26e3566b71701bfb440b2f9ba143f40960865668b9b29c34714667e",
+    "scripts/multiplier_channels.gd": "68d031857b33b101a3f97598070d03055e01e7f1e2370ef09d4076444564175f",
+    "scripts/pinball_physics.gd": "78db68264aeae12ccdbde257279c5c82ad6a2abc2ebaa5718f717b3a1e27389c",
+    "scripts/weapon_conveyor.gd": "e5ae5376ebe8aba381297aaf4a1a25bb08472195b2bbe3e3b3df13aa8f83eff4",
+    "shaders/battle.glsl": "75d55f6cc4b4e3edc9e84817a027bd427bcaa80d1fab02ef039bafdfb18352df"
+  },
+  "test_report": "TEST_REPORT.md",
+  "export_resource_check": "NOT TESTED (user requested)",
+  "release_validation": "NOT TESTED (user requested)",
+  "historical_battle_result": "artifacts/tests/final-battle-1200/results.json"
+}
