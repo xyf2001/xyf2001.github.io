@@ -1,2 +1,2 @@
-75e23cd073103b7699e90045c1dbb53bc09368891c1e72a52e8212974bb80398  ChromaticWars-Windows-x64-Beam.zip
-65ba14814d85b27c91afad210928a4d14c55b256cd439cb3fc292081b61d53dd  ChromaticWars-Godot-Source-Beam.zip
+dd5467c01fdbc53c2718bb25538d589b7085ede5500b31a558789f8185ba2f88  ChromaticWars-Windows-x64-Sandbox.zip
+d5fb2ca73ca94c95416edf6178adee5b4ff34876189dc99a89b1574698b1956e  ChromaticWars-Godot-Source-Sandbox.zip
