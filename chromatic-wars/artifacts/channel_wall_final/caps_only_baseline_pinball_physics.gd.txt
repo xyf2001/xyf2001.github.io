@@ -1,0 +1,366 @@
+class_name PinballPhysics
+extends Node2D
+
+signal weapon_output(team: int, kind: int, energy: float)
+signal trigger_log(data: Dictionary)
+signal simulation_fault(message: String)
+
+const ChannelsModule = preload("res://scripts/multiplier_channels.gd")
+const AirModule = preload("res://scripts/air_curtain.gd")
+const ConveyorModule = preload("res://scripts/weapon_conveyor.gd")
+const TEAM_COLORS: Array[Color] = [Color("ff6476"), Color("65e8aa"), Color("63a5ff"), Color("f4d369")]
+const BOUNDS: Rect2 = Rect2(16.0, 59.0, 448.0, 722.0)
+const WIDTH: float = 480.0
+const HEIGHT: float = 850.0
+const MAX_EXACT_ENERGY: float = 9007199254740991.0
+
+var channels = ChannelsModule.new()
+var air = AirModule.new()
+var conveyor = ConveyorModule.new()
+var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var balls: Array[Dictionary] = []
+var pegs: Array[Vector3] = []
+var simulation_time: float = 0.0
+var gravity: float = 820.0
+var restitution: float = 1.0
+var friction: float = 0.0
+var radius_min: float = 4.2
+var radius_max: float = 36.0
+var radius_gain: float = 3.0
+var threshold_start: float = 100.0
+var threshold_target: float = 1000000.0
+var threshold_duration: float = 1200.0
+var generated: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var multiplier_events: int = 0
+var output_events: int = 0
+var contact_events: int = 0
+var font: Font
+var debug: bool = false
+var last_event: Dictionary = {}
+var active_seed: int = 1
+var error: String = ""
+
+func _ready() -> void:
+	if font == null:
+		font = ThemeDB.fallback_font
+	if pegs.is_empty():
+		_build_pegs()
+	if balls.is_empty():
+		reset(active_seed)
+	queue_redraw()
+
+func configure(settings: Dictionary) -> void:
+	gravity = clampf(float(settings.get("gravity", gravity)), 20.0, 2000.0)
+	restitution = clampf(float(settings.get("restitution", settings.get("elasticity", restitution))), 0.05, 1.0)
+	friction = clampf(float(settings.get("friction", friction)), 0.0, 1.0)
+	radius_min = clampf(float(settings.get("radius_min", radius_min)), 4.0, 12.0)
+	# 默认最大直径72大于×2净宽67，小于中央98；成长足够后实体口自然拒绝。
+	radius_max = clampf(float(settings.get("radius_max", radius_max)), radius_min, 40.0)
+	radius_gain = maxf(0.01, float(settings.get("radius_gain", settings.get("radius_k", radius_gain))))
+	threshold_start = maxf(2.0, float(settings.get("threshold_start", threshold_start)))
+	threshold_target = maxf(threshold_start, float(settings.get("threshold_target", settings.get("growth_target", threshold_target))))
+	threshold_duration = maxf(1.0, float(settings.get("threshold_duration", settings.get("growth_duration", threshold_duration))))
+	debug = bool(settings.get("debug", debug))
+	if settings.get("font") is Font:
+		font = settings["font"]
+	air.configure(settings)
+	conveyor.configure(settings)
+	for ball in balls:
+		_update_radius(ball)
+	queue_redraw()
+
+func threshold_at(time: float) -> float:
+	# 默认严格连续线性：开局100，1200模拟秒达到1,000,000。
+	return lerpf(threshold_start, threshold_target, clampf(time / threshold_duration, 0.0, 1.0))
+
+func _build_pegs() -> void:
+	pegs.clear()
+	# 上区一排疏松柱；不能沿用小球尺寸设计的密集网把成长大球夹住。
+	for column in range(3):
+		pegs.append(Vector3(110.0 + float(column) * 130.0, 194.0, 5.4))
+	# 下层柱的水平净宽96、错排斜向净宽93，均大于最大球直径72。
+	for row in range(3):
+		for column in range(4):
+			pegs.append(Vector3(66.0 + float(column) * 108.0 + float(row % 2) * 32.0, 523.0 + float(row) * 100.0, 6.0))
+
+func reset(seed: int) -> void:
+	active_seed = seed
+	rng.seed = seed
+	simulation_time = 0.0
+	generated = [0.0, 0.0, 0.0, 0.0]
+	multiplier_events = 0
+	output_events = 0
+	contact_events = 0
+	last_event.clear()
+	error = ""
+	channels.reset()
+	conveyor.reset()
+	balls.clear()
+	_build_pegs()
+	for team in range(4):
+		for member in range(4):
+			var ball: Dictionary = {"id": team * 4 + member, "team": team, "value": 2.0, "threshold": threshold_at(0.0), "t_birth": threshold_at(0.0), "birth_time": 0.0, "p": Vector2.ZERO, "v": Vector2.ZERO, "r": radius_min, "mass": radius_min * radius_min, "loops": 0, "outputs": 0}
+			_launch(ball, true)
+			balls.append(ball)
+	queue_redraw()
+
+func _update_radius(ball: Dictionary) -> void:
+	ball["r"] = radius_for(float(ball["value"]), float(ball["threshold"]))
+	ball["mass"] = float(ball["r"]) * float(ball["r"])
+
+func radius_for(ammo: float, birth_threshold: float) -> float:
+	var normalized: float = maxf(0.0, ammo / maxf(1.0, birth_threshold) - 1.0)
+	return clampf(radius_min + radius_gain * sqrt(normalized), radius_min, radius_max)
+
+func _launch(ball: Dictionary, fresh: bool) -> void:
+	if fresh:
+		ball["value"] = 2.0
+		ball["threshold"] = threshold_at(simulation_time)
+		ball["t_birth"] = ball["threshold"]
+		ball["birth_time"] = simulation_time
+	_update_radius(ball)
+	var radius: float = float(ball["r"])
+	var candidate: Vector2 = Vector2(240.0, 92.0)
+	var best_clearance: float = -INF
+	# 只随机初始位置/发射速度；倍率与武器永远来自碰撞后的真实落点。
+	for attempt in range(32):
+		var point: Vector2 = Vector2(rng.randf_range(25.0 + radius, 455.0 - radius), rng.randf_range(maxf(83.0, BOUNDS.position.y + radius + 2.0), 110.0))
+		var clearance: float = INF
+		for other in balls:
+			if int(other["id"]) == int(ball["id"]):
+				continue
+			clearance = minf(clearance, point.distance_to(other["p"]) - float(other["r"]) - radius)
+		if clearance > best_clearance:
+			best_clearance = clearance
+			candidate = point
+		if clearance > 2.0:
+			break
+	ball["p"] = candidate
+	ball["v"] = Vector2(rng.randf_range(-205.0, 205.0), rng.randf_range(-410.0, -255.0))
+
+func step(dt: float, sim_time: float) -> void:
+	if dt <= 0.0 or not error.is_empty():
+		return
+	# 主控固定时间步；这里再按最小半径的扫掠距离细分，防止高速穿过细墙。
+	# 不根据帧率或时间倍率改变物理 dt，速度按钮只改变主控执行的固定步数。
+	var start_time: float = sim_time - dt
+	var maximum_speed: float = 500.0
+	for ball in balls:
+		maximum_speed = maxf(maximum_speed, Vector2(ball["v"]).length())
+	var safe_dt: float = minf(1.0 / 240.0, radius_min * 0.45 / maxf(1.0, maximum_speed))
+	var substeps: int = maxi(1, int(ceil(dt / safe_dt)))
+	var h: float = dt / float(substeps)
+	for substep in range(substeps):
+		simulation_time = start_time + float(substep + 1) * h
+		conveyor.step(h)
+		for ball in balls:
+			var velocity: Vector2 = ball["v"]
+			var position: Vector2 = ball["p"]
+			velocity += (Vector2(0.0, gravity) + air.acceleration(position, float(ball["r"]))) * h
+			ball["v"] = velocity
+			ball["p"] = position + velocity * h
+		# 两轮序贯冲量/位置投影，同时处理球-球、球-墙和球-静态实体。
+		for iteration in range(2):
+			for ball in balls:
+				_static_contacts(ball)
+			_ball_contacts()
+		for ball in balls:
+			var position: Vector2 = ball["p"]
+			var channel: int = channels.capture(position, float(ball["r"]))
+			if channel >= 0:
+				var previous_value: float = ball["value"]
+				var next_value: float = previous_value * float(channels.MULTIPLIERS[channel])
+				if next_value > MAX_EXACT_ENERGY:
+					error = "弹药球%d的×%d结果超过CPU命令精确整数上限2^53−1。已保留原值并暂停，请降低倍率累积或重开。" % [int(ball["id"]), int(channels.MULTIPLIERS[channel])]
+					simulation_fault.emit(error)
+					return
+				channels.register(channel)
+				ball["value"] = next_value
+				ball["loops"] = int(ball["loops"]) + 1
+				multiplier_events += 1
+				last_event = {"type": "multiplier", "ball_id": ball["id"], "team": ball["team"], "channel": channel, "multiplier": channels.MULTIPLIERS[channel], "before": previous_value, "after": ball["value"], "x": position.x, "time": simulation_time, "radius": ball["r"], "threshold": ball["threshold"]}
+				trigger_log.emit(last_event.duplicate())
+				_launch(ball, false)
+			elif position.y + float(ball["r"]) >= conveyor.OUTPUT_Y:
+				var energy: float = ball["value"]
+				var team: int = ball["team"]
+				last_event = conveyor.register(position.x, int(ball["id"]), team, energy)
+				last_event["type"] = "output"
+				last_event["time"] = simulation_time
+				generated[team] += energy
+				output_events += 1
+				ball["outputs"] = int(ball["outputs"]) + 1
+				trigger_log.emit(last_event.duplicate())
+				# 同步输出前先重生，接收者可安全调用 rescue/eliminate。
+				_launch(ball, true)
+				weapon_output.emit(team, int(last_event["kind"]), energy)
+	simulation_time = sim_time
+	queue_redraw()
+
+func _reflect(ball: Dictionary, normal: Vector2) -> void:
+	var velocity: Vector2 = ball["v"]
+	var normal_speed: float = velocity.dot(normal)
+	if normal_speed < 0.0:
+		var tangent: Vector2 = velocity - normal * normal_speed
+		ball["v"] = tangent * (1.0 - friction) - normal * normal_speed * restitution
+		contact_events += 1
+
+func _static_contacts(ball: Dictionary) -> void:
+	var position: Vector2 = ball["p"]
+	var radius: float = ball["r"]
+	if position.x - radius < BOUNDS.position.x:
+		position.x = BOUNDS.position.x + radius
+		_reflect(ball, Vector2.RIGHT)
+	if position.x + radius > BOUNDS.end.x:
+		position.x = BOUNDS.end.x - radius
+		_reflect(ball, Vector2.LEFT)
+	if position.y - radius < BOUNDS.position.y:
+		position.y = BOUNDS.position.y + radius
+		_reflect(ball, Vector2.DOWN)
+	ball["p"] = position
+	for polygon in channels.polygons:
+		var left_edge: float = polygon[0].x
+		if position.y + radius > channels.MOUTH_Y - 15.0 and position.y - radius < channels.END_Y and absf(position.x - (left_edge + 4.0)) < radius + 4.1:
+			_polygon_contact(ball, polygon)
+	for polygon in channels.bottom_walls:
+		position = ball["p"]
+		var bounds: Rect2 = Rect2(polygon[0], polygon[2] - polygon[0])
+		if bounds.grow(radius).has_point(position):
+			_polygon_contact(ball, polygon)
+	for peg in pegs:
+		position = ball["p"]
+		var center: Vector2 = Vector2(peg.x, peg.y)
+		var separation: Vector2 = position - center
+		var combined_radius: float = radius + peg.z
+		if separation.length_squared() >= combined_radius * combined_radius:
+			continue
+		var distance: float = separation.length()
+		var normal: Vector2 = separation / distance if distance > 0.000001 else Vector2.UP
+		ball["p"] = center + normal * (combined_radius + 0.002)
+		_reflect(ball, normal)
+
+func _polygon_contact(ball: Dictionary, polygon: PackedVector2Array) -> void:
+	var position: Vector2 = ball["p"]
+	var closest: Vector2 = Vector2.ZERO
+	var distance_squared: float = INF
+	for index in range(polygon.size()):
+		var from: Vector2 = polygon[index]
+		var to: Vector2 = polygon[(index + 1) % polygon.size()]
+		var nearest: Vector2 = Geometry2D.get_closest_point_to_segment(position, from, to)
+		var candidate_distance: float = position.distance_squared_to(nearest)
+		if candidate_distance < distance_squared:
+			distance_squared = candidate_distance
+			closest = nearest
+	var inside: bool = Geometry2D.is_point_in_polygon(position, polygon)
+	var radius: float = ball["r"]
+	if not inside and distance_squared >= radius * radius:
+		return
+	var direction: Vector2 = position - closest
+	var normal: Vector2 = direction.normalized() if direction.length_squared() > 0.000001 else Vector2.UP
+	if inside:
+		normal = -normal
+	ball["p"] = closest + normal * (radius + 0.002)
+	_reflect(ball, normal)
+
+func _ball_contacts() -> void:
+	# 仅左侧16颗刚体使用 O(16²) CPU；右侧 GPU 粒子不经过此模块。
+	for first in range(balls.size()):
+		for second in range(first + 1, balls.size()):
+			var a: Dictionary = balls[first]
+			var b: Dictionary = balls[second]
+			var delta: Vector2 = Vector2(b["p"]) - Vector2(a["p"])
+			var combined_radius: float = float(a["r"]) + float(b["r"])
+			if delta.length_squared() >= combined_radius * combined_radius:
+				continue
+			var distance: float = delta.length()
+			var normal: Vector2 = delta / distance if distance > 0.000001 else Vector2.RIGHT
+			var inverse_a: float = 1.0 / float(a["mass"])
+			var inverse_b: float = 1.0 / float(b["mass"])
+			var inverse_sum: float = inverse_a + inverse_b
+			var penetration: float = combined_radius - distance + 0.002
+			a["p"] = Vector2(a["p"]) - normal * penetration * inverse_a / inverse_sum
+			b["p"] = Vector2(b["p"]) + normal * penetration * inverse_b / inverse_sum
+			var normal_speed: float = (Vector2(b["v"]) - Vector2(a["v"])).dot(normal)
+			if normal_speed < 0.0:
+				var impulse: float = -(1.0 + restitution) * normal_speed / inverse_sum
+				a["v"] = Vector2(a["v"]) - normal * impulse * inverse_a
+				b["v"] = Vector2(b["v"]) + normal * impulse * inverse_b
+				contact_events += 1
+
+func rescue(team: int) -> float:
+	var selected: Dictionary = {}
+	for ball in balls:
+		if int(ball["team"]) == team and (selected.is_empty() or float(ball["value"]) > float(selected["value"])):
+			selected = ball
+	if selected.is_empty():
+		return 0.0
+	var energy: float = selected["value"]
+	_launch(selected, true)
+	trigger_log.emit({"type": "rescue", "team": team, "energy": energy, "ball_id": selected["id"], "time": simulation_time})
+	queue_redraw()
+	return energy
+
+func eliminate(team: int) -> Array[float]:
+	var energies: Array[float] = []
+	for index in range(balls.size() - 1, -1, -1):
+		if int(balls[index]["team"]) == team:
+			energies.append(float(balls[index]["value"]))
+			balls.remove_at(index)
+	queue_redraw()
+	return energies
+
+func snapshot() -> Dictionary:
+	var copy: Array[Dictionary] = balls.duplicate(true)
+	for ball in copy:
+		ball["radius"] = ball["r"]
+		ball["birth_threshold"] = ball["threshold"]
+	return {"time": simulation_time, "seed": active_seed, "error": error, "active_balls": balls.size(), "balls": copy, "threshold": threshold_at(simulation_time), "generated": generated.duplicate(), "multiplier_events": multiplier_events, "output_events": output_events, "contact_events": contact_events, "channels": channels.snapshot(), "air": air.snapshot(), "conveyor": conveyor.snapshot(), "last_event": last_event.duplicate()}
+
+func _number(value: float) -> String:
+	if value >= 100000000.0:
+		return "%.2f亿" % (value / 100000000.0)
+	if value >= 10000.0:
+		return "%.1f万" % (value / 10000.0)
+	return str(int(value))
+
+func _draw() -> void:
+	if font == null:
+		font = ThemeDB.fallback_font
+	draw_rect(Rect2(0.0, 0.0, WIDTH, HEIGHT), Color("101a2a"))
+	draw_rect(Rect2(0.0, 0.0, WIDTH, HEIGHT), Color("2b425b"), false, 1.5)
+	draw_string(font, Vector2(18.0, 27.0), "弹药增幅机", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("e0ecfa"))
+	draw_string(font, Vector2(18.0, 47.0), "%d球真实碰撞 · 出生门槛 %s" % [balls.size(), _number(threshold_at(simulation_time))], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("819db8"))
+	draw_line(Vector2(16.0, 59.0), Vector2(464.0, 59.0), Color("7895ac"), 3.0)
+	draw_line(Vector2(16.0, 59.0), Vector2(16.0, 781.0), Color("7895ac"), 3.0)
+	draw_line(Vector2(464.0, 59.0), Vector2(464.0, 781.0), Color("7895ac"), 3.0)
+	air.draw_on(self, simulation_time)
+	channels.draw_on(self, font)
+	draw_string(font, Vector2(210.0, 429.0), "空气墙", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("6ab6d8"))
+	for peg in pegs:
+		var center: Vector2 = Vector2(peg.x, peg.y)
+		draw_circle(center, peg.z + 3.0, Color(0.19, 0.46, 0.64, 0.15))
+		draw_circle(center, peg.z, Color("758ba3"))
+		draw_circle(center + Vector2(-1.5, -1.7), peg.z * 0.31, Color("e1f3ff"))
+	conveyor.draw_on(self, font, debug)
+	var used_labels: Array[Rect2] = []
+	for ball in balls:
+		var position: Vector2 = ball["p"]
+		var radius: float = ball["r"]
+		var tone: Color = TEAM_COLORS[int(ball["team"])]
+		draw_circle(position, radius + 3.0, tone * Color(1.0, 1.0, 1.0, 0.12))
+		draw_circle(position, radius, tone)
+		draw_arc(position, maxf(1.0, radius - 0.7), 0.0, TAU, 24, tone.lightened(0.4), 1.0, true)
+		draw_circle(position + Vector2(-radius * 0.25, -radius * 0.3), maxf(1.1, radius * 0.24), Color(1.0, 1.0, 1.0, 0.62))
+		var text: String = _number(float(ball["value"]))
+		if debug:
+			text += " r%.1f" % radius
+		var width: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
+		var anchor: Vector2 = Vector2(clampf(position.x + radius + 3.0, 19.0, 461.0 - width), position.y + 4.0)
+		var label_rect: Rect2 = Rect2(anchor - Vector2(0.0, 10.0), Vector2(width, 13.0))
+		for previous in used_labels:
+			if label_rect.intersects(previous):
+				anchor.y += 13.0
+				label_rect.position.y += 13.0
+		used_labels.append(label_rect)
+		draw_string(font, anchor + Vector2(1.0, 1.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("070c14"))
+		draw_string(font, anchor, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("e4eefc"))

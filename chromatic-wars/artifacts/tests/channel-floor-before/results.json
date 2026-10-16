@@ -1,0 +1,1654 @@
+{
+  "started_utc": "20261016T075612788316Z",
+  "project": "/workspace/chromatic-wars",
+  "suites": [
+    {
+      "name": "channel_floor",
+      "status": "FAIL",
+      "reason": "Godot 退出码 1",
+      "results": [
+        {
+          "detail": "36组：四种半径、三种上冲速度、槽中及两端；必须向下反弹、保留弹药、不触发倍率/顶部重生",
+          "metrics": {
+            "cases": 36,
+            "failed_cases": [
+              {
+                "multipliers": 0,
+                "position": "(20.2, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 16.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(34.5, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 34.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(52.63, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 52.63
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 16.37
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 34.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(51.52061, 457.6081)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-779.3212, 2891.92)",
+                "x": 52.63
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 4.2,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 16.37
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 4.2,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 34.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(28.0, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 16.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(34.5, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 34.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(52.63, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 52.63
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 16.37
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 34.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(52.33241, 465.5513)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-208.887, 2987.824)",
+                "x": 52.63
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 12.0,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 16.37
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 12.0,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 34.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(52.0, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 16.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(52.0, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 34.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(52.63, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 52.63
+              },
+              {
+                "multipliers": 0,
+                "position": "(52.2059, 489.5464)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(172.9571, 2990.12)",
+                "x": 16.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(52.2059, 489.5464)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(172.9571, 2990.12)",
+                "x": 34.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(52.53872, 489.5645)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-64.0401, 2994.436)",
+                "x": 52.63
+              },
+              {
+                "multipliers": 0,
+                "position": "(56.0, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 16.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(56.0, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 34.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(56.0, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 52.63
+              },
+              {
+                "multipliers": 0,
+                "position": "(56.0, 493.5674)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, 2995.12)",
+                "x": 16.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(56.0, 493.5674)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, 2995.12)",
+                "x": 34.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(56.0, 493.5674)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, 2995.12)",
+                "x": 52.63
+              }
+            ]
+          },
+          "name": "倍率槽0下方逆入被实体墙阻挡",
+          "status": "FAIL"
+        },
+        {
+          "detail": "36组：四种半径、三种上冲速度、槽中及两端；必须向下反弹、保留弹药、不触发倍率/顶部重生",
+          "metrics": {
+            "cases": 36,
+            "failed_cases": [
+              {
+                "multipliers": 0,
+                "position": "(61.47, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 61.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(84.5, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 84.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(107.53, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 107.53
+              },
+              {
+                "multipliers": 0,
+                "position": "(62.86322, 457.5129)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(979.5952, 2830.338)",
+                "x": 61.47
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 84.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(106.1368, 457.5129)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-979.5952, 2830.338)",
+                "x": 107.53
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 4.2,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 84.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(61.47, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 61.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(84.5, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 84.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(107.53, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 107.53
+              },
+              {
+                "multipliers": 0,
+                "position": "(61.84759, 465.5415)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(265.1462, 2983.356)",
+                "x": 61.47
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 84.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(107.1524, 465.5415)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-265.1462, 2983.356)",
+                "x": 107.53
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 12.0,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 84.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(61.47, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 61.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(84.5, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 84.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(107.53, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 107.53
+              },
+              {
+                "multipliers": 0,
+                "position": "(61.58593, 489.5627)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(81.34296, 2994.015)",
+                "x": 61.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(84.5, 481.0305)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, -2993.167)",
+                "x": 84.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(107.4141, 489.5627)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-81.34296, 2994.015)",
+                "x": 107.53
+              },
+              {
+                "multipliers": 0,
+                "position": "(61.47, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 61.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(84.5, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 84.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(107.53, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 107.53
+              },
+              {
+                "multipliers": 0,
+                "position": "(61.57392, 493.5633)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(72.91499, 2994.232)",
+                "x": 61.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(84.5, 485.0305)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, -2993.167)",
+                "x": 84.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(107.4261, 493.5633)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-72.91499, 2994.232)",
+                "x": 107.53
+              }
+            ]
+          },
+          "name": "倍率槽1下方逆入被实体墙阻挡",
+          "status": "FAIL"
+        },
+        {
+          "detail": "36组：四种半径、三种上冲速度、槽中及两端；必须向下反弹、保留弹药、不触发倍率/顶部重生",
+          "metrics": {
+            "cases": 36,
+            "failed_cases": [
+              {
+                "multipliers": 0,
+                "position": "(116.67, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 116.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(149.5, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 149.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(182.33, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 182.33
+              },
+              {
+                "multipliers": 0,
+                "position": "(118.5964, 457.2639)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(1357.871, 2669.511)",
+                "x": 116.67
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 149.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(180.4037, 457.2639)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-1357.871, 2669.511)",
+                "x": 182.33
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 4.2,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 149.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(116.67, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 116.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(149.5, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 149.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(182.33, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 182.33
+              },
+              {
+                "multipliers": 0,
+                "position": "(117.2066, 465.515)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(377.2076, 2971.264)",
+                "x": 116.67
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 149.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(181.7934, 465.515)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-377.2076, 2971.264)",
+                "x": 182.33
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 12.0,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 149.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(116.67, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 116.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(149.5, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 149.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(182.33, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 182.33
+              },
+              {
+                "multipliers": 0,
+                "position": "(116.8352, 489.5579)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(115.9343, 2992.875)",
+                "x": 116.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(149.5, 481.0305)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, -2993.167)",
+                "x": 149.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(182.1648, 489.5579)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-115.9343, 2992.875)",
+                "x": 182.33
+              },
+              {
+                "multipliers": 0,
+                "position": "(116.67, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 116.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(149.5, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 149.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(182.33, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 182.33
+              },
+              {
+                "multipliers": 0,
+                "position": "(116.8181, 493.5591)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(103.9262, 2993.316)",
+                "x": 116.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(149.5, 485.0305)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, -2993.167)",
+                "x": 149.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(182.1819, 493.5591)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-103.9262, 2993.316)",
+                "x": 182.33
+              }
+            ]
+          },
+          "name": "倍率槽2下方逆入被实体墙阻挡",
+          "status": "FAIL"
+        },
+        {
+          "detail": "36组：四种半径、三种上冲速度、槽中及两端；必须向下反弹、保留弹药、不触发倍率/顶部重生",
+          "metrics": {
+            "cases": 36,
+            "failed_cases": [
+              {
+                "multipliers": 0,
+                "position": "(297.67, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 297.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(330.5, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 330.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(363.33, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 363.33
+              },
+              {
+                "multipliers": 0,
+                "position": "(299.5964, 457.2638)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(1357.899, 2669.498)",
+                "x": 297.67
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 330.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(361.4036, 457.2638)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-1357.899, 2669.498)",
+                "x": 363.33
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 4.2,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 330.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(297.67, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 297.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(330.5, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 330.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(363.33, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 363.33
+              },
+              {
+                "multipliers": 0,
+                "position": "(298.2066, 465.515)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(377.2161, 2971.262)",
+                "x": 297.67
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 330.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(362.7934, 465.515)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-377.2161, 2971.262)",
+                "x": 363.33
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 12.0,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 330.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(297.67, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 297.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(330.5, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 330.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(363.33, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 363.33
+              },
+              {
+                "multipliers": 0,
+                "position": "(297.8351, 489.5579)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(115.9369, 2992.874)",
+                "x": 297.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(330.5, 481.0305)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, -2993.167)",
+                "x": 330.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(363.1649, 489.5579)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-115.9369, 2992.874)",
+                "x": 363.33
+              },
+              {
+                "multipliers": 0,
+                "position": "(297.67, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 297.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(330.5, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 330.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(363.33, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 363.33
+              },
+              {
+                "multipliers": 0,
+                "position": "(297.8181, 493.5591)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(103.9285, 2993.314)",
+                "x": 297.67
+              },
+              {
+                "multipliers": 0,
+                "position": "(330.5, 485.0305)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, -2993.167)",
+                "x": 330.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(363.1819, 493.5591)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-103.9285, 2993.314)",
+                "x": 363.33
+              }
+            ]
+          },
+          "name": "倍率槽4下方逆入被实体墙阻挡",
+          "status": "FAIL"
+        },
+        {
+          "detail": "36组：四种半径、三种上冲速度、槽中及两端；必须向下反弹、保留弹药、不触发倍率/顶部重生",
+          "metrics": {
+            "cases": 36,
+            "failed_cases": [
+              {
+                "multipliers": 0,
+                "position": "(372.47, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 372.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(395.5, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 395.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(418.53, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 418.53
+              },
+              {
+                "multipliers": 0,
+                "position": "(373.8633, 457.5129)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(979.5952, 2830.338)",
+                "x": 372.47
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 395.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(417.1367, 457.5129)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-979.5952, 2830.338)",
+                "x": 418.53
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 4.2,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 395.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(372.47, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 372.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(395.5, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 395.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(418.53, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 418.53
+              },
+              {
+                "multipliers": 0,
+                "position": "(372.8476, 465.5415)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(265.1462, 2983.356)",
+                "x": 372.47
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 395.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(418.1524, 465.5415)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-265.1462, 2983.356)",
+                "x": 418.53
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 12.0,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 395.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(372.47, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 372.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(395.5, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 395.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(418.53, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 418.53
+              },
+              {
+                "multipliers": 0,
+                "position": "(372.5859, 489.5627)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(81.34296, 2994.015)",
+                "x": 372.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(395.5, 481.0305)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, -2993.167)",
+                "x": 395.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(418.4141, 489.5627)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-81.34296, 2994.015)",
+                "x": 418.53
+              },
+              {
+                "multipliers": 0,
+                "position": "(372.47, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 372.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(395.5, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 395.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(418.53, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 418.53
+              },
+              {
+                "multipliers": 0,
+                "position": "(372.5739, 493.5633)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(72.91499, 2994.232)",
+                "x": 372.47
+              },
+              {
+                "multipliers": 0,
+                "position": "(395.5, 485.0305)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, -2993.167)",
+                "x": 395.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(418.4261, 493.5633)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-72.91499, 2994.232)",
+                "x": 418.53
+              }
+            ]
+          },
+          "name": "倍率槽5下方逆入被实体墙阻挡",
+          "status": "FAIL"
+        },
+        {
+          "detail": "36组：四种半径、三种上冲速度、槽中及两端；必须向下反弹、保留弹药、不触发倍率/顶部重生",
+          "metrics": {
+            "cases": 36,
+            "failed_cases": [
+              {
+                "multipliers": 0,
+                "position": "(427.37, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 427.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(445.5, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 445.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(459.8, 460.282)",
+                "radius": 4.2,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 463.63
+              },
+              {
+                "multipliers": 0,
+                "position": "(428.4793, 457.6081)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(779.3133, 2891.921)",
+                "x": 427.37
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 445.5
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 4.2,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 463.63
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 4.2,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 445.5
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 4.2,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 463.63
+              },
+              {
+                "multipliers": 0,
+                "position": "(427.37, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 427.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(445.5, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 445.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(452.0, 468.082)",
+                "radius": 12.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 463.63
+              },
+              {
+                "multipliers": 0,
+                "position": "(427.6676, 465.5513)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(208.8849, 2987.824)",
+                "x": 427.37
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 445.5
+              },
+              {
+                "multipliers": 1,
+                "position": "(61.73148, 84.83242)",
+                "radius": 12.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(116.7429, -346.0002)",
+                "x": 463.63
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 12.0,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 445.5
+              },
+              {
+                "multipliers": 1,
+                "position": "(62.36347, 82.97158)",
+                "radius": 12.0,
+                "speed": 12000.0,
+                "valid": false,
+                "velocity": "(116.7429, -341.5611)",
+                "x": 463.63
+              },
+              {
+                "multipliers": 0,
+                "position": "(427.37, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 427.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(428.0, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 445.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(428.0, 492.082)",
+                "radius": 36.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 463.63
+              },
+              {
+                "multipliers": 0,
+                "position": "(427.4613, 489.5645)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(64.03944, 2994.436)",
+                "x": 427.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(427.7941, 489.5464)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-172.9571, 2990.12)",
+                "x": 445.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(427.7941, 489.5464)",
+                "radius": 36.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(-172.9571, 2990.12)",
+                "x": 463.63
+              },
+              {
+                "multipliers": 0,
+                "position": "(424.0, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 427.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(424.0, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 445.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(424.0, 496.082)",
+                "radius": 40.0,
+                "speed": 300.0,
+                "valid": false,
+                "velocity": "(0.0, -259.0001)",
+                "x": 463.63
+              },
+              {
+                "multipliers": 0,
+                "position": "(424.0, 493.5674)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, 2995.12)",
+                "x": 427.37
+              },
+              {
+                "multipliers": 0,
+                "position": "(424.0, 493.5674)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, 2995.12)",
+                "x": 445.5
+              },
+              {
+                "multipliers": 0,
+                "position": "(424.0, 493.5674)",
+                "radius": 40.0,
+                "speed": 3000.0,
+                "valid": false,
+                "velocity": "(0.0, 2995.12)",
+                "x": 463.63
+              }
+            ]
+          },
+          "name": "倍率槽6下方逆入被实体墙阻挡",
+          "status": "FAIL"
+        },
+        {
+          "detail": "从连接处正下方高速上冲",
+          "metrics": {
+            "multipliers": 0,
+            "position": "(57.0, 457.7673)",
+            "radius": 4.2,
+            "speed": 3000.0,
+            "valid": false,
+            "velocity": "(0.0, 2995.12)",
+            "x": 57.0
+          },
+          "name": "隔板1与底墙接缝不漏球",
+          "status": "FAIL"
+        },
+        {
+          "detail": "从连接处正下方高速上冲",
+          "metrics": {
+            "multipliers": 0,
+            "position": "(112.0, 457.7673)",
+            "radius": 4.2,
+            "speed": 3000.0,
+            "valid": false,
+            "velocity": "(0.0, 2995.12)",
+            "x": 112.0
+          },
+          "name": "隔板2与底墙接缝不漏球",
+          "status": "FAIL"
+        },
+        {
+          "detail": "从连接处正下方高速上冲",
+          "metrics": {
+            "multipliers": 0,
+            "position": "(187.0, 457.7673)",
+            "radius": 4.2,
+            "speed": 3000.0,
+            "valid": false,
+            "velocity": "(0.0, 2995.12)",
+            "x": 187.0
+          },
+          "name": "隔板3与底墙接缝不漏球",
+          "status": "FAIL"
+        },
+        {
+          "detail": "从连接处正下方高速上冲",
+          "metrics": {
+            "multipliers": 0,
+            "position": "(293.0, 457.7673)",
+            "radius": 4.2,
+            "speed": 3000.0,
+            "valid": false,
+            "velocity": "(0.0, 2995.12)",
+            "x": 293.0
+          },
+          "name": "隔板4与底墙接缝不漏球",
+          "status": "FAIL"
+        },
+        {
+          "detail": "从连接处正下方高速上冲",
+          "metrics": {
+            "multipliers": 0,
+            "position": "(368.0, 457.7673)",
+            "radius": 4.2,
+            "speed": 3000.0,
+            "valid": false,
+            "velocity": "(0.0, 2995.12)",
+            "x": 368.0
+          },
+          "name": "隔板5与底墙接缝不漏球",
+          "status": "FAIL"
+        },
+        {
+          "detail": "从连接处正下方高速上冲",
+          "metrics": {
+            "multipliers": 0,
+            "position": "(423.0, 457.7673)",
+            "radius": 4.2,
+            "speed": 3000.0,
+            "valid": false,
+            "velocity": "(0.0, 2995.12)",
+            "x": 423.0
+          },
+          "name": "隔板6与底墙接缝不漏球",
+          "status": "FAIL"
+        },
+        {
+          "detail": "实际积分到入口，核对倍率、触发次数与顶部位置",
+          "name": "倍率槽0从上方进入仍正常加倍重生",
+          "status": "PASS"
+        },
+        {
+          "detail": "实际积分到入口，核对倍率、触发次数与顶部位置",
+          "name": "倍率槽1从上方进入仍正常加倍重生",
+          "status": "PASS"
+        },
+        {
+          "detail": "实际积分到入口，核对倍率、触发次数与顶部位置",
+          "name": "倍率槽2从上方进入仍正常加倍重生",
+          "status": "PASS"
+        },
+        {
+          "detail": "实际积分到入口，核对倍率、触发次数与顶部位置",
+          "name": "倍率槽4从上方进入仍正常加倍重生",
+          "status": "PASS"
+        },
+        {
+          "detail": "实际积分到入口，核对倍率、触发次数与顶部位置",
+          "name": "倍率槽5从上方进入仍正常加倍重生",
+          "status": "PASS"
+        },
+        {
+          "detail": "实际积分到入口，核对倍率、触发次数与顶部位置",
+          "name": "倍率槽6从上方进入仍正常加倍重生",
+          "status": "PASS"
+        },
+        {
+          "detail": "移除测试夹具气流和柱子，仅验证新增底墙未封闭中央通路",
+          "name": "中央通路半径4.2球正常下落",
+          "status": "PASS"
+        },
+        {
+          "detail": "移除测试夹具气流和柱子，仅验证新增底墙未封闭中央通路",
+          "name": "中央通路半径36.0球正常下落",
+          "status": "PASS"
+        },
+        {
+          "detail": "移除测试夹具气流和柱子，仅验证新增底墙未封闭中央通路",
+          "name": "中央通路半径40.0球正常下落",
+          "status": "PASS"
+        }
+      ],
+      "engine_errors": [],
+      "log": "/workspace/chromatic-wars/artifacts/tests/channel-floor-before/channel_floor.log",
+      "returncode": 1,
+      "elapsed_seconds": 0.821,
+      "timed_out": false
+    }
+  ],
+  "seed": 20261016,
+  "duration_sim_seconds": 1200,
+  "host": {
+    "platform": "linux"
+  },
+  "godot": "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+  "status": "FAIL"
+}

@@ -1,0 +1,827 @@
+{
+  "started_utc": "20261016T054123164487Z",
+  "project": "/workspace/chromatic-wars",
+  "suites": [
+    {
+      "name": "gpu",
+      "status": "PASS",
+      "reason": "实际通过 28 项断言",
+      "results": [
+        {
+          "detail": "初始化截止30秒",
+          "metrics": {
+            "driver": "vulkan"
+          },
+          "name": "真实Compute管线初始化",
+          "status": "PASS"
+        },
+        {
+          "detail": "读取真实GPU团队缓冲与领土归约计数，开局保命就绪",
+          "metrics": {
+            "teams": [
+              {
+                "alive": true,
+                "core_radius": 12.0,
+                "death_nonce": 0,
+                "gun": 1000000,
+                "gun_angle": 0.0,
+                "pending": false,
+                "ready_time": 0.0,
+                "request_nonce": 0,
+                "rescue_cd": 0.0,
+                "shield": 1000000,
+                "shield_radius": 48.0,
+                "sniper": 0,
+                "state": 0,
+                "storm": 0,
+                "team": 0,
+                "x": 256.0,
+                "y": 256.0
+              },
+              {
+                "alive": true,
+                "core_radius": 12.0,
+                "death_nonce": 0,
+                "gun": 1000000,
+                "gun_angle": 1.57079637050629,
+                "pending": false,
+                "ready_time": 0.0,
+                "request_nonce": 0,
+                "rescue_cd": 0.0,
+                "shield": 1000000,
+                "shield_radius": 48.0,
+                "sniper": 0,
+                "state": 0,
+                "storm": 0,
+                "team": 1,
+                "x": 768.0,
+                "y": 256.0
+              },
+              {
+                "alive": true,
+                "core_radius": 12.0,
+                "death_nonce": 0,
+                "gun": 1000000,
+                "gun_angle": 3.14159274101257,
+                "pending": false,
+                "ready_time": 0.0,
+                "request_nonce": 0,
+                "rescue_cd": 0.0,
+                "shield": 1000000,
+                "shield_radius": 48.0,
+                "sniper": 0,
+                "state": 0,
+                "storm": 0,
+                "team": 2,
+                "x": 256.0,
+                "y": 768.0
+              },
+              {
+                "alive": true,
+                "core_radius": 12.0,
+                "death_nonce": 0,
+                "gun": 1000000,
+                "gun_angle": 4.71238899230957,
+                "pending": false,
+                "ready_time": 0.0,
+                "request_nonce": 0,
+                "rescue_cd": 0.0,
+                "shield": 1000000,
+                "shield_radius": 48.0,
+                "sniper": 0,
+                "state": 0,
+                "storm": 0,
+                "team": 3,
+                "x": 768.0,
+                "y": 768.0
+              }
+            ],
+            "territory_counts": [
+              1024,
+              1024,
+              1024,
+              1024
+            ]
+          },
+          "name": "GPU开局四队存活、盾枪各1M与25%领土",
+          "status": "PASS"
+        },
+        {
+          "detail": "红左上、绿右上、蓝左下、黄右下；真实GPU角落格子",
+          "name": "GPU领土象限位置",
+          "status": "PASS"
+        },
+        {
+          "detail": "真实视口单次Debug截图，根据实际Canvas缩放采样四象限；正式渲染不依赖此读回",
+          "metrics": {
+            "image_size": "(1440, 900)",
+            "logical_size": "(1600.0, 1000.0)",
+            "pixels": [
+              "(0.2196, 0.0471, 0.0706, 1.0)",
+              "(0.0392, 0.2196, 0.1137, 1.0)",
+              "(0.0471, 0.1098, 0.2196, 1.0)",
+              "(0.2196, 0.1765, 0.0353, 1.0)"
+            ],
+            "sample_points": "[(97.92, 97.92), (420.48, 97.92), (97.92, 420.48), (420.48, 420.48)]",
+            "screenshot": "/workspace/chromatic-wars/artifacts/tests/20261016T054123164487Z/gpu_initial.png"
+          },
+          "name": "显存共享纹理实际显示",
+          "status": "PASS"
+        },
+        {
+          "detail": "正式GPU移动4步，粒子包保留8点",
+          "metrics": {
+            "particles": [
+              {
+                "birth_scale": 103.471878051758,
+                "contact_mask": 0,
+                "energy": 8,
+                "id": 0,
+                "radius": 1.39999997615814,
+                "team": 0,
+                "type": 1,
+                "vx": 120.0,
+                "vy": 0.0,
+                "x": 104.0,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "己方领土不消耗能量",
+          "status": "PASS"
+        },
+        {
+          "detail": "中立格被染为0号队；8点包剩7，累积已消耗只增加1",
+          "metrics": {
+            "consumed_delta": 1,
+            "remaining": 7
+          },
+          "name": "包占一格严格消耗一点",
+          "status": "PASS"
+        },
+        {
+          "detail": "向左高速入墙后速度向右，位置仍在实体半径内侧",
+          "metrics": {
+            "particles": [
+              {
+                "birth_scale": 138.190612792969,
+                "contact_mask": 0,
+                "energy": 1,
+                "id": 0,
+                "radius": 1.39999997615814,
+                "team": 0,
+                "type": 1,
+                "vx": 500.0,
+                "vy": 0.0,
+                "x": 4.96666717529297,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "粒子真实墙壁反弹",
+          "status": "PASS"
+        },
+        {
+          "detail": "实际GPU空间链表+碰撞结算，两个能量1粒子",
+          "metrics": {
+            "particles": [
+              {
+                "birth_scale": 145.134384155273,
+                "contact_mask": 0,
+                "energy": 1,
+                "id": 0,
+                "radius": 1.39999997615814,
+                "team": 0,
+                "type": 1,
+                "vx": -20.0,
+                "vy": 0.0,
+                "x": 99.5156631469727,
+                "y": 100.0
+              },
+              {
+                "birth_scale": 145.134384155273,
+                "contact_mask": 0,
+                "energy": 1,
+                "id": 1,
+                "radius": 1.39999997615814,
+                "team": 0,
+                "type": 1,
+                "vx": 20.0,
+                "vy": 0.0,
+                "x": 102.484336853027,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "同阵营粒子碰撞反弹不消耗",
+          "status": "PASS"
+        },
+        {
+          "detail": "10与4相撞后剩6；双方合计消耗8，无负能量",
+          "metrics": {
+            "consumed_delta": 8,
+            "particles": [
+              {
+                "birth_scale": 134.71875,
+                "contact_mask": 0,
+                "energy": 6,
+                "id": 0,
+                "radius": 1.39999997615814,
+                "team": 0,
+                "type": 1,
+                "vx": 0.0,
+                "vy": 0.0,
+                "x": 99.0989990234375,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "异阵营粒子包等量抵消",
+          "status": "PASS"
+        },
+        {
+          "detail": "x17/+2000和x20/-2000，在一个固定步内相遇；两颗1能量应等消",
+          "metrics": {
+            "particles": []
+          },
+          "name": "超高速相向狙击不跨格漏碰",
+          "status": "PASS"
+        },
+        {
+          "detail": "密集格最大占用真实报告≥40；碰撞位置分离后剩余能量+已消耗严格等于40",
+          "metrics": {
+            "consumed_delta": 40,
+            "max_cell_occupancy": 40,
+            "remaining": 0
+          },
+          "name": "同格40颗敌我粒子无32颗截断",
+          "status": "PASS"
+        },
+        {
+          "detail": "盾2对球10，破盾仍存活；大球立即分离并反射",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 172.909378051758,
+                "contact_mask": 0,
+                "energy": 8,
+                "id": 0,
+                "radius": 7.64529323577881,
+                "team": 1,
+                "type": 3,
+                "vx": 60.0,
+                "vy": 0.0,
+                "x": 280.096710205078,
+                "y": 256.0
+              }
+            ],
+            "defender": {
+              "alive": true,
+              "core_radius": 12.0,
+              "death_nonce": 0,
+              "gun": 0,
+              "gun_angle": 0.155833333730698,
+              "pending": false,
+              "ready_time": 0.0,
+              "request_nonce": 0,
+              "rescue_cd": 0.0,
+              "shield": 0,
+              "shield_radius": 0.0,
+              "sniper": 0,
+              "state": 0,
+              "storm": 0,
+              "team": 0,
+              "x": 256.0,
+              "y": 256.0
+            }
+          },
+          "name": "破盾同一次大球接触不能致死",
+          "status": "PASS"
+        },
+        {
+          "detail": "分离后8个固定步，剩余8点且核心仍存活",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 172.909378051758,
+                "contact_mask": 0,
+                "energy": 8,
+                "id": 0,
+                "radius": 7.64529323577881,
+                "team": 1,
+                "type": 3,
+                "vx": 60.0,
+                "vy": 0.0,
+                "x": 284.096710205078,
+                "y": 256.0
+              }
+            ]
+          },
+          "name": "大球破盾后不粘连或重复扣能量",
+          "status": "PASS"
+        },
+        {
+          "detail": "两核各3个攻击仍进入唯一PENDING_RESCUE，不先行死亡",
+          "metrics": {
+            "teams": [
+              {
+                "alive": true,
+                "core_radius": 12.0,
+                "death_nonce": 0,
+                "gun": 0,
+                "gun_angle": 0.283333212137222,
+                "pending": true,
+                "ready_time": 0.0,
+                "request_nonce": 1,
+                "rescue_cd": 0.0,
+                "shield": 0,
+                "shield_radius": 0.0,
+                "sniper": 0,
+                "state": 1,
+                "storm": 0,
+                "team": 0,
+                "x": 256.0,
+                "y": 256.0
+              },
+              {
+                "alive": true,
+                "core_radius": 12.0,
+                "death_nonce": 0,
+                "gun": 0,
+                "gun_angle": 1.854128241539,
+                "pending": true,
+                "ready_time": 0.0,
+                "request_nonce": 1,
+                "rescue_cd": 0.0,
+                "shield": 0,
+                "shield_radius": 0.0,
+                "sniper": 0,
+                "state": 1,
+                "storm": 0,
+                "team": 1,
+                "x": 768.0,
+                "y": 256.0
+              },
+              {
+                "alive": true,
+                "core_radius": 12.0,
+                "death_nonce": 0,
+                "gun": 0,
+                "gun_angle": 3.42492938041687,
+                "pending": false,
+                "ready_time": 0.0,
+                "request_nonce": 0,
+                "rescue_cd": 0.0,
+                "shield": 0,
+                "shield_radius": 0.0,
+                "sniper": 0,
+                "state": 0,
+                "storm": 0,
+                "team": 2,
+                "x": 256.0,
+                "y": 768.0
+              },
+              {
+                "alive": true,
+                "core_radius": 12.0,
+                "death_nonce": 0,
+                "gun": 0,
+                "gun_angle": 4.99572563171387,
+                "pending": false,
+                "ready_time": 0.0,
+                "request_nonce": 0,
+                "rescue_cd": 0.0,
+                "shield": 0,
+                "shield_radius": 0.0,
+                "sniper": 0,
+                "state": 0,
+                "storm": 0,
+                "team": 3,
+                "x": 768.0,
+                "y": 768.0
+              }
+            ]
+          },
+          "name": "同帧多致命命中与多核心保命待定",
+          "status": "PASS"
+        },
+        {
+          "detail": "CPU还未答复时8步仍待定，同核请求nonce只增加一次",
+          "name": "GPU待定事件跨帧锁存",
+          "status": "PASS"
+        },
+        {
+          "detail": "0号队补777并设180模拟秒CD；1号队无球回0才淘汰",
+          "metrics": {
+            "teams": [
+              {
+                "alive": true,
+                "core_radius": 12.0,
+                "death_nonce": 0,
+                "gun": 0,
+                "gun_angle": 0.410833090543747,
+                "pending": false,
+                "ready_time": 180.237503051758,
+                "request_nonce": 1,
+                "rescue_cd": 179.995836392045,
+                "shield": 777,
+                "shield_radius": 16.8919906616211,
+                "sniper": 0,
+                "state": 0,
+                "storm": 0,
+                "team": 0,
+                "x": 256.0,
+                "y": 256.0
+              },
+              {
+                "alive": false,
+                "core_radius": 12.0,
+                "death_nonce": 1,
+                "gun": 0,
+                "gun_angle": 1.98162758350372,
+                "pending": false,
+                "ready_time": 0.0,
+                "request_nonce": 1,
+                "rescue_cd": 0.0,
+                "shield": 0,
+                "shield_radius": 0.0,
+                "sniper": 0,
+                "state": 2,
+                "storm": 0,
+                "team": 1,
+                "x": 768.0,
+                "y": 256.0
+              },
+              {
+                "alive": true,
+                "core_radius": 12.0,
+                "death_nonce": 0,
+                "gun": 0,
+                "gun_angle": 3.5524308681488,
+                "pending": false,
+                "ready_time": 0.0,
+                "request_nonce": 0,
+                "rescue_cd": 0.0,
+                "shield": 0,
+                "shield_radius": 0.0,
+                "sniper": 0,
+                "state": 0,
+                "storm": 0,
+                "team": 2,
+                "x": 256.0,
+                "y": 768.0
+              },
+              {
+                "alive": true,
+                "core_radius": 12.0,
+                "death_nonce": 0,
+                "gun": 0,
+                "gun_angle": 5.1232271194458,
+                "pending": false,
+                "ready_time": 0.0,
+                "request_nonce": 0,
+                "rescue_cd": 0.0,
+                "shield": 0,
+                "shield_radius": 0.0,
+                "sniper": 0,
+                "state": 0,
+                "storm": 0,
+                "team": 3,
+                "x": 768.0,
+                "y": 768.0
+              }
+            ]
+          },
+          "name": "正式保命握手成功补盾与失败淘汰",
+          "status": "PASS"
+        },
+        {
+          "detail": "已死亡队再补盾命令被拒绝",
+          "name": "淘汰核心不可通过护盾输出复活",
+          "status": "PASS"
+        },
+        {
+          "detail": "无盾+CD未就绪不再抽球；11机枪库存转死亡风暴（可已发射）+1入侵粒子严格守恒",
+          "metrics": {
+            "accounted_energy": 12,
+            "consumed_delta": 8,
+            "particles": [
+              {
+                "birth_scale": 294.425018310547,
+                "contact_mask": 0,
+                "energy": 1,
+                "id": 0,
+                "radius": 1.39999997615814,
+                "team": 1,
+                "type": 1,
+                "vx": 0.0,
+                "vy": 0.0,
+                "x": 269.480010986328,
+                "y": 256.0
+              },
+              {
+                "birth_scale": 315.256225585938,
+                "contact_mask": 0,
+                "energy": 1,
+                "id": 9,
+                "radius": 1.39999997615814,
+                "team": 0,
+                "type": 1,
+                "vx": 131.505035400391,
+                "vy": 48.0252456665039,
+                "x": 271.952819824219,
+                "y": 261.825927734375
+              },
+              {
+                "birth_scale": 315.256225585938,
+                "contact_mask": 0,
+                "energy": 1,
+                "id": 10,
+                "radius": 1.39999997615814,
+                "team": 0,
+                "type": 1,
+                "vx": -129.408309936523,
+                "vy": 53.4180717468262,
+                "x": 240.301544189453,
+                "y": 262.480102539062
+              },
+              {
+                "birth_scale": 315.256225585938,
+                "contact_mask": 0,
+                "energy": 1,
+                "id": 11,
+                "radius": 1.39999997615814,
+                "team": 0,
+                "type": 1,
+                "vx": 59.3382568359375,
+                "vy": -126.802886962891,
+                "x": 263.198303222656,
+                "y": 240.617599487305
+              }
+            ],
+            "team": {
+              "alive": false,
+              "core_radius": 12.0,
+              "death_nonce": 1,
+              "gun": 0,
+              "gun_angle": 0.439166396856308,
+              "pending": false,
+              "ready_time": 180.237503051758,
+              "request_nonce": 1,
+              "rescue_cd": 179.979169726372,
+              "shield": 0,
+              "shield_radius": 0.0,
+              "sniper": 0,
+              "state": 2,
+              "storm": 0,
+              "team": 0,
+              "x": 256.0,
+              "y": 256.0
+            }
+          },
+          "name": "保命CD中再致命必须淘汰并释放枪库存",
+          "status": "PASS"
+        },
+        {
+          "detail": "GPU已有唯一23护盾后，旧resolve0不能再杀核心",
+          "metrics": {
+            "team": {
+              "alive": true,
+              "core_radius": 12.0,
+              "death_nonce": 1,
+              "gun": 0,
+              "gun_angle": 0.48166635632515,
+              "pending": false,
+              "ready_time": 0.0,
+              "request_nonce": 2,
+              "rescue_cd": 0.0,
+              "shield": 23,
+              "shield_radius": 16.1534671783447,
+              "sniper": 0,
+              "state": 0,
+              "storm": 0,
+              "team": 0,
+              "x": 256.0,
+              "y": 256.0
+            }
+          },
+          "name": "待保命期间补盾抵挡迟到的失败回复",
+          "status": "PASS"
+        },
+        {
+          "detail": "实际GPU球-球碰撞速度互换，能量保留80",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 339.559356689453,
+                "contact_mask": 0,
+                "energy": 40,
+                "id": 0,
+                "radius": 8.02965927124023,
+                "team": 0,
+                "type": 3,
+                "vx": -10.0,
+                "vy": 0.0,
+                "x": 99.9186782836914,
+                "y": 100.0
+              },
+              {
+                "birth_scale": 339.559356689453,
+                "contact_mask": 0,
+                "energy": 40,
+                "id": 1,
+                "radius": 8.02965927124023,
+                "team": 0,
+                "type": 3,
+                "vx": 10.0,
+                "vy": 0.0,
+                "x": 116.081321716309,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "同阵营大球实体碰撞无损耗",
+          "status": "PASS"
+        },
+        {
+          "detail": "40对10剩30，敌球消失",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 346.503143310547,
+                "contact_mask": 0,
+                "energy": 30,
+                "id": 0,
+                "radius": 7.88273096084595,
+                "team": 0,
+                "type": 3,
+                "vx": 2.0,
+                "vy": 0.0,
+                "x": 99.9235458374023,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "异阵营大球等量抵消",
+          "status": "PASS"
+        },
+        {
+          "detail": "大球40变39且获得非零真实冲量",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 353.446868896484,
+                "contact_mask": 0,
+                "energy": 39,
+                "id": 0,
+                "radius": 7.99653244018555,
+                "team": 0,
+                "type": 3,
+                "vx": -9.7560977935791,
+                "vy": 0.0,
+                "x": 99.904167175293,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "普通粒子等消并推动大球",
+          "status": "PASS"
+        },
+        {
+          "detail": "输出2严格等于实际在场粒子+未发库存，不得强制生成8颗",
+          "metrics": {
+            "particles": [
+              {
+                "birth_scale": 360.390655517578,
+                "contact_mask": 0,
+                "energy": 1,
+                "id": 0,
+                "radius": 1.39999997615814,
+                "team": 0,
+                "type": 1,
+                "vx": 41.8999366760254,
+                "vy": 133.582916259766,
+                "x": 261.257446289062,
+                "y": 272.761505126953
+              },
+              {
+                "birth_scale": 360.390655517578,
+                "contact_mask": 0,
+                "energy": 1,
+                "id": 1,
+                "radius": 1.39999997615814,
+                "team": 0,
+                "type": 1,
+                "vx": -121.129676818848,
+                "vy": -70.1968765258789,
+                "x": 240.801116943359,
+                "y": 247.191970825195
+              }
+            ],
+            "storm_remaining": 0
+          },
+          "name": "风暴小额输出不凭空增能",
+          "status": "PASS"
+        },
+        {
+          "detail": "17仅补唯一护盾，19仅补机枪，未共享至即时武器",
+          "name": "护盾与机枪输出独立库存",
+          "status": "PASS"
+        },
+        {
+          "detail": "普通大球/狙击/风暴均拒绝，与明确标记的死亡余波区分",
+          "name": "死队普通即时武器不能继续生产",
+          "status": "PASS"
+        },
+        {
+          "detail": "真实GPU收到death_balls标记，4颗球总能量严格30",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 388.165649414062,
+                "contact_mask": 0,
+                "energy": 2,
+                "id": 0,
+                "radius": 7.21534156799316,
+                "team": 0,
+                "type": 3,
+                "vx": 23.0900745391846,
+                "vy": -35.0834503173828,
+                "x": 256.025299072266,
+                "y": 255.955276489258
+              },
+              {
+                "birth_scale": 388.165649414062,
+                "contact_mask": 0,
+                "energy": 4,
+                "id": 1,
+                "radius": 7.30453872680664,
+                "team": 0,
+                "type": 3,
+                "vx": 23.0900745391846,
+                "vy": -35.0834503173828,
+                "x": 260.121002197266,
+                "y": 249.744110107422
+              },
+              {
+                "birth_scale": 388.165649414062,
+                "contact_mask": 0,
+                "energy": 8,
+                "id": 2,
+                "radius": 7.43068313598633,
+                "team": 0,
+                "type": 3,
+                "vx": 23.0900745391846,
+                "vy": -35.0834503173828,
+                "x": 265.489593505859,
+                "y": 241.579010009766
+              },
+              {
+                "birth_scale": 388.165649414062,
+                "contact_mask": 0,
+                "energy": 16,
+                "id": 3,
+                "radius": 7.60907745361328,
+                "team": 0,
+                "type": 3,
+                "vx": 23.0900745391846,
+                "vy": -35.0834503173828,
+                "x": 273.770263671875,
+                "y": 229.000198364258
+              }
+            ]
+          },
+          "name": "死亡余波标记允许四球且核心不复活",
+          "status": "PASS"
+        },
+        {
+          "detail": "即使新发射是精确模式，旧8点包还在时遥测显示mixed，界面说明存量近似",
+          "name": "存量能量包仍在时不冒称逐粒子精确",
+          "status": "PASS"
+        },
+        {
+          "detail": "真实64大球占满，下一大球仍积压；独立优先补盾37照常到唯一GPU护盾",
+          "metrics": {
+            "active_balls": 64,
+            "ring_backlog": 1,
+            "shield": 37
+          },
+          "name": "大球槽满时补盾不受发射队列阻塞",
+          "status": "PASS"
+        }
+      ],
+      "engine_errors": [],
+      "log": "/workspace/chromatic-wars/artifacts/tests/20261016T054123164487Z/gpu.log",
+      "returncode": 0,
+      "elapsed_seconds": 13.305,
+      "timed_out": false
+    }
+  ],
+  "seed": 20261016,
+  "duration_sim_seconds": 1200,
+  "host": {
+    "platform": "linux"
+  },
+  "godot": "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+  "status": "PASS"
+}

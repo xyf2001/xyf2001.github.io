@@ -1,0 +1,11 @@
+test_failed_assertion_wins (test_runner.ResultIntegrityTests.test_failed_assertion_wins) ... ok
+test_no_assertions_is_failure (test_runner.ResultIntegrityTests.test_no_assertions_is_failure) ... ok
+test_process_error_cannot_pass (test_runner.ResultIntegrityTests.test_process_error_cannot_pass) ... ok
+test_skipped_does_not_become_pass (test_runner.ResultIntegrityTests.test_skipped_does_not_become_pass) ... ok
+test_structured_result_only (test_runner.ResultIntegrityTests.test_structured_result_only) ... ok
+test_timeout_cannot_pass (test_runner.ResultIntegrityTests.test_timeout_cannot_pass) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.000s
+
+OK

@@ -1,0 +1,175 @@
+extends SceneTree
+## 仅供自动测试。逐项原始记录以 CHROMATIC_TEST JSON 输出，禁止把未执行项目当 PASS。
+
+var failures: int = 0
+var passes: int = 0
+var untested: int = 0
+var options: Dictionary = {}
+
+func _initialize() -> void:
+	var argv := OS.get_cmdline_user_args()
+	var i := 0
+	while i + 1 < argv.size():
+		options[argv[i].trim_prefix("--")] = argv[i + 1]
+		i += 2
+	call_deferred("run_suite")
+
+func record(status: String, case_name: String, detail: String = "", metrics: Dictionary = {}) -> void:
+	if status == "PASS":
+		passes += 1
+	elif status == "FAIL":
+		failures += 1
+	else:
+		untested += 1
+	var data := {"status": status, "name": case_name, "detail": detail}
+	if not metrics.is_empty():
+		data["metrics"] = metrics
+	print("CHROMATIC_TEST " + JSON.stringify(data))
+
+func check(condition: bool, case_name: String, detail: String = "", metrics: Dictionary = {}) -> bool:
+	record("PASS" if condition else "FAIL", case_name, detail, metrics)
+	return condition
+
+func finish() -> void:
+	print("测试完成：PASS=%d FAIL=%d NOT TESTED=%d" % [passes, failures, untested])
+	quit(1 if failures > 0 or passes == 0 and untested == 0 else (77 if untested > 0 else 0))
+
+
+## 正式物理步回归：下方逆入、墙体接缝、正常入口与中央通路。
+const Pinball = preload("res://scripts/pinball_physics.gd")
+const Channels = preload("res://scripts/multiplier_channels.gd")
+
+func _fixture():
+	var pinball = Pinball.new()
+	root.add_child(pinball)
+	pinball.reset(20261016)
+	pinball.configure({"air_force": 0.0, "air_spread": 0.0})
+	pinball.pegs.clear()
+	pinball.balls.resize(1)
+	return pinball
+
+func _reverse_case(x: float, radius: float, speed: float) -> Dictionary:
+	var pinball = _fixture()
+	var ball: Dictionary = pinball.balls[0]
+	ball["r"] = radius
+	ball["mass"] = radius * radius
+	ball["p"] = Vector2(x, 458.0 + radius + 12.0)
+	ball["v"] = Vector2(0.0, -speed)
+	var bounced := false
+	var valid := true
+	for index in range(30):
+		pinball.step(1.0 / 120.0, float(index + 1) / 120.0)
+		valid = valid and pinball.multiplier_events == 0 and int(ball["loops"]) == 0
+		valid = valid and float(ball["value"]) == 2.0 and Vector2(ball["p"]).y >= 458.0 + radius - 0.01
+		if not valid:
+			break
+		if Vector2(ball["v"]).y > 0.0:
+			bounced = true
+			break
+	var result := {"valid": valid and bounced, "x": x, "radius": radius, "speed": speed,
+		"position": str(ball["p"]), "velocity": str(ball["v"]), "multipliers": pinball.multiplier_events}
+	pinball.free()
+	return result
+
+func run_suite() -> void:
+	for channel in [0, 1, 2, 4, 5, 6]:
+		var bounds: Vector2 = Channels.new().clear_bounds(channel)
+		var valid := true
+		var failed_cases: Array = []
+		var cases := 0
+		for radius in [4.2, 12.0, 36.0, 40.0]:
+			for speed in [300.0, 3000.0, 12000.0]:
+				for fraction in [0.01, 0.5, 0.99]:
+					var result := _reverse_case(lerpf(bounds.x, bounds.y, fraction), radius, speed)
+					cases += 1
+					if not bool(result["valid"]):
+						valid = false
+						failed_cases.append(result)
+		check(valid, "倍率槽%d下方逆入被实体墙阻挡" % channel,
+			"36组：四种半径、三种上冲速度、槽中及两端；必须向下反弹、保留弹药、不触发倍率/顶部重生",
+			{"cases": cases, "failed_cases": failed_cases})
+	for divider in range(1, 7):
+		var result := _reverse_case(Channels.CUTS[divider], 4.2, 3000.0)
+		check(bool(result["valid"]), "隔板%d与底墙接缝不漏球" % divider, "从连接处正下方高速上冲", result)
+	_test_pair_pressure()
+	for channel in [0, 1, 2, 4, 5, 6]:
+		var pinball = _fixture()
+		var ball: Dictionary = pinball.balls[0]
+		var bounds: Vector2 = pinball.channels.clear_bounds(channel)
+		ball["p"] = Vector2((bounds.x + bounds.y) * 0.5, Channels.MOUTH_Y - 8.0)
+		ball["v"] = Vector2(0.0, 300.0)
+		for index in range(30):
+			pinball.step(1.0 / 120.0, float(index + 1) / 120.0)
+			if pinball.multiplier_events > 0:
+				break
+		check(pinball.multiplier_events == 1 and int(ball["loops"]) == 1
+			and float(ball["value"]) == 2.0 * Channels.MULTIPLIERS[channel] and Vector2(ball["p"]).y < 150.0,
+			"倍率槽%d从上方进入仍正常加倍重生" % channel, "实际积分到入口，核对倍率、触发次数与顶部位置")
+		pinball.free()
+	for radius in [4.2, 36.0, 40.0]:
+		var pinball = _fixture()
+		var ball: Dictionary = pinball.balls[0]
+		ball["r"] = radius
+		ball["mass"] = radius * radius
+		ball["p"] = Vector2(240.0, 400.0)
+		ball["v"] = Vector2(0.0, 400.0)
+		for index in range(30):
+			pinball.step(1.0 / 120.0, float(index + 1) / 120.0)
+		check(Vector2(ball["p"]).y - radius > 458.0 and Vector2(ball["v"]).y > 0.0
+			and pinball.contact_events == 0 and pinball.multiplier_events == 0,
+			"中央通路半径%.1f球正常下落" % radius, "移除测试夹具气流和柱子，仅验证新增底墙未封闭中央通路")
+		pinball.free()
+	finish()
+
+func _test_pair_pressure() -> void:
+	# 保留默认柱子与气流；两球开始时无重叠，由真实运动产生挤压。
+	for channel in [0, 1, 2, 4, 5, 6]:
+		var bounds: Vector2 = Channels.new().clear_bounds(channel)
+		var valid := true
+		var failed_cases: Array = []
+		var cases := 0
+		var normal_top_entries := 0
+		for fraction in [0.15, 0.5, 0.85]:
+			for large_radius in [24.0, 36.0, 40.0]:
+				for speed in [600.0, 3000.0, 12000.0]:
+					for small_speed in [0.0, -200.0]:
+						var pinball = Pinball.new()
+						root.add_child(pinball)
+						pinball.reset(20261016)
+						pinball.radius_max = maxf(pinball.radius_max, large_radius)
+						pinball.balls.resize(2)
+						var small: Dictionary = pinball.balls[0]
+						var large: Dictionary = pinball.balls[1]
+						var observed: Dictionary = {"reverse": false, "normal_top_entry": false}
+						pinball.trigger_log.connect(func(data: Dictionary) -> void:
+							if data.get("type", "") != "multiplier" or int(data.get("ball_id", -1)) != 0:
+								return
+							# 高速球可以从中央绕回上方；入口附近向下入槽属于合法倍率。
+							var p: Vector2 = small["p"]
+							var v: Vector2 = small["v"]
+							var from_top: bool = v.y > 0.0 and p.y - float(small["r"]) < Channels.MOUTH_Y + 8.0
+							observed["normal_top_entry"] = from_top
+							observed["reverse"] = not from_top
+						)
+						var x := lerpf(bounds.x + 4.2, bounds.y - 4.2, fraction)
+						small["p"] = Vector2(x, 462.4)
+						small["v"] = Vector2(0.0, small_speed)
+						large["value"] = 100.0 * (1.0 + pow((large_radius - 4.2) / 3.0, 2.0))
+						pinball._update_radius(large)
+						large["p"] = Vector2(clampf(x, 16.0 + large_radius, 464.0 - large_radius), 575.0)
+						large["v"] = Vector2(0.0, -speed)
+						for index in range(24):
+							pinball.step(1.0 / 120.0, float(index + 1) / 120.0)
+							if bool(observed["reverse"]):
+								valid = false
+								failed_cases.append({"x": x, "large_radius": large_radius, "speed": speed, "small_speed": small_speed})
+								break
+							if bool(observed["normal_top_entry"]) or int(small["outputs"]) > 0:
+								break
+						if bool(observed["normal_top_entry"]):
+							normal_top_entries += 1
+						cases += 1
+						pinball.free()
+		check(valid, "倍率槽%d大球挤压不将小球推出底墙另一侧" % channel,
+			"54组真实两球挤压：默认柱子/气流，无初始重叠，拒绝逆入；正常从入口向下进入允许倍率，底部输出后结束夹具",
+			{"cases": cases, "normal_top_entries": normal_top_entries, "failed_cases": failed_cases})

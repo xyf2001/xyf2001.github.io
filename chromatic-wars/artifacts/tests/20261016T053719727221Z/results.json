@@ -1,0 +1,30 @@
+{
+  "started_utc": "20261016T053719727221Z",
+  "project": "/workspace/chromatic-wars",
+  "suites": [
+    {
+      "name": "battle",
+      "status": "FAIL",
+      "reason": "Godot 退出码 -15",
+      "results": [
+        {
+          "detail": "",
+          "name": "长局GPU启动",
+          "status": "PASS"
+        }
+      ],
+      "engine_errors": [],
+      "log": "/workspace/chromatic-wars/artifacts/tests/20261016T053719727221Z/battle.log",
+      "returncode": -15,
+      "elapsed_seconds": 942.782,
+      "timed_out": false
+    }
+  ],
+  "seed": 20261016,
+  "duration_sim_seconds": 1200.0,
+  "host": {
+    "platform": "linux"
+  },
+  "godot": "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+  "status": "FAIL"
+}

@@ -1,0 +1,6 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PROFILE pinball {"error":"","multipliers":404,"outputs":56,"sim_seconds":60,"substep_counts":{"3":118,"4":595,"5":786,"6":1043,"7":926,"8":683,"9":613,"10":734,"11":589,"12":223,"13":370,"14":221,"15":140,"16":74,"17":37,"18":28,"19":16,"20":2,"21":2},"times":{"max_us":34818.0,"mean_us":1857.36319444444,"n":7200,"p50_us":1719.0,"p95_us":3216.0,"p99_us":4128.0},"wall_sec":13.40886}
+PROFILE snapshot {"max_us":131.0,"mean_us":50.58,"n":1000,"p50_us":49.0,"p95_us":67.0,"p99_us":80.0}
+PROFILE ui_hidden_details {"max_us":907.0,"mean_us":201.314,"n":1000,"p50_us":193.0,"p95_us":232.0,"p99_us":298.0}
+PROFILE ui_visible_details {"max_us":2762.0,"mean_us":205.031,"n":1000,"p50_us":194.0,"p95_us":240.0,"p99_us":335.0}

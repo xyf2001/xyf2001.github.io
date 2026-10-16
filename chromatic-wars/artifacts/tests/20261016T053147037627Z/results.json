@@ -1,0 +1,172 @@
+{
+  "started_utc": "20261016T053147037627Z",
+  "project": "/workspace/chromatic-wars",
+  "suites": [
+    {
+      "name": "battle",
+      "status": "PASS",
+      "reason": "实际通过 2 项断言",
+      "results": [
+        {
+          "detail": "",
+          "name": "长局GPU启动",
+          "status": "PASS"
+        },
+        {
+          "detail": "固定步长、真实弹球输出、GPU保命与死亡余波；仅声明当前明确配置及实际时长",
+          "metrics": {
+            "capacity": 64,
+            "deaths": 0,
+            "gpu": {
+              "active_packet_energy": 13914,
+              "active_particles": 64,
+              "balls": [
+                {
+                  "birth_scale": 20212.572265625,
+                  "contact_mask": 0,
+                  "energy": 28613,
+                  "id": 5,
+                  "radius": 10.569375038147,
+                  "team": 0,
+                  "type": 3,
+                  "vx": -37.8307800292969,
+                  "vy": 93.3922805786133,
+                  "x": 737.463928222656,
+                  "y": 449.341888427734
+                }
+              ],
+              "big_balls": 1,
+              "captures": 6407,
+              "collisions": 50,
+              "command_head": 18,
+              "command_ring_occupancy": 0,
+              "consumed_energy": 43189,
+              "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+              "gpu_ms": 20.712713,
+              "grid_size": 64,
+              "max_cell_occupancy": 2,
+              "memory_mb": 0.6190185546875,
+              "overflow_count": 0,
+              "packet_energy": 4096,
+              "packing_count": 538,
+              "packing_ratio": 0.890625,
+              "particle_capacity": 64,
+              "precision_mode": "packed",
+              "queue_commands": 0,
+              "queue_energy": 270338.0,
+              "sim_time": 30.0,
+              "step": 7200,
+              "teams": [
+                {
+                  "alive": true,
+                  "core_radius": 12.0,
+                  "death_nonce": 0,
+                  "gun": 1022974,
+                  "gun_angle": 5.05216979980469,
+                  "pending": false,
+                  "ready_time": 0.0,
+                  "request_nonce": 0,
+                  "rescue_cd": 0.0,
+                  "shield": 1524787,
+                  "shield_radius": 55.5143241882324,
+                  "sniper": 0,
+                  "state": 0,
+                  "storm": 0,
+                  "team": 0,
+                  "territory": 0.308837890625,
+                  "x": 256.0,
+                  "y": 256.0
+                },
+                {
+                  "alive": true,
+                  "core_radius": 12.0,
+                  "death_nonce": 0,
+                  "gun": 998374,
+                  "gun_angle": 2.99977493286133,
+                  "pending": false,
+                  "ready_time": 0.0,
+                  "request_nonce": 0,
+                  "rescue_cd": 0.0,
+                  "shield": 991965,
+                  "shield_radius": 47.8711814880371,
+                  "sniper": 253952,
+                  "state": 0,
+                  "storm": 0,
+                  "team": 1,
+                  "territory": 0.212646484375,
+                  "x": 768.0,
+                  "y": 256.0
+                },
+                {
+                  "alive": true,
+                  "core_radius": 12.0,
+                  "death_nonce": 0,
+                  "gun": 998238,
+                  "gun_angle": 6.09053611755371,
+                  "pending": false,
+                  "ready_time": 0.0,
+                  "request_nonce": 0,
+                  "rescue_cd": 0.0,
+                  "shield": 995473,
+                  "shield_radius": 47.9274864196777,
+                  "sniper": 0,
+                  "state": 0,
+                  "storm": 2,
+                  "team": 2,
+                  "territory": 0.25048828125,
+                  "x": 256.0,
+                  "y": 768.0
+                },
+                {
+                  "alive": true,
+                  "core_radius": 12.0,
+                  "death_nonce": 0,
+                  "gun": 998744,
+                  "gun_angle": 4.24133968353271,
+                  "pending": false,
+                  "ready_time": 0.0,
+                  "request_nonce": 0,
+                  "rescue_cd": 0.0,
+                  "shield": 1130789,
+                  "shield_radius": 50.0283393859863,
+                  "sniper": 0,
+                  "state": 0,
+                  "storm": 16384,
+                  "team": 3,
+                  "territory": 0.22802734375,
+                  "x": 768.0,
+                  "y": 768.0
+                }
+              ]
+            },
+            "gpu_sim_seconds": 30.0,
+            "grid": 64,
+            "mode": "小规模能量包长局",
+            "observed_fps": 11.9760479041916,
+            "outputs": 34,
+            "packet_energy": 4096,
+            "pinball_active": 16,
+            "rescues": 0,
+            "seed": 20261016,
+            "sim_seconds": 29.9999999999989,
+            "wall_seconds": 39.579
+          },
+          "name": "左右两系统完整时长运行",
+          "status": "PASS"
+        }
+      ],
+      "engine_errors": [],
+      "log": "/workspace/chromatic-wars/artifacts/tests/20261016T053147037627Z/battle.log",
+      "returncode": 0,
+      "elapsed_seconds": 50.569,
+      "timed_out": false
+    }
+  ],
+  "seed": 20261016,
+  "duration_sim_seconds": 30.0,
+  "host": {
+    "platform": "linux"
+  },
+  "godot": "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+  "status": "PASS"
+}

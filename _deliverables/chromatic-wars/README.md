@@ -2,6 +2,7 @@
 
 - [Windows版下载](ChromaticWars-Windows-x64-Air-Aim.zip)：解压后运行`颜色大战.exe`。
 - [Godot源码下载](ChromaticWars-Godot-Source-Air-Aim.zip)：Godot 4.6.3可编辑工程。
+- [完整源码目录](../../chromatic-wars/)：与当前1.4.3源码包逐文件一致，便于直接审阅、编辑和版本管理。
 
 本版修改：
 

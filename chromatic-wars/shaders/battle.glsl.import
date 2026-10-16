@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://bpg3fllc0gmt7"
+path="res://.godot/imported/battle.glsl-9d2f7851957c9c5b9ee436ba676a3aeb.res"
+
+[deps]
+
+source_file="res://shaders/battle.glsl"
+dest_files=["res://.godot/imported/battle.glsl-9d2f7851957c9c5b9ee436ba676a3aeb.res"]
+
+[params]
+
