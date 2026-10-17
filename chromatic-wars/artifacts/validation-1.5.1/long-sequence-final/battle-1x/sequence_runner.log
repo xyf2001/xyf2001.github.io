@@ -1,0 +1,3 @@
+正在运行 battle，截止 14700 秒；日志：/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/long-sequence-final/battle-1x/battle.log
+PASS：battle：实际通过 6 项断言
+PASS：结果已写入 /workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/long-sequence-final/battle-1x

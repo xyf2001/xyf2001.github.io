@@ -1,0 +1,12 @@
+命令：taskset -c 0-3 /opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64 --path /workspace/xyf2001.github.io/chromatic-wars --rendering-method forward_plus --rendering-driver vulkan --audio-driver Dummy --editor --import --quit
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+Vulkan 1.4.305 - Forward+ - Using Device #0: Unknown - llvmpipe (LLVM 19.1.7, 256 bits)
+
+SCRIPT ERROR: Parse Error: Class "GameSettings" hides a global script class.
+          at: GDScript::reload (res://artifacts/validation-1.5/long-battle-1x-final/frozen_old_parameter_source/scripts/game_settings.gd:1)
+ERROR: Failed to load script "res://artifacts/validation-1.5/long-battle-1x-final/frozen_old_parameter_source/scripts/game_settings.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+SCRIPT ERROR: Parse Error: Class "GPUWorld" hides a global script class.
+          at: GDScript::reload (res://artifacts/validation-1.5/long-battle-1x-final/frozen_old_parameter_source/scripts/gpu_world.gd:1)
+ERROR: Failed to load script "res://artifacts/validation-1.5/long-battle-1x-final/frozen_old_parameter_source/scripts/gpu_world.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)

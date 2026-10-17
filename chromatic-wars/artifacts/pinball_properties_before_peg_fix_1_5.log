@@ -1,0 +1,19 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+CHROMATIC_TEST {"detail":"初速1200游戏单位/模拟秒；仅清除柱子隔离气流行为，不设置弹药输出门禁","metrics":{"deepest_center_y":355.727447509766,"final_position":"(240.0, 115.8011)","final_velocity":"(0.0, -13.49546)","mass":17.6864225646098},"name":"晚生小球E=2惯性下冲后被真实气流托回","status":"PASS"}
+CHROMATIC_TEST {"detail":"初速1200游戏单位/模拟秒；仅清除柱子隔离气流行为，不设置弹药输出门禁","metrics":{"deepest_center_y":365.102966308594,"final_position":"(240.0, 162.6758)","final_velocity":"(0.0, -45.9862)","mass":22.4136457259536},"name":"晚生小球E=2048惯性下冲后被真实气流托回","status":"PASS"}
+CHROMATIC_TEST {"detail":"初速1200游戏单位/模拟秒；仅清除柱子隔离气流行为，不设置弹药输出门禁","metrics":{"deepest_center_y":373.503143310547,"final_position":"(240.0, 194.9909)","final_velocity":"(0.0, -103.9305)","mass":26.2026011176303},"name":"晚生小球E=1048576惯性下冲后被真实气流托回","status":"PASS"}
+CHROMATIC_TEST {"detail":"球半径36，中央通道保持开放，没有改写弹药或使用概率放行","metrics":{"mass":505.835472632852,"position":"(240.0, 674.3346)","radius":36.0,"velocity":"(0.0, 886.1754)"},"name":"成长大球依靠真实质量和惯性突破空气墙","status":"PASS"}
+CHROMATIC_TEST {"detail":"最大2^53−1弹药只进入有界log机械因子，不直接转换为无限质量","metrics":{"maximum_mass":559.914812561642,"minimum_bounce":0.405175949476596},"name":"精确整数上限附近物理质量和弹性仍有界","status":"PASS"}
+CHROMATIC_TEST {"detail":"12组阵营/质量差/切向速度组合；弹药不消耗，软化恢复系数只耗散动能","metrics":{"maximum_kinetic_ratio":0.977328089002063,"maximum_relative_momentum_error":0.000000131591223444398},"name":"左侧同/异色球碰撞保持动量且不凭空增加动能","status":"PASS"}
+CHROMATIC_TEST {"detail":"直径比净宽大1游戏单位；经正式积分/实体接触，非直接调用capture参考","metrics":{"clear_width":37.0,"diameter":38.0,"physical_contacts":19,"target_triggered":false},"name":"倍率槽0实际超宽圆被入口实体拒绝","status":"PASS"}
+CHROMATIC_TEST {"detail":"直径比净宽大1游戏单位；经正式积分/实体接触，非直接调用capture参考","metrics":{"clear_width":47.0,"diameter":48.0,"physical_contacts":11,"target_triggered":false},"name":"倍率槽1实际超宽圆被入口实体拒绝","status":"PASS"}
+CHROMATIC_TEST {"detail":"直径比净宽大1游戏单位；经正式积分/实体接触，非直接调用capture参考","metrics":{"clear_width":67.0,"diameter":68.0,"physical_contacts":19,"target_triggered":false},"name":"倍率槽2实际超宽圆被入口实体拒绝","status":"PASS"}
+CHROMATIC_TEST {"detail":"直径比净宽大1游戏单位；经正式积分/实体接触，非直接调用capture参考","metrics":{"clear_width":67.0,"diameter":68.0,"physical_contacts":19,"target_triggered":false},"name":"倍率槽4实际超宽圆被入口实体拒绝","status":"PASS"}
+CHROMATIC_TEST {"detail":"直径比净宽大1游戏单位；经正式积分/实体接触，非直接调用capture参考","metrics":{"clear_width":47.0,"diameter":48.0,"physical_contacts":10,"target_triggered":false},"name":"倍率槽5实际超宽圆被入口实体拒绝","status":"PASS"}
+CHROMATIC_TEST {"detail":"直径比净宽大1游戏单位；经正式积分/实体接触，非直接调用capture参考","metrics":{"clear_width":37.0,"diameter":38.0,"physical_contacts":19,"target_triggered":false},"name":"倍率槽6实际超宽圆被入口实体拒绝","status":"PASS"}
+CHROMATIC_TEST {"detail":"3.3秒受阻后以82游戏单位/模拟秒恢复下落；旧短窗口包围盒仍小，必须由即时速度取消still判定","metrics":{"position":"(240.0, 248.2)","unstuck_events":0,"velocity":"(0.0, 82.0)"},"name":"静止确认期末已恢复运动不误重发","status":"PASS"}
+CHROMATIC_TEST {"detail":"柱壁和柱间净距至少76游戏单位，大于默认最大球直径72；不改自定义柱","metrics":{"minimum_peg_gap":92.9952392578125,"minimum_wall_gap":36.0,"pegs":15},"name":"默认15柱对最大球保留真实穿行净距","status":"FAIL"}
+CHROMATIC_TEST {"detail":"无初始重叠，从默认柱层上方静止释放，1.2模拟秒内靠重力完整输出原弹药","metrics":{"initial_clearance":6.98407745361328,"output_energy":[],"sim_seconds":1.2,"unstuck_events":0},"name":"最大球left侧柱壁走廊真实下落且无需防卡","status":"FAIL"}
+CHROMATIC_TEST {"detail":"无初始重叠，从默认柱层上方静止释放，1.2模拟秒内靠重力完整输出原弹药","metrics":{"initial_clearance":4.45254516601562,"output_energy":[],"sim_seconds":1.2,"unstuck_events":0},"name":"最大球right侧柱壁走廊真实下落且无需防卡","status":"FAIL"}
+测试完成：PASS=13 FAIL=3 NOT TESTED=0

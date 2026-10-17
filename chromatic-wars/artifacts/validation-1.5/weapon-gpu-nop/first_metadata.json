@@ -1,0 +1,15 @@
+{
+  "started_utc": "2026-10-17T05:02:47.707117+00:00",
+  "run": "first",
+  "device_expected": "llvmpipe LLVM19 software Vulkan; not RTX 5060 Ti",
+  "affinity": "0-3",
+  "LP_NUM_THREADS": 4,
+  "git_commit": "69633f51b06d6d528ef1f30c37371dcffecacb02",
+  "source_sha256": {
+    "shaders/battle.glsl": "b879f4b992c76e4f324a68b3ff076348f0c24f6d512e5b112b0bd4533f9e5356",
+    "scripts/gpu_world.gd": "250d8706288ba5ed039d107fd86d6b36159a2aa3cec7818d21276d3f14de8418",
+    "scripts/game_settings.gd": "f43eeaf3d162a66b1d96e416561d14949da64a2cc986470dd62eb546a3be56c1",
+    "tests/weapon_validation_suite.gd": "41e7a3de0709e4d8567f6ee179492ec9f5f0808d1f70d87b24f59404ad61e803",
+    "tests/gpu_suite.gd": "1f1eef3b0a3b8bc4814b0f0cfd41d04ad30b35bb3a12e45eaf593807828a6e8f"
+  }
+}

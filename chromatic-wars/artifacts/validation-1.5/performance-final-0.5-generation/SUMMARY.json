@@ -1,0 +1,111 @@
+{
+  "frozen_shader_sha256": "6e7eda9ff084d4971432c838ffe8a042d0abcf5ef23d2a21f1c3688feeedc173",
+  "frozen_host_sha256": "37e131f9bc9ce863aae8a6851fe263346e26ba43f06e7062aa99f6b01554bd3d",
+  "hardware": "software Vulkan llvmpipe LLVM19.1.7/256bits; not RTX5060Ti",
+  "performance_scenarios_passed": 47,
+  "groups": [
+    {
+      "path": "scale-current",
+      "samples": 120,
+      "warmup": 10,
+      "profiling": false,
+      "fixture_sha256": "30b4d8a35d16c1f1da2c3cd8eb612f9a083b930b3f490c24684dce48a17269b3",
+      "runs": [
+        {
+          "label": "current",
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "actual_cases": 13,
+          "all_cases_passed": true
+        }
+      ]
+    },
+    {
+      "path": "capacity-uniform140",
+      "samples": 60,
+      "warmup": 10,
+      "profiling": false,
+      "fixture_sha256": "30b4d8a35d16c1f1da2c3cd8eb612f9a083b930b3f490c24684dce48a17269b3",
+      "runs": [
+        {
+          "label": "baseline",
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "actual_cases": 6,
+          "all_cases_passed": true
+        },
+        {
+          "label": "current",
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "actual_cases": 6,
+          "all_cases_passed": true
+        }
+      ]
+    },
+    {
+      "path": "peak-pulses",
+      "samples": 20,
+      "warmup": 3,
+      "profiling": false,
+      "fixture_sha256": "767266159d88801ac505fcb92a9806bb0c53b66993e7f474e3c1a273def3ba53",
+      "runs": [
+        {
+          "label": "baseline",
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "actual_cases": 3,
+          "all_cases_passed": true
+        },
+        {
+          "label": "current",
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "actual_cases": 3,
+          "all_cases_passed": true
+        }
+      ]
+    },
+    {
+      "path": "profile-current",
+      "samples": 12,
+      "warmup": 3,
+      "profiling": true,
+      "fixture_sha256": "30b4d8a35d16c1f1da2c3cd8eb612f9a083b930b3f490c24684dce48a17269b3",
+      "runs": [
+        {
+          "label": "current",
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "actual_cases": 13,
+          "all_cases_passed": true
+        }
+      ]
+    },
+    {
+      "path": "peak-profile-current",
+      "samples": 12,
+      "warmup": 3,
+      "profiling": true,
+      "fixture_sha256": "767266159d88801ac505fcb92a9806bb0c53b66993e7f474e3c1a273def3ba53",
+      "runs": [
+        {
+          "label": "current",
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "actual_cases": 3,
+          "all_cases_passed": true
+        }
+      ]
+    }
+  ],
+  "long_duration_new_rule": "NOT TESTED: awaiting actual main/export/PCK and new independent long run",
+  "sniper_70_30_semantic_object": "PENDING USER CONFIRMATION; current integer split implementation tested"
+}

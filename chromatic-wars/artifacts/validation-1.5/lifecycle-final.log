@@ -1,0 +1,19 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+Vulkan 1.4.305 - Forward+ - Using Device #0: Unknown - llvmpipe (LLVM 19.1.7, 256 bits)
+
+CHROMATIC_TEST {"detail":"","name":"退役夹具GPU启动","status":"PASS"}
+CHROMATIC_TEST {"detail":"实际GPU回读后由测试夹具延迟派发，不伪造GPU数据","metrics":{"pending":13},"name":"真实读回回调处于待归还状态","status":"PASS"}
+WARNING: GPUWorld仍有未完成的读回或资源释放；请等待is_shutdown_complete()后再启动同一对象。
+     at: push_warning (core/variant/variant_utility.cpp:1034)
+     GDScript backtrace (most recent call first):
+         [0] start (res://scripts/gpu_world.gd:135)
+         [1] run_suite (res://tools/lifecycle_smoke.gd:88)
+CHROMATIC_TEST {"detail":"start()只发出明确警告；不创建新一代、不释放原资源、不清空原纹理","metrics":{"generation_after":1,"generation_before":1,"pending":13,"resources_after":16,"resources_before":16},"name":"未归还读回时拒绝复用同一GPUWorld","status":"PASS"}
+CHROMATIC_TEST {"detail":"退役不再依赖固定帧数","name":"旧节点超过8帧仍保留待读回资源","status":"PASS"}
+CHROMATIC_TEST {"detail":"","name":"旧回调未归还时新一代正常启动","status":"PASS"}
+CHROMATIC_TEST {"detail":"","metrics":{"pending":0,"released":true},"name":"最后旧回调归还后确认RD释放","status":"PASS"}
+CHROMATIC_TEST {"detail":"旧回调仅归还pending计数，不产生新的数据/读回工作","metrics":{"events":0,"timestamp_after":1,"timestamp_before":1},"name":"旧代回调不发统计且不读取时间戳","status":"PASS"}
+CHROMATIC_TEST {"detail":"","name":"迟到旧回调不会污染新局核心库存与模拟时间","status":"PASS"}
+CHROMATIC_TEST {"detail":"","name":"旧代GPU资源与回调全部回收","status":"PASS"}
+CHROMATIC_TEST {"detail":"","name":"当前代关闭也获得释放确认","status":"PASS"}
+测试完成：PASS=10 FAIL=0 NOT TESTED=0

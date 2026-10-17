@@ -1,0 +1,50 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1msavepack[22m | Started Packing (102 steps)[39m[0m
+[   1% ] [90m[1msavepack[22m | Storing File: res://BUILD_INFO.json[39m[0m
+[   6% ] [90m[1msavepack[22m | Storing File: res://assets/字体许可.txt[39m[0m
+[  12% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/battle.glsl-9d2f7851957c9c5b9ee436ba676a3aeb.res[39m[0m
+[  12% ] [90m[1msavepack[22m | Storing File: res://shaders/battle.glsl.import[39m[0m
+[  17% ] [90m[1msavepack[22m | Storing File: res://SOURCE_SHA256SUMS.txt[39m[0m
+[  23% ] [90m[1msavepack[22m | Storing File: res://scripts/weapon_conveyor.gdc[39m[0m
+[  28% ] [90m[1msavepack[22m | Storing File: res://scripts/pinball_physics.gdc[39m[0m
+[  33% ] [90m[1msavepack[22m | Storing File: res://scripts/multiplier_channels.gdc[39m[0m
+[  38% ] [90m[1msavepack[22m | Storing File: res://scripts/main.gdc[39m[0m
+[  44% ] [90m[1msavepack[22m | Storing File: res://scripts/gpu_world.gdc[39m[0m
+[  50% ] [90m[1msavepack[22m | Storing File: res://scripts/gpu_render.gdc[39m[0m
+[  55% ] [90m[1msavepack[22m | Storing File: res://scripts/gpu_emitters.gdc[39m[0m
+[  61% ] [90m[1msavepack[22m | Storing File: res://scripts/gpu_collisions.gdc[39m[0m
+[  66% ] [90m[1msavepack[22m | Storing File: res://scripts/game_ui.gdc[39m[0m
+[  71% ] [90m[1msavepack[22m | Storing File: res://scripts/game_settings.gdc[39m[0m
+[  76% ] [90m[1msavepack[22m | Storing File: res://scripts/battle_labels.gdc[39m[0m
+[  82% ] [90m[1msavepack[22m | Storing File: res://scripts/air_curtain.gdc[39m[0m
+[  87% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-3ad5c15c4f3250da0cc7c1af1770d85f-main.scn[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/chinese_ui.otf-c9cf3cbf20cf054ed3ec76ecf1bc24b2.fontdata[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://assets/chinese_ui.otf.import[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/weapon_conveyor.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/pinball_physics.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/multiplier_channels.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/main.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/gpu_world.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/gpu_render.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/gpu_emitters.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/gpu_collisions.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/game_ui.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/game_settings.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/battle_labels.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/air_curtain.gd.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scenes/main.tscn.remap[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://.godot/global_script_class_cache.cfg[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://.godot/uid_cache.bin[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://project.binary[39m[0m
+[92m[ DONE ][39m [1msavepack[22m
+[0m

@@ -1,0 +1,23 @@
+{
+  "files": {
+    "ChromaticWars-Windows-x64-Validated.zip": {
+      "bytes": 49867726,
+      "sha256": "189e548278cb81d6fffe5d6974fc08def0ef8810014a08bbe898a6d0a48d0e96",
+      "original_archive_name": "颜色大战_Windows_x64.zip"
+    },
+    "ChromaticWars-Godot-Source-Validated.zip": {
+      "bytes": 13783381,
+      "sha256": "23d09436b4f6939dacd5bc17b867af7dedaa4c6dc5388b07cc2ad5c6b682ef6d",
+      "original_archive_name": "颜色大战_Godot工程.zip"
+    }
+  },
+  "executable": {
+    "filename": "颜色大战.exe",
+    "bytes": 105478944,
+    "sha256": "751ae0dfdb0b982fed18916cc449e3ba9c8b4a9f3094d611dd7f86d0ac5bd728"
+  },
+  "zip_integrity": "PASS",
+  "release_label": "1.5.1-energy-magazine",
+  "release_validation_status": "PARTIAL",
+  "validation_result": "../../chromatic-wars/artifacts/validation-1.5.1/release_validation.json"
+}

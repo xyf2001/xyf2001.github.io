@@ -1,0 +1,21 @@
+{
+  "purpose": "offline plots of archived measurements; no game or GPU execution",
+  "input_sha256": {
+    "capacity-uniform140/comparison.json": "9f407af89c5314977f7c58700fd38d298a2b1c2380242249d8f78c8660dd56a6",
+    "scale-current/current_matrix.json": "e687d452592594df4733b81a96a0a0d28acaa0fd8a2c0cdb7a52aeea61b8a530",
+    "scale-current/comparison.json": "7b3682d498635255ea7912f48cb23d5781cf49101d4025c7ce31919dfc80cc72"
+  },
+  "generator_sha256": "0f144921bf2f6dbf6a6d1269f0052f5ca7522c5cae37c4b0f4036b32a432a9c7",
+  "matplotlib_version": "3.10.8",
+  "capacity_rows": 12,
+  "scale_rows": 6,
+  "output_sha256": {
+    "active_particle_scaling.csv": "45fab692390a815443ed56ee593843e415fff9798a462c7f828efeeab01ebe7c",
+    "active_particle_scaling.png": "76a92301167e306f99737259da7cf0da2a4ec180ef99aaad390c386113c8e963",
+    "active_particle_scaling.svg": "6397095e3af88c1d11965cc0084d53cb2ffd3f86c2cdaf769de1b1361d6f2be9",
+    "capacity_comparison.csv": "266797a3e0f04077d0aadb10da2834fd4903544b39315dfb3827300dab5ba2fa",
+    "capacity_comparison.png": "b93ba5c2497b4843ec98b1826561f7b4d5beaeb600943bfec415447b37b99309",
+    "capacity_comparison.svg": "7ee636b86e487988796d35fb95a09ba6f8660f344466ce7992b12f456ef3c3ed"
+  },
+  "hardware_note": "llvmpipe software Vulkan; not RTX 5060 Ti performance"
+}

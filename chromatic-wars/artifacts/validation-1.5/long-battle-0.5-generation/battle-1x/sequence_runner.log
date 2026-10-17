@@ -1,0 +1,3 @@
+正在运行 battle，截止 14700 秒；日志：/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5/long-battle-0.5-generation/battle-1x/battle.log
+FAIL：battle：Godot 退出码 -2
+FAIL：结果已写入 /workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5/long-battle-0.5-generation/battle-1x

@@ -1,0 +1,213 @@
+{
+  "started_utc": "20261016T080512402639Z",
+  "project": "/workspace/chromatic-wars",
+  "suites": [
+    {
+      "name": "cpu",
+      "status": "PASS",
+      "reason": "实际通过 19 项断言",
+      "results": [
+        {
+          "detail": "每队4球，数值2、最小物理半径、顶部向上发射",
+          "metrics": {
+            "team_counts": [
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "name": "开局16球与四队对等",
+          "status": "PASS"
+        },
+        {
+          "detail": "1001个时间点对照独立线性公式；端点钳制",
+          "metrics": {
+            "max_error": 0.0
+          },
+          "name": "体积门槛连续线性",
+          "status": "PASS"
+        },
+        {
+          "detail": "模拟时间推进至600秒，原球物理半径和T_birth保持不变",
+          "metrics": {
+            "birth_threshold": 100.0,
+            "radius": 9.39615242270663
+          },
+          "name": "旧球锁定出生门槛",
+          "status": "PASS"
+        },
+        {
+          "detail": "数值重置2，门槛刷新，半径回最小",
+          "metrics": {
+            "birth_threshold": 500052.314583333,
+            "radius": 4.2,
+            "value": 2.0
+          },
+          "name": "完整输出后按当前门槛重生",
+          "status": "PASS"
+        },
+        {
+          "detail": "900000/1000000小于出生门槛；开局400/100已增大",
+          "name": "后期高数值可保持小物理半径",
+          "status": "PASS"
+        },
+        {
+          "detail": "×8最窄、×4其次、×2最宽",
+          "metrics": {
+            "clear_widths": [
+              37.0,
+              47.0,
+              67.0,
+              98.0,
+              67.0,
+              47.0,
+              37.0
+            ]
+          },
+          "name": "倍率实体入口镜像与净宽",
+          "status": "PASS"
+        },
+        {
+          "detail": "逐口检查完整圆过入口才触发、超宽不能触发、中央不是倍率口，独立计数",
+          "name": "六倍率口完整圆即时触发与超宽拒绝",
+          "status": "PASS"
+        },
+        {
+          "detail": "同位置小球净加速度向上，大球净加速度向下",
+          "metrics": {
+            "large_ay": -80.4929733276367,
+            "small_ay": -2950.0
+          },
+          "name": "空气墙按真实半径区分上下推力",
+          "status": "PASS"
+        },
+        {
+          "detail": "倍率外侧与作用高度外没有气流力",
+          "name": "空气墙有真实空间范围",
+          "status": "PASS"
+        },
+        {
+          "detail": "非概率判定，实际积分与实体接触",
+          "metrics": {
+            "position": "(215.7779, 367.6979)",
+            "velocity": "(-34.50809, -432.4998)"
+          },
+          "name": "小球在正式物理步中被推回上方",
+          "status": "PASS"
+        },
+        {
+          "detail": "测试输入覆盖不同落点及相位，独立几何参考；矩形全宽覆盖且循环边界连续",
+          "metrics": {
+            "count": 120,
+            "matches": 120
+          },
+          "name": "120次输送带显示与输出一致",
+          "status": "PASS"
+        },
+        {
+          "detail": "两套累计各120次，固定位置与内容索引独立",
+          "metrics": {
+            "content_counts": [
+              35,
+              17,
+              17,
+              17,
+              17,
+              17
+            ],
+            "position_counts": [
+              21,
+              20,
+              19,
+              18,
+              19,
+              23
+            ]
+          },
+          "name": "底部固定位置与内容分别计数",
+          "status": "PASS"
+        },
+        {
+          "detail": "最大1024转换，只有该球重生并更新出生门槛，剩余三球不动",
+          "metrics": {
+            "rescued": 1024.0
+          },
+          "name": "紧急保命仅抽当前最大弹药球",
+          "status": "PASS"
+        },
+        {
+          "detail": "死亡余波保留四球当前数值；再次抽取为空",
+          "metrics": {
+            "death_balls": [
+              2.0,
+              8.0,
+              64.0,
+              256.0
+            ]
+          },
+          "name": "阵营死亡抽出4球且停止循环",
+          "status": "PASS"
+        },
+        {
+          "detail": "正式冲量解析，相向速度反转且弹药保留",
+          "name": "异色弹药球弹性相撞不消耗",
+          "status": "PASS"
+        },
+        {
+          "detail": "半径平方质量参与真实冲量",
+          "metrics": {
+            "large_mass": 526.01394955964,
+            "small_mass": 17.64
+          },
+          "name": "大球质量更大且碰撞偏移更小",
+          "status": "PASS"
+        },
+        {
+          "detail": "按命令指定模拟时长和两个至多120秒种子；每模拟秒检查球数、边界、有限值及显式故障",
+          "metrics": {
+            "main_sim_seconds": 1200.0,
+            "seeds": [
+              20261016,
+              20261017,
+              20261018
+            ],
+            "wall_seconds": 406.483
+          },
+          "name": "多种子左侧持续模拟16球完整与数值有限",
+          "status": "PASS"
+        },
+        {
+          "detail": "每球均产生倍率或完整输出，任何球连续无进度不得达到120模拟秒",
+          "metrics": {
+            "multiplier_events": 11063,
+            "output_events": 1547,
+            "worst_idle_seconds": 37.0
+          },
+          "name": "多种子实体通道不卡球",
+          "status": "PASS"
+        },
+        {
+          "detail": "记录正式物理触发落点/相位/槽位/输出；与独立坐标夹具日志分开",
+          "metrics": {
+            "physical_outputs": 1547
+          },
+          "name": "至少100次真实物理落槽日志",
+          "status": "PASS"
+        }
+      ],
+      "engine_errors": [],
+      "log": "/workspace/chromatic-wars/artifacts/tests/channel-wall-verified-cpu/cpu.log",
+      "returncode": 0,
+      "elapsed_seconds": 406.885,
+      "timed_out": false
+    }
+  ],
+  "seed": 20261016,
+  "duration_sim_seconds": 1200.0,
+  "host": {
+    "platform": "linux"
+  },
+  "godot": "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+  "status": "PASS"
+}

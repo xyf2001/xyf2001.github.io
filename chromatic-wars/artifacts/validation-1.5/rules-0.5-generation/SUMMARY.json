@@ -1,0 +1,72 @@
+{
+  "created_utc": "2026-10-17T06:17:20.520268+00:00",
+  "status": "PASS",
+  "shader_sha256": "6e7eda9ff084d4971432c838ffe8a042d0abcf5ef23d2a21f1c3688feeedc173",
+  "gpu_world_sha256": "37e131f9bc9ce863aae8a6851fe263346e26ba43f06e7062aa99f6b01554bd3d",
+  "runs": [
+    {
+      "directory": "weapon-gpu-second",
+      "status": "PASS",
+      "sources_unchanged": true,
+      "suites": [
+        {
+          "name": "import",
+          "status": "PASS",
+          "returncode": 0,
+          "assertions": 0
+        },
+        {
+          "name": "weapon_validation",
+          "status": "PASS",
+          "returncode": 0,
+          "assertions": 112
+        }
+      ]
+    },
+    {
+      "directory": "contact-first",
+      "status": "PASS",
+      "sources_unchanged": true,
+      "suites": [
+        {
+          "name": "contact_energy",
+          "status": "PASS",
+          "returncode": 0,
+          "assertions": 27
+        }
+      ]
+    },
+    {
+      "directory": "pool-first",
+      "status": "PASS",
+      "sources_unchanged": true,
+      "suites": [
+        {
+          "name": "pool_integrity",
+          "status": "PASS",
+          "returncode": 0,
+          "assertions": 1
+        }
+      ],
+      "real_pool_checks": 1744,
+      "pool_observations": 42
+    },
+    {
+      "directory": "settings-final",
+      "status": "PASS",
+      "sources_unchanged": true,
+      "suites": [
+        {
+          "name": "settings",
+          "status": "PASS",
+          "returncode": 0,
+          "assertions": 29
+        }
+      ]
+    }
+  ],
+  "historical_failed_first": "weapon-gpu-first (duplicate archived class import, missing effective CD field and local/physical ID test mismatch; raw retained)",
+  "sniper_70_30_semantic_object": "PENDING USER CONFIRMATION; tests verify current1.5 implementation integer conservation, not requested-object semantics",
+  "new_rules_long_duration": "NOT STARTED; oldCD0.08 interrupted runs excluded",
+  "hardware": "llvmpipe software Vulkan; not RTX5060Ti"
+}

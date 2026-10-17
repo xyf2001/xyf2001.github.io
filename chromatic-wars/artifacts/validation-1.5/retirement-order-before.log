@@ -1,0 +1,13 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+Vulkan 1.4.305 - Forward+ - Using Device #0: Unknown - llvmpipe (LLVM 19.1.7, 256 bits)
+
+运行：GPU共享纹理已绑定，未使用整帧CPU回读。
+CHROMATIC_TEST {"detail":"","name":"主场景快速退役夹具启动","status":"PASS"}
+运行：GPU共享纹理已绑定，未使用整帧CPU回读。
+CHROMATIC_GPU_DEVICE llvmpipe (LLVM 19.1.7, 256 bits)
+CHROMATIC_TEST {"detail":"主控不可在world仍指向旧对象时提前结束退役协程","metrics":{"old_states":[{"complete":true,"generation":2,"instance":55465478551,"pending_readbacks":0,"release_confirmed":true,"resource_count":0,"shutting_down":true},{"complete":true,"generation":2,"instance":61454944711,"pending_readbacks":0,"release_confirmed":true,"resource_count":0,"shutting_down":true},{"complete":true,"generation":2,"instance":61840820694,"pending_readbacks":0,"release_confirmed":true,"resource_count":0,"shutting_down":true}],"retired_count":3},"name":"快速重开已释放的旧节点必须从retired移除","status":"FAIL"}
+CHROMATIC_TEST {"detail":"","metrics":{"pending":0,"released":true},"name":"主场景退役夹具资源关闭","status":"PASS"}
+CHROMATIC_TEST {"detail":"","metrics":{"pending":0,"released":true},"name":"主场景退役夹具资源关闭","status":"PASS"}
+CHROMATIC_TEST {"detail":"","metrics":{"pending":0,"released":true},"name":"主场景退役夹具资源关闭","status":"PASS"}
+CHROMATIC_TEST {"detail":"","metrics":{"pending":0,"released":true},"name":"主场景退役夹具资源关闭","status":"PASS"}
+测试完成：PASS=5 FAIL=1 NOT TESTED=0

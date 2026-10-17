@@ -1,0 +1,4 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PACK_ARGS_PROBE ["--script","/tmp/cw_pack_args_probe.gd"]
+PACK_ACTUAL_ARGS_PROBE ["/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64","--headless","--main-pack","/workspace/chromatic-wars/export/颜色大战.exe","--script","/tmp/cw_pack_args_probe.gd"]

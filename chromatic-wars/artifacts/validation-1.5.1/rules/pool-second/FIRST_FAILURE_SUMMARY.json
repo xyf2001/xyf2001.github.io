@@ -1,0 +1,36 @@
+{
+  "status": "FAIL",
+  "diagnosis": "obsolete fixture assumed one territory capture destroys all19energy; new1E-per-cell rule must preserve remaining18",
+  "minimal_fixture": [
+    {
+      "op": 17,
+      "team": 0,
+      "count": 48,
+      "energy": 19,
+      "vx": 17,
+      "vy": 11
+    },
+    {
+      "op": 16,
+      "team": 0
+    },
+    "advance1/120",
+    {
+      "op": 16,
+      "team": 1
+    },
+    "advance1/120"
+  ],
+  "expected_under_current_rules_after_one_hostile_claim": {
+    "live": 48,
+    "energy_per_particle": 18,
+    "energy_total": 864,
+    "consumed_total": 48
+  },
+  "observed_live_after_one_hostile_claim": 48,
+  "observed_energy_after_one_hostile_claim": null,
+  "observed_energy_note": "old pool fixture did not retain sampled energy values in its observations;18/864 are rule-derived expectations to verify in corrected fixture, not a saved measurement",
+  "fixture_expected_live_obsolete": 0,
+  "no_production_change_requested": true,
+  "retain_all_pool_integrity_assertions": true
+}

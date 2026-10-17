@@ -1,0 +1,168 @@
+{
+  "status": "PASS",
+  "metadata": {
+    "started_utc": "2026-10-17T08:00:38.578427+00:00",
+    "command": [
+      "taskset",
+      "-c",
+      "0-3",
+      "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+      "--path",
+      "/workspace/xyf2001.github.io/chromatic-wars",
+      "--rendering-method",
+      "forward_plus",
+      "--rendering-driver",
+      "vulkan",
+      "--audio-driver",
+      "Dummy",
+      "--script",
+      "res://artifacts/validation-1.5.1/rules-area-guard/wall-pair-mechanical-control/probe.gd",
+      "--",
+      "--artifact-dir",
+      "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-mechanical-control"
+    ],
+    "expected_sources": {
+      "shaders/battle.glsl": "c8c1007e7d7fd6b84f6a9b87857dd5e305f25075bfdb8cb94b702a9dd1d136b1",
+      "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007"
+    },
+    "source_sha256_before": {
+      "project.godot": "c1f05ec55e451b741db0492c7fe535adbc8b459e67ed24febc52d6d86315c569",
+      "export_presets.cfg": "7a3eeda24649279bd8db3f9401075cc84bb8705cf9153902ee2c80ffdf7af784",
+      "tests/gpu_suite.gd": "4371202f8b0fd202fdc2f97a1e11b33f7ea9028bb459ae110cb3060c0880ce8d",
+      "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+      "tools/run_tests.py": "90eafab182c27c09f0643304a4bedd0889dfde0ce556331d966bd4a1ac9cd76c",
+      "scripts/air_curtain.gd": "d6ba23a18297100995670d8c3ce52735c374c77ad85199a53259f92f3fde4651",
+      "scripts/battle_labels.gd": "1a6e7c06fb3a81894e85c65c01a63c755c0daf83b605f9657dc21bf3623f5dd9",
+      "scripts/game_settings.gd": "9e59670bf4014fc0145f2cb7cf9d893c9f2170c46d68ee381cd54d8669d97979",
+      "scripts/game_ui.gd": "b106425c739644592f6c669a0d097f78996f60ed7997d48ade6921d6fb4ccb00",
+      "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+      "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+      "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+      "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+      "scripts/main.gd": "91c093ed08f302b7b20b15b4d0d4fb500cbc3efb2f36f5aef7e7cc98aa6fff75",
+      "scripts/multiplier_channels.gd": "e7c4b000d21c581e8bbb5d654475dddd8885223f3347ed9d566a702659bbcc12",
+      "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+      "scripts/weapon_conveyor.gd": "e5ae5376ebe8aba381297aaf4a1a25bb08472195b2bbe3e3b3df13aa8f83eff4",
+      "shaders/battle.glsl": "c8c1007e7d7fd6b84f6a9b87857dd5e305f25075bfdb8cb94b702a9dd1d136b1",
+      "scenes/main.tscn": "546a539b45d22dbd1212db4c311fb0d98eed00d38ba214af6c5633cf15007710"
+    },
+    "probe_sha256": "278d6ca06b1c848512e271dbf073c966203ab0cff78006b44f73fb867231500b",
+    "runner_sha256": "10c1c4b9ab2d2d7efcd9450b44eb776264bd10f186a2cded755d8ab85bcbc9ac",
+    "expected_checks": 4,
+    "physical_scenarios": 1,
+    "environment_overrides": {
+      "DISPLAY": ":99",
+      "VK_ICD_FILENAMES": "/workspace/chromatic-tools/root/usr/share/vulkan/icd.d/lvp_icd.json",
+      "LD_LIBRARY_PATH": "/workspace/chromatic-tools/root/usr/lib/x86_64-linux-gnu",
+      "XDG_RUNTIME_DIR": "/tmp/cw-runtime",
+      "XDG_CACHE_HOME": "/tmp/cw-cache",
+      "XDG_CONFIG_HOME": "/tmp/cw-config",
+      "XDG_DATA_HOME": "/tmp/cw-data",
+      "LP_NUM_THREADS": "4"
+    },
+    "backend": "llvmpipe software Vulkan, not RTX 5060 Ti",
+    "source_snapshot": "frozen_runtime_source",
+    "actual_exit": 0,
+    "timed_out": false,
+    "elapsed_wall_seconds": 12.41175228600332,
+    "finished_utc": "2026-10-17T08:00:50.994185+00:00",
+    "source_sha256_after": {
+      "project.godot": "c1f05ec55e451b741db0492c7fe535adbc8b459e67ed24febc52d6d86315c569",
+      "export_presets.cfg": "7a3eeda24649279bd8db3f9401075cc84bb8705cf9153902ee2c80ffdf7af784",
+      "tests/gpu_suite.gd": "4371202f8b0fd202fdc2f97a1e11b33f7ea9028bb459ae110cb3060c0880ce8d",
+      "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+      "tools/run_tests.py": "90eafab182c27c09f0643304a4bedd0889dfde0ce556331d966bd4a1ac9cd76c",
+      "scripts/air_curtain.gd": "d6ba23a18297100995670d8c3ce52735c374c77ad85199a53259f92f3fde4651",
+      "scripts/battle_labels.gd": "1a6e7c06fb3a81894e85c65c01a63c755c0daf83b605f9657dc21bf3623f5dd9",
+      "scripts/game_settings.gd": "9e59670bf4014fc0145f2cb7cf9d893c9f2170c46d68ee381cd54d8669d97979",
+      "scripts/game_ui.gd": "b106425c739644592f6c669a0d097f78996f60ed7997d48ade6921d6fb4ccb00",
+      "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+      "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+      "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+      "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+      "scripts/main.gd": "91c093ed08f302b7b20b15b4d0d4fb500cbc3efb2f36f5aef7e7cc98aa6fff75",
+      "scripts/multiplier_channels.gd": "e7c4b000d21c581e8bbb5d654475dddd8885223f3347ed9d566a702659bbcc12",
+      "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+      "scripts/weapon_conveyor.gd": "e5ae5376ebe8aba381297aaf4a1a25bb08472195b2bbe3e3b3df13aa8f83eff4",
+      "shaders/battle.glsl": "c8c1007e7d7fd6b84f6a9b87857dd5e305f25075bfdb8cb94b702a9dd1d136b1",
+      "scenes/main.tscn": "546a539b45d22dbd1212db4c311fb0d98eed00d38ba214af6c5633cf15007710"
+    },
+    "sources_unchanged": true,
+    "counts": {
+      "PASS": 4,
+      "FAIL": 0,
+      "NOT TESTED": 0
+    },
+    "engine_error_lines": 0,
+    "engine_errors": [],
+    "parse_errors": [],
+    "status": "PASS"
+  },
+  "results": [
+    {
+      "detail": "",
+      "name": "wall-pair probe actual Vulkan startup",
+      "status": "PASS"
+    },
+    {
+      "detail": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-mechanical-control/probe_result.json",
+      "name": "wall-pair probe evidence writable",
+      "status": "PASS"
+    },
+    {
+      "detail": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-mechanical-control/probe_result.json",
+      "name": "wall-pair probe evidence saved",
+      "status": "PASS"
+    },
+    {
+      "detail": "Legal start, identical birth speed140 and energy20; translated no-wall control has the same first mechanical contact. Both outgoing velocities must have nonzeroY, while scalar speed and energy stay fixed",
+      "metrics": {
+        "distance": 2.95744395256042,
+        "pair_contact_delta": 1,
+        "particles": [
+          {
+            "birth_scale": 140.0,
+            "contact_mask": 0,
+            "energy": 10,
+            "flags": 0,
+            "generation": 1,
+            "id": 0,
+            "level": 0,
+            "particle_generation": 1,
+            "pending_split": false,
+            "radius": 1.39999997615814,
+            "sniper_level": 0,
+            "team": 0,
+            "type": 1,
+            "vx": 139.000534057617,
+            "vy": -16.6989078521729,
+            "x": 500.583343505859,
+            "y": 100.0
+          },
+          {
+            "birth_scale": 140.0,
+            "contact_mask": 0,
+            "energy": 10,
+            "flags": 0,
+            "generation": 1,
+            "id": 1,
+            "level": 1,
+            "particle_generation": 1,
+            "pending_split": false,
+            "radius": 1.39999997615814,
+            "sniper_level": 1,
+            "team": 0,
+            "type": 1,
+            "vx": -139.000534057617,
+            "vy": 16.6989078521729,
+            "x": 499.616668701172,
+            "y": 102.794998168945
+          }
+        ],
+        "radius_sum": 2.79999995231628
+      },
+      "name": "translated no-wall grazing collision creates transverse velocity",
+      "status": "PASS"
+    }
+  ]
+}

@@ -1,0 +1,359 @@
+{
+  "status": "PASS",
+  "metadata": {
+    "started_utc": "2026-10-17T08:00:51.052861+00:00",
+    "command": [
+      "taskset",
+      "-c",
+      "0-3",
+      "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+      "--path",
+      "/workspace/xyf2001.github.io/chromatic-wars",
+      "--rendering-method",
+      "forward_plus",
+      "--rendering-driver",
+      "vulkan",
+      "--audio-driver",
+      "Dummy",
+      "--script",
+      "res://artifacts/validation-1.5.1/rules-area-guard/wall-pair-extended/probe.gd",
+      "--",
+      "--artifact-dir",
+      "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-extended"
+    ],
+    "expected_sources": {
+      "shaders/battle.glsl": "c8c1007e7d7fd6b84f6a9b87857dd5e305f25075bfdb8cb94b702a9dd1d136b1",
+      "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007"
+    },
+    "source_sha256_before": {
+      "project.godot": "c1f05ec55e451b741db0492c7fe535adbc8b459e67ed24febc52d6d86315c569",
+      "export_presets.cfg": "7a3eeda24649279bd8db3f9401075cc84bb8705cf9153902ee2c80ffdf7af784",
+      "tests/gpu_suite.gd": "4371202f8b0fd202fdc2f97a1e11b33f7ea9028bb459ae110cb3060c0880ce8d",
+      "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+      "tools/run_tests.py": "90eafab182c27c09f0643304a4bedd0889dfde0ce556331d966bd4a1ac9cd76c",
+      "scripts/air_curtain.gd": "d6ba23a18297100995670d8c3ce52735c374c77ad85199a53259f92f3fde4651",
+      "scripts/battle_labels.gd": "1a6e7c06fb3a81894e85c65c01a63c755c0daf83b605f9657dc21bf3623f5dd9",
+      "scripts/game_settings.gd": "9e59670bf4014fc0145f2cb7cf9d893c9f2170c46d68ee381cd54d8669d97979",
+      "scripts/game_ui.gd": "b106425c739644592f6c669a0d097f78996f60ed7997d48ade6921d6fb4ccb00",
+      "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+      "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+      "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+      "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+      "scripts/main.gd": "91c093ed08f302b7b20b15b4d0d4fb500cbc3efb2f36f5aef7e7cc98aa6fff75",
+      "scripts/multiplier_channels.gd": "e7c4b000d21c581e8bbb5d654475dddd8885223f3347ed9d566a702659bbcc12",
+      "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+      "scripts/weapon_conveyor.gd": "e5ae5376ebe8aba381297aaf4a1a25bb08472195b2bbe3e3b3df13aa8f83eff4",
+      "shaders/battle.glsl": "c8c1007e7d7fd6b84f6a9b87857dd5e305f25075bfdb8cb94b702a9dd1d136b1",
+      "scenes/main.tscn": "546a539b45d22dbd1212db4c311fb0d98eed00d38ba214af6c5633cf15007710"
+    },
+    "probe_sha256": "5dbec83b24adb08ec4ae5766e1e29484233781f502b670230fe139ac7bbea197",
+    "runner_sha256": "10c1c4b9ab2d2d7efcd9450b44eb776264bd10f186a2cded755d8ab85bcbc9ac",
+    "expected_checks": 8,
+    "physical_scenarios": 5,
+    "environment_overrides": {
+      "DISPLAY": ":99",
+      "VK_ICD_FILENAMES": "/workspace/chromatic-tools/root/usr/share/vulkan/icd.d/lvp_icd.json",
+      "LD_LIBRARY_PATH": "/workspace/chromatic-tools/root/usr/lib/x86_64-linux-gnu",
+      "XDG_RUNTIME_DIR": "/tmp/cw-runtime",
+      "XDG_CACHE_HOME": "/tmp/cw-cache",
+      "XDG_CONFIG_HOME": "/tmp/cw-config",
+      "XDG_DATA_HOME": "/tmp/cw-data",
+      "LP_NUM_THREADS": "4"
+    },
+    "backend": "llvmpipe software Vulkan, not RTX 5060 Ti",
+    "source_snapshot": "frozen_runtime_source",
+    "actual_exit": 0,
+    "timed_out": false,
+    "elapsed_wall_seconds": 14.176348304012208,
+    "finished_utc": "2026-10-17T08:01:05.231751+00:00",
+    "source_sha256_after": {
+      "project.godot": "c1f05ec55e451b741db0492c7fe535adbc8b459e67ed24febc52d6d86315c569",
+      "export_presets.cfg": "7a3eeda24649279bd8db3f9401075cc84bb8705cf9153902ee2c80ffdf7af784",
+      "tests/gpu_suite.gd": "4371202f8b0fd202fdc2f97a1e11b33f7ea9028bb459ae110cb3060c0880ce8d",
+      "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+      "tools/run_tests.py": "90eafab182c27c09f0643304a4bedd0889dfde0ce556331d966bd4a1ac9cd76c",
+      "scripts/air_curtain.gd": "d6ba23a18297100995670d8c3ce52735c374c77ad85199a53259f92f3fde4651",
+      "scripts/battle_labels.gd": "1a6e7c06fb3a81894e85c65c01a63c755c0daf83b605f9657dc21bf3623f5dd9",
+      "scripts/game_settings.gd": "9e59670bf4014fc0145f2cb7cf9d893c9f2170c46d68ee381cd54d8669d97979",
+      "scripts/game_ui.gd": "b106425c739644592f6c669a0d097f78996f60ed7997d48ade6921d6fb4ccb00",
+      "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+      "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+      "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+      "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+      "scripts/main.gd": "91c093ed08f302b7b20b15b4d0d4fb500cbc3efb2f36f5aef7e7cc98aa6fff75",
+      "scripts/multiplier_channels.gd": "e7c4b000d21c581e8bbb5d654475dddd8885223f3347ed9d566a702659bbcc12",
+      "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+      "scripts/weapon_conveyor.gd": "e5ae5376ebe8aba381297aaf4a1a25bb08472195b2bbe3e3b3df13aa8f83eff4",
+      "shaders/battle.glsl": "c8c1007e7d7fd6b84f6a9b87857dd5e305f25075bfdb8cb94b702a9dd1d136b1",
+      "scenes/main.tscn": "546a539b45d22dbd1212db4c311fb0d98eed00d38ba214af6c5633cf15007710"
+    },
+    "sources_unchanged": true,
+    "counts": {
+      "PASS": 8,
+      "FAIL": 0,
+      "NOT TESTED": 0
+    },
+    "engine_error_lines": 0,
+    "engine_errors": [],
+    "parse_errors": [],
+    "status": "PASS"
+  },
+  "results": [
+    {
+      "detail": "",
+      "name": "extended real Vulkan probe initialized",
+      "status": "PASS"
+    },
+    {
+      "detail": "Actual GPU collision, integer ledger, speed preservation and finite geometry",
+      "metrics": {
+        "consumed_delta": 8,
+        "distance": -1.0,
+        "pair_delta": 1,
+        "particles": [
+          {
+            "birth_scale": 140.0,
+            "contact_mask": 0,
+            "energy": 6,
+            "flags": 0,
+            "generation": 1,
+            "id": 0,
+            "level": 1,
+            "particle_generation": 1,
+            "pending_split": false,
+            "radius": 1.20000004768372,
+            "sniper_level": 1,
+            "team": 0,
+            "type": 1,
+            "vx": -140.0,
+            "vy": 0.0,
+            "x": 1022.41668701172,
+            "y": 500.0
+          }
+        ],
+        "radii": -1.0,
+        "remaining": 6
+      },
+      "name": "enemy reflected wall min64 exactly once",
+      "status": "PASS"
+    },
+    {
+      "detail": "Actual GPU collision, integer ledger, speed preservation and finite geometry",
+      "metrics": {
+        "consumed_delta": 0,
+        "distance": 2.40202236175537,
+        "pair_delta": 1,
+        "particles": [
+          {
+            "birth_scale": 140.0,
+            "contact_mask": 0,
+            "energy": 10,
+            "flags": 0,
+            "generation": 2,
+            "id": 0,
+            "level": 3,
+            "particle_generation": 2,
+            "pending_split": false,
+            "radius": 1.20000004768372,
+            "sniper_level": 3,
+            "team": 0,
+            "type": 1,
+            "vx": 98.9949493408203,
+            "vy": 98.9949493408203,
+            "x": 1022.77423095703,
+            "y": 1022.77423095703
+          },
+          {
+            "birth_scale": 140.0,
+            "contact_mask": 0,
+            "energy": 10,
+            "flags": 0,
+            "generation": 2,
+            "id": 1,
+            "level": 2,
+            "particle_generation": 2,
+            "pending_split": false,
+            "radius": 1.20000004768372,
+            "sniper_level": 2,
+            "team": 0,
+            "type": 1,
+            "vx": -98.9949493408203,
+            "vy": -98.9949493408203,
+            "x": 1021.07574462891,
+            "y": 1021.07574462891
+          }
+        ],
+        "radii": 2.40000009536743,
+        "remaining": 20
+      },
+      "name": "friendly two-axis corner",
+      "status": "PASS"
+    },
+    {
+      "detail": "Actual GPU collision, integer ledger, speed preservation and finite geometry",
+      "metrics": {
+        "consumed_delta": 0,
+        "distance": 10.5777940750122,
+        "pair_delta": 1,
+        "particles": [
+          {
+            "birth_scale": 2000.0,
+            "contact_mask": 0,
+            "energy": 10,
+            "flags": 0,
+            "generation": 3,
+            "id": 0,
+            "level": 1,
+            "particle_generation": 3,
+            "pending_split": false,
+            "radius": 1.20000004768372,
+            "sniper_level": 1,
+            "team": 0,
+            "type": 1,
+            "vx": -1086.16943359375,
+            "vy": 1679.35583496094,
+            "x": 1017.13293457031,
+            "y": 507.442626953125
+          },
+          {
+            "birth_scale": 2000.0,
+            "contact_mask": 0,
+            "energy": 10,
+            "flags": 0,
+            "generation": 3,
+            "id": 1,
+            "level": 3,
+            "particle_generation": 3,
+            "pending_split": false,
+            "radius": 1.20000004768372,
+            "sniper_level": 3,
+            "team": 0,
+            "type": 1,
+            "vx": -1679.35595703125,
+            "vy": -1086.16918945312,
+            "x": 1015.55725097656,
+            "y": 496.982849121094
+          }
+        ],
+        "radii": 2.40000009536743,
+        "remaining": 20
+      },
+      "name": "supported fast reflected CCD nonoverlapping endpoints",
+      "status": "PASS"
+    },
+    {
+      "detail": "Actual GPU collision, integer ledger, speed preservation and finite geometry",
+      "metrics": {
+        "consumed_delta": 0,
+        "distance": 111.517776489258,
+        "pair_delta": 1,
+        "particles": [
+          {
+            "birth_scale": 1000000.0,
+            "contact_mask": 0,
+            "energy": 10,
+            "flags": 0,
+            "generation": 4,
+            "id": 0,
+            "level": 3,
+            "particle_generation": 4,
+            "pending_split": false,
+            "radius": 1.20000004768372,
+            "sniper_level": 3,
+            "team": 0,
+            "type": 1,
+            "vx": -839682.0625,
+            "vy": -543078.3125,
+            "x": 942.732727050781,
+            "y": 500.0
+          },
+          {
+            "birth_scale": 1000000.0,
+            "contact_mask": 0,
+            "energy": 10,
+            "flags": 0,
+            "generation": 4,
+            "id": 1,
+            "level": 1,
+            "particle_generation": 4,
+            "pending_split": false,
+            "radius": 1.20000004768372,
+            "sniper_level": 1,
+            "team": 0,
+            "type": 1,
+            "vx": -543078.3125,
+            "vy": 839682.125,
+            "x": 1020.15002441406,
+            "y": 580.266906738281
+          }
+        ],
+        "radii": 2.40000009536743,
+        "remaining": 20
+      },
+      "name": "synthetic overspeed multiple-wall fallback",
+      "status": "PASS"
+    },
+    {
+      "detail": "Real fixed-rate gun firing; cannot collide with the original particle before its own birth",
+      "metrics": {
+        "after_phase": 0.00416660308837891,
+        "before_phase": 0.0,
+        "gun_remaining": 24090,
+        "pair_delta": 0,
+        "particles": [
+          {
+            "birth_scale": 140.0,
+            "contact_mask": 0,
+            "energy": 10,
+            "flags": 0,
+            "generation": 5,
+            "id": 0,
+            "level": 0,
+            "particle_generation": 5,
+            "pending_split": false,
+            "radius": 1.20000004768372,
+            "sniper_level": 0,
+            "team": 0,
+            "type": 1,
+            "vx": 139.999694824219,
+            "vy": 0.291371315717697,
+            "x": 272.202362060547,
+            "y": 256.033721923828
+          },
+          {
+            "birth_scale": 2000.0,
+            "contact_mask": 0,
+            "energy": 10,
+            "flags": 0,
+            "generation": 5,
+            "id": 1,
+            "level": 0,
+            "particle_generation": 5,
+            "pending_split": false,
+            "radius": 1.20000004768372,
+            "sniper_level": 0,
+            "team": 0,
+            "type": 1,
+            "vx": 0.0,
+            "vy": 2000.0,
+            "x": 272.200012207031,
+            "y": 258.777770996094
+          }
+        ],
+        "spent": 0
+      },
+      "name": "real MG newborn common-time CCD",
+      "status": "PASS"
+    },
+    {
+      "detail": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-extended/probe_result.json",
+      "name": "extended probe evidence writable",
+      "status": "PASS"
+    },
+    {
+      "detail": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-extended/probe_result.json",
+      "name": "extended probe evidence saved",
+      "status": "PASS"
+    }
+  ]
+}

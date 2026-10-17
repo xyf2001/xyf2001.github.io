@@ -1,0 +1,20 @@
+命令：/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64 --path /workspace/chromatic-wars --rendering-method forward_plus --rendering-driver vulkan --audio-driver Dummy --script res://tests/battle_suite.gd -- --seed 20261016 --duration 1200.0 --capacity 64 --artifact-dir /workspace/chromatic-wars/artifacts/tests/20261016T053719727221Z
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+Vulkan 1.4.305 - Forward+ - Using Device #0: Unknown - llvmpipe (LLVM 19.1.7, 256 bits)
+
+CHROMATIC_TEST {"detail":"","name":"长局GPU启动","status":"PASS"}
+BATTLE_PROGRESS {"active":64,"big":1,"deaths":0,"outputs":10,"rescues":0,"sim_seconds":10.0000000000001,"wall_seconds":7.81}
+BATTLE_PROGRESS {"active":64,"big":2,"deaths":0,"outputs":67,"rescues":0,"sim_seconds":70.0000000000018,"wall_seconds":63.982}
+BATTLE_PROGRESS {"active":64,"big":1,"deaths":0,"outputs":117,"rescues":1,"sim_seconds":130.000000000046,"wall_seconds":117.294}
+BATTLE_PROGRESS {"active":64,"big":0,"deaths":0,"outputs":179,"rescues":1,"sim_seconds":190.066666666658,"wall_seconds":167.532}
+BATTLE_PROGRESS {"active":64,"big":0,"deaths":0,"outputs":239,"rescues":1,"sim_seconds":250.066666666604,"wall_seconds":214.278}
+BATTLE_PROGRESS {"active":64,"big":1,"deaths":0,"outputs":297,"rescues":1,"sim_seconds":310.066666666549,"wall_seconds":264.959}
+BATTLE_PROGRESS {"active":64,"big":0,"deaths":0,"outputs":355,"rescues":1,"sim_seconds":370.066666666494,"wall_seconds":311.418}
+BATTLE_PROGRESS {"active":64,"big":0,"deaths":0,"outputs":407,"rescues":1,"sim_seconds":430.06666666644,"wall_seconds":360.217}
+BATTLE_PROGRESS {"active":64,"big":0,"deaths":0,"outputs":464,"rescues":1,"sim_seconds":490.066666666385,"wall_seconds":406.895}
+BATTLE_PROGRESS {"active":64,"big":0,"deaths":0,"outputs":519,"rescues":1,"sim_seconds":550.066666666331,"wall_seconds":454.717}
+BATTLE_PROGRESS {"active":64,"big":0,"deaths":0,"outputs":573,"rescues":1,"sim_seconds":610.066666666276,"wall_seconds":530.365}
+BATTLE_PROGRESS {"active":64,"big":1,"deaths":0,"outputs":622,"rescues":1,"sim_seconds":670.066666666222,"wall_seconds":610.28}
+BATTLE_PROGRESS {"active":64,"big":1,"deaths":0,"outputs":673,"rescues":1,"sim_seconds":730.066666666167,"wall_seconds":686.407}
+BATTLE_PROGRESS {"active":64,"big":0,"deaths":0,"outputs":725,"rescues":2,"sim_seconds":790.066666666112,"wall_seconds":790.722}
+BATTLE_PROGRESS {"active":64,"big":1,"deaths":0,"outputs":786,"rescues":2,"sim_seconds":850.066666666058,"wall_seconds":896.357}

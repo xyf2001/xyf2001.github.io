@@ -1,0 +1,78 @@
+class_name MultiplierChannels
+extends RefCounted
+
+## 实体槽：mouth_y 是完整入口净宽开始的边缘。判定用圆的后缘，不用球心。
+const CUTS: Array[float] = [16.0, 57.0, 112.0, 187.0, 293.0, 368.0, 423.0, 464.0]
+const MULTIPLIERS: Array[int] = [8, 4, 2, 0, 2, 4, 8]
+const MOUTH_Y: float = 366.0
+const END_Y: float = 450.0
+const HALF_WALL: float = 4.0
+
+var polygons: Array[PackedVector2Array] = []
+var bottom_walls: Array[PackedVector2Array] = []
+var counts: Array[int] = [0, 0, 0, 0, 0, 0]
+
+func _init() -> void:
+	for index in range(1, 7):
+		var x: float = CUTS[index]
+		# 倾斜上沿、8 像素实体厚度；入口以下保持净宽，绝不再次收窄。
+		polygons.append(PackedVector2Array([
+			Vector2(x - HALF_WALL, MOUTH_Y), Vector2(x - 1.0, MOUTH_Y - 14.0),
+			Vector2(x + 1.0, MOUTH_Y - 14.0), Vector2(x + HALF_WALL, MOUTH_Y),
+			Vector2(x + HALF_WALL, END_Y), Vector2(x - HALF_WALL, END_Y)
+		]))
+	# 左右三槽分别共用一段8px底墙，与竖隔板齐平；中央98px通路保持开放。
+	for span in [Vector2(CUTS[0], CUTS[3] + HALF_WALL), Vector2(CUTS[4] - HALF_WALL, CUTS[7])]:
+		bottom_walls.append(PackedVector2Array([
+			Vector2(span.x, END_Y), Vector2(span.y, END_Y),
+			Vector2(span.y, END_Y + HALF_WALL * 2.0), Vector2(span.x, END_Y + HALF_WALL * 2.0)
+		]))
+
+func reset() -> void:
+	counts = [0, 0, 0, 0, 0, 0]
+
+func clear_bounds(channel: int) -> Vector2:
+	var left: float = CUTS[channel] + (HALF_WALL if channel > 0 else 0.0)
+	var right: float = CUTS[channel + 1] - (HALF_WALL if channel < 6 else 0.0)
+	return Vector2(left, right)
+
+func capture(position: Vector2, radius: float) -> int:
+	if position.y - radius < MOUTH_Y or position.y - radius > END_Y:
+		return -1
+	for channel in range(7):
+		if MULTIPLIERS[channel] == 0:
+			continue
+		var bounds: Vector2 = clear_bounds(channel)
+		if position.x - radius >= bounds.x and position.x + radius <= bounds.y:
+			return channel
+	return -1
+
+func register(channel: int) -> void:
+	counts[channel if channel < 3 else channel - 1] += 1
+
+func draw_on(canvas: Node2D, font: Font) -> void:
+	for channel in range(7):
+		if MULTIPLIERS[channel] == 0:
+			continue
+		var bounds: Vector2 = clear_bounds(channel)
+		var color: Color = Color("61d2ed") if MULTIPLIERS[channel] == 2 else (Color("e6c56b") if MULTIPLIERS[channel] == 4 else Color("f99a76"))
+		var rectangle: Rect2 = Rect2(bounds.x, MOUTH_Y, bounds.y - bounds.x, END_Y - MOUTH_Y)
+		canvas.draw_rect(rectangle, color * Color(0.27, 0.27, 0.27, 0.35))
+		canvas.draw_line(Vector2(bounds.x, MOUTH_Y), Vector2(bounds.y, MOUTH_Y), color, 1.5)
+		var label: String = "×%d" % MULTIPLIERS[channel]
+		var label_width: float = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x
+		canvas.draw_string(font, Vector2((bounds.x + bounds.y - label_width) * 0.5, MOUTH_Y + 36), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, color)
+		var count: int = counts[channel if channel < 3 else channel - 1]
+		canvas.draw_string(font, Vector2(bounds.x + 5.0, END_Y - 11.0), str(count), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("a5b6cc"))
+	for polygon in polygons + bottom_walls:
+		canvas.draw_colored_polygon(polygon, Color("576779"))
+		var closed: PackedVector2Array = polygon.duplicate()
+		closed.append(closed[0])
+		canvas.draw_polyline(closed, Color("a8bdd1"), 1.25, true)
+
+func snapshot() -> Dictionary:
+	var widths: Array[float] = []
+	for channel in range(7):
+		var bounds: Vector2 = clear_bounds(channel)
+		widths.append(bounds.y - bounds.x)
+	return {"counts": counts.duplicate(), "clear_widths": widths, "mouth_y": MOUTH_Y, "depth": END_Y - MOUTH_Y}

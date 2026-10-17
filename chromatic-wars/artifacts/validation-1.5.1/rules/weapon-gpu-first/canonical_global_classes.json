@@ -1,0 +1,14 @@
+{
+  "GameSettings": {
+    "matches": 1,
+    "canonical": true
+  },
+  "GPUWorld": {
+    "matches": 1,
+    "canonical": true
+  },
+  "PinballPhysics": {
+    "matches": 1,
+    "canonical": true
+  }
+}

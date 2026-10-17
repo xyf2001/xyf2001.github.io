@@ -1,0 +1,76 @@
+{
+  "scope": "同一正式风暴API四队夹具，默认1万容量/512领土/768渲染，warm至实际满载后3次采样；软件Vulkan；分段时间戳拆分compute列表，有测量开销，不能转换为RTX5060Ti游戏帧率",
+  "not_directly_comparable_occupancy": "原版16px格与最终版8px格的格面积不同，maxcell只作各自诊断，不能用56到17的比例宣称碰撞性能增益",
+  "results": {
+    "before": {
+      "failed": false,
+      "actually_reached_full_capacity": true,
+      "fixed_steps_to_full": 26,
+      "sample_count": 3,
+      "median_group_gpu_ms": {
+        "collision": 244.62034,
+        "events": 34.904142,
+        "move_hash": 14.046074,
+        "prepare": 4.633867,
+        "render": 16.617664,
+        "statistics": 6.27553
+      },
+      "wall_ms_including_snapshot_and_profile_wait": [
+        402.256,
+        505.206,
+        420.01
+      ],
+      "median_wall_ms_including_snapshot_and_profile_wait": 420.01,
+      "final_energy": {
+        "accounted": 8400000,
+        "active": 10000,
+        "active_energy": 10000,
+        "big": 0,
+        "consumed": 0,
+        "cumulative_peak_cell_occupancy": 56,
+        "overflow": 0,
+        "reserves": 4390000,
+        "shields": 4000000,
+        "sim_time": 0.241666659712791
+      }
+    },
+    "final": {
+      "failed": false,
+      "actually_reached_full_capacity": true,
+      "fixed_steps_to_full": 26,
+      "sample_count": 3,
+      "median_group_gpu_ms": {
+        "collision": 49.672901,
+        "events": 6.396972,
+        "move_hash": 1.8075,
+        "prepare": 1.019773,
+        "render": 21.050582,
+        "statistics": 0.738684
+      },
+      "wall_ms_including_snapshot_and_profile_wait": [
+        89.844,
+        150.188,
+        226.328
+      ],
+      "median_wall_ms_including_snapshot_and_profile_wait": 150.188,
+      "final_energy": {
+        "accounted": 8400000,
+        "active": 10000,
+        "active_energy": 10000,
+        "big": 0,
+        "consumed": 0,
+        "cumulative_peak_cell_occupancy": 17,
+        "overflow": 0,
+        "reserves": 4390000,
+        "shields": 4000000,
+        "sim_time": 0.241666659712791
+      }
+    }
+  },
+  "final_source_sha256": {
+    "shaders/battle.glsl": "527e5644f06ef24895a6ffedf2ef604f10e5053ba7ceb0362d9900a68dec4b15",
+    "scripts/gpu_world.gd": "e5dac8e69944930d471362dcf8d6db4cc837d71762082e581fa7e73581f22a69",
+    "scripts/gpu_collisions.gd": "af6143bd84deb4792501a944edb37b1bf802d894db1c3abffeb0b88ec1409af6",
+    "tools/storm_profile.gd": "a55e3aa272d9cee2f73abbfc4f4f026ef60c9eb125ba2cefa5a35a3866fdf2e3"
+  }
+}

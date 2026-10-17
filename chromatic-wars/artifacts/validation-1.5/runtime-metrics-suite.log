@@ -1,0 +1,6 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+CHROMATIC_TEST {"detail":"200帧中最慢2帧100/300毫秒，平均200毫秒，应为5FPS；不能用p99倒数替代","name":"低帧指标使用最慢1%帧的平均间隔","status":"PASS"}
+CHROMATIC_TEST {"detail":"150帧取ceil(1.5)=2，最慢两帧平均20毫秒，应为50FPS","name":"低帧样本数量向上取整","status":"PASS"}
+CHROMATIC_TEST {"detail":"","name":"无帧不伪造低帧表现，单帧按实际间隔计算","status":"PASS"}
+测试完成：PASS=3 FAIL=0 NOT TESTED=0

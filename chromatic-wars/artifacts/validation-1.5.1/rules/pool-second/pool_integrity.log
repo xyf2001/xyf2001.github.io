@@ -1,0 +1,149 @@
+命令：taskset -c 0-3 /opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64 --path /workspace/xyf2001.github.io/chromatic-wars --rendering-method forward_plus --rendering-driver vulkan --audio-driver Dummy --script res://tests/pool_integrity_suite.gd -- --seed 20261016 --duration 1200 --capacity 10000 --speed 1.0 --wall_seconds 3600 --artifact-dir /workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules/pool-second
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+Vulkan 1.4.305 - Forward+ - Using Device #0: Unknown - llvmpipe (LLVM 19.1.7, 256 bits)
+
+ERROR: POOL: reclaimed 128: live count
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:50)
+       [2] run (res://tests/pool_integrity_suite.gd:99)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: reclaimed 128: exact GPU statistics agrees with live list
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:60)
+       [2] run (res://tests/pool_integrity_suite.gd:99)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: reclaimed 128: live faction counts include every particle
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:61)
+       [2] run (res://tests/pool_integrity_suite.gd:99)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: reclaimed 128: particle table agrees with live list
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:63)
+       [2] run (res://tests/pool_integrity_suite.gd:99)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: reclaimed 128: indirect motion dispatch
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:65)
+       [2] run (res://tests/pool_integrity_suite.gd:99)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: reclamation preserves consumed-energy accounting
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] run (res://tests/pool_integrity_suite.gd:101)
+       [2] _submit (res://tests/pool_integrity_suite.gd:43)
+       [3] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: reuse 128: live count
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:50)
+       [2] run (res://tests/pool_integrity_suite.gd:107)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: reuse 128: exact GPU statistics agrees with live list
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:60)
+       [2] run (res://tests/pool_integrity_suite.gd:107)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: reuse 128: live faction counts include every particle
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:61)
+       [2] run (res://tests/pool_integrity_suite.gd:107)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: reuse 128: particle table agrees with live list
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:63)
+       [2] run (res://tests/pool_integrity_suite.gd:107)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: reuse 128: indirect ordinary dispatch
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:64)
+       [2] run (res://tests/pool_integrity_suite.gd:107)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: reuse 128: indirect motion dispatch
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:65)
+       [2] run (res://tests/pool_integrity_suite.gd:107)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: sniper reserve 128: live count
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:50)
+       [2] run (res://tests/pool_integrity_suite.gd:109)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: sniper reserve 128: exact GPU statistics agrees with live list
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:60)
+       [2] run (res://tests/pool_integrity_suite.gd:109)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: sniper reserve 128: live faction counts include every particle
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:61)
+       [2] run (res://tests/pool_integrity_suite.gd:109)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: sniper reserve 128: particle table agrees with live list
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:63)
+       [2] run (res://tests/pool_integrity_suite.gd:109)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: sniper reserve 128: indirect ordinary dispatch
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:64)
+       [2] run (res://tests/pool_integrity_suite.gd:109)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+ERROR: POOL: sniper reserve 128: indirect motion dispatch
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/pool_integrity_suite.gd:21)
+       [1] _pool_check (res://tests/pool_integrity_suite.gd:65)
+       [2] run (res://tests/pool_integrity_suite.gd:109)
+       [3] _submit (res://tests/pool_integrity_suite.gd:43)
+       [4] _snapshot (res://tests/pool_integrity_suite.gd:34)
+GPU_POOL_SUITE {"artifact_path":"/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules/pool-second/pool_integrity_suite.json","backend":"vulkan","cases":[{"capacity":128,"case":"initial 128","diagnostics":{"active_by_team":[0,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":1,"normal_dispatch_groups":1,"pool_live_ids":0,"pool_normal_free":120,"pool_sniper_free":8,"profiling_enabled":true},"expected_live":0,"pool_header":[0,120,8,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"partial fixture 128","diagnostics":{"active_by_team":[48,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":2,"normal_dispatch_groups":1,"pool_live_ids":48,"pool_normal_free":72,"pool_sniper_free":8,"profiling_enabled":true},"expected_live":48,"pool_header":[48,72,8,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"same-step indirect motion 128","diagnostics":{"active_by_team":[48,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":2,"normal_dispatch_groups":1,"pool_live_ids":48,"pool_normal_free":72,"pool_sniper_free":8,"profiling_enabled":true},"expected_live":48,"pool_header":[48,72,8,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"reclaimed 128","diagnostics":{"active_by_team":[48,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":2,"normal_dispatch_groups":1,"pool_live_ids":48,"pool_normal_free":72,"pool_sniper_free":8,"profiling_enabled":true},"expected_live":0,"pool_header":[48,72,8,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"reuse 128","diagnostics":{"active_by_team":[72,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":3,"normal_dispatch_groups":2,"pool_live_ids":72,"pool_normal_free":48,"pool_sniper_free":8,"profiling_enabled":true},"expected_live":24,"pool_header":[72,48,8,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"sniper reserve 128","diagnostics":{"active_by_team":[73,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":3,"normal_dispatch_groups":2,"pool_live_ids":73,"pool_normal_free":48,"pool_sniper_free":7,"profiling_enabled":true},"expected_live":25,"pool_header":[73,48,7,0,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"debug reset 128","diagnostics":{"active_by_team":[0,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":1,"normal_dispatch_groups":1,"pool_live_ids":0,"pool_normal_free":120,"pool_sniper_free":8,"profiling_enabled":true},"expected_live":0,"pool_header":[0,120,8,73,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"fill ordinary and reserved 0","diagnostics":{"active_by_team":[128,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":3,"normal_dispatch_groups":2,"pool_live_ids":128,"pool_normal_free":0,"pool_sniper_free":0,"profiling_enabled":true},"expected_live":128,"pool_header":[128,0,0,73,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"repeated reclaim 0","diagnostics":{"active_by_team":[0,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":1,"normal_dispatch_groups":1,"pool_live_ids":0,"pool_normal_free":120,"pool_sniper_free":8,"profiling_enabled":true},"expected_live":0,"pool_header":[0,120,8,201,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"fill ordinary and reserved 1","diagnostics":{"active_by_team":[128,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":3,"normal_dispatch_groups":2,"pool_live_ids":128,"pool_normal_free":0,"pool_sniper_free":0,"profiling_enabled":true},"expected_live":128,"pool_header":[128,0,0,201,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"repeated reclaim 1","diagnostics":{"active_by_team":[0,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":1,"normal_dispatch_groups":1,"pool_live_ids":0,"pool_normal_free":120,"pool_sniper_free":8,"profiling_enabled":true},"expected_live":0,"pool_header":[0,120,8,329,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"fill ordinary and reserved 2","diagnostics":{"active_by_team":[128,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":3,"normal_dispatch_groups":2,"pool_live_ids":128,"pool_normal_free":0,"pool_sniper_free":0,"profiling_enabled":true},"expected_live":128,"pool_header":[128,0,0,329,0,0,0,0,0,0,0,0,0,0,0,0]},{"capacity":128,"case":"repeated reclaim 2","diagnostics":{"active_by_team":[0,0,0,0],"actual_contacts":0,"collision_candidates":0,"gpu_allocation_bytes":851904,"motion_dispatch_groups":1,"normal_dispatch_groups":1,"pool_live_ids":0,"pool_normal_free":120,"pool_sniper_free":8,"profiling_enabled":true},"expected_live":0,"pool_header":[0,120,8,457,0,0,0,0,0,0,0,0,0,0,0,0]}],"checks":778,"failed":true,"failures":["reclaimed 128: live count","reclaimed 128: exact GPU statistics agrees with live list","reclaimed 128: live faction counts include every particle","reclaimed 128: particle table agrees with live list","reclaimed 128: indirect motion dispatch","reclamation preserves consumed-energy accounting","reuse 128: live count","reuse 128: exact GPU statistics agrees with live list","reuse 128: live faction counts include every particle","reuse 128: particle table agrees with live list","reuse 128: indirect ordinary dispatch","reuse 128: indirect motion dispatch","sniper reserve 128: live count","sniper reserve 128: exact GPU statistics agrees with live list","sniper reserve 128: live faction counts include every particle","sniper reserve 128: particle table agrees with live list","sniper reserve 128: indirect ordinary dispatch","sniper reserve 128: indirect motion dispatch"],"fixture_not_benchmark":true}
+CHROMATIC_TEST {"detail":"Aggregate of real per-entity checks; raw observations retained","metrics":{"artifact_saved":true,"checks":778,"failures":18,"observations":13,"path":"/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules/pool-second/pool_integrity_suite.json"},"name":"GPU pool allocation/reclamation/indirect regression","status":"FAIL"}

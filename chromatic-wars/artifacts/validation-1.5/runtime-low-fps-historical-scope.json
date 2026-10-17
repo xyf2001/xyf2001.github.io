@@ -1,0 +1,9 @@
+{
+  "files": [
+    "runtime-before-fix/runtime_results.json",
+    "runtime-final/runtime_results.json"
+  ],
+  "field": "speed_runs[].one_percent_low_fps",
+  "historical_calculation": "1000 / p99_frame_ms",
+  "note": "These original logs are unchanged. The corrected runtime tool now reports the inverse mean of the slowest ceil(N*0.01) frame intervals and records method/sample counts. Do not compare the historical field as if it used the new method."
+}

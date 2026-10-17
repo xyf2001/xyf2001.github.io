@@ -1,0 +1,17 @@
+{
+  "status": "FAIL",
+  "actual_assertions": 132,
+  "passed": 125,
+  "failed": 7,
+  "not_run_due_runtime_type_error": 6,
+  "source_hashes_unchanged": true,
+  "notes": [
+    "7sniper first-wall split/pending assertions failed despite reflection; suspected shared TOI wall-event ordering regression, requires production correction.",
+    "gpu_suite._test_unit_territory_energy array typing error prevented6expected assertions; absence is not PASS.",
+    "All measured new MG window/refill/integer and current early/late DDA assertions passed; whole suite remains FAIL."
+  ],
+  "diagnosis_updates": [
+    "Actual sniper radius1.4 means legal wall upper x1022.6. The first fixture injectedx1022.7 outside that bound; normal boundary repair reflected before a valid new wall-crossing event. Weapon owner changed fixture start to world-radius-0.1 and retained all7split/pending assertions. A retest is still required.",
+    "The independent legal radius1.2 wall-after-pair probe separately confirmed a real same-step pair collision miss. This is distinct from the out-of-bounds sniper fixture."
+  ]
+}

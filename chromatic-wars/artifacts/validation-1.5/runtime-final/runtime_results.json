@@ -1,0 +1,413 @@
+{
+	"checks": [
+		{
+			"metrics": {
+				"config": {
+					"capacity": 10000,
+					"grid": 512,
+					"render": 768
+				},
+				"device": "llvmpipe (LLVM 19.1.7, 256 bits)"
+			},
+			"name": "左右主场景、16球、四核心和GPU共享纹理",
+			"status": "PASS"
+		},
+		{
+			"metrics": {
+				"active_particles": 9942,
+				"average_drawn_fps": 2.4867299171827,
+				"completion_fence_wall_ms": 77.471,
+				"gpu_completed_sim_seconds": 3.10833334922791,
+				"gpu_ms": 475.805056,
+				"one_percent_low_fps": 1.74858190007904,
+				"overflow": 0,
+				"p50_frame_ms": 434.559,
+				"p95_frame_ms": 539.592,
+				"p99_frame_ms": 571.892,
+				"rendered_frames": 46,
+				"sim_seconds": 3.02499999999999,
+				"target_speed": 1.0,
+				"time_backlog_sim_seconds": 2.93210766666668,
+				"wall_seconds": 18.498189
+			},
+			"name": "主场景 1倍速短程连续运行与GPU完成栅栏",
+			"status": "PASS"
+		},
+		{
+			"metrics": {
+				"active_particles": 9972,
+				"average_drawn_fps": 2.166817396905,
+				"completion_fence_wall_ms": 61.337,
+				"gpu_completed_sim_seconds": 6.10833311080933,
+				"gpu_ms": 372.453636,
+				"one_percent_low_fps": 1.90701036078729,
+				"overflow": 0,
+				"p50_frame_ms": 461.039,
+				"p95_frame_ms": 520.465,
+				"p99_frame_ms": 524.381,
+				"rendered_frames": 45,
+				"sim_seconds": 3.0000000000001,
+				"target_speed": 2.0,
+				"time_backlog_sim_seconds": 8.82165533333329,
+				"wall_seconds": 20.767786
+			},
+			"name": "主场景 2倍速短程连续运行与GPU完成栅栏",
+			"status": "PASS"
+		},
+		{
+			"metrics": {
+				"active_particles": 9853,
+				"average_drawn_fps": 2.21396408153233,
+				"completion_fence_wall_ms": 68.841,
+				"gpu_completed_sim_seconds": 9.10833358764648,
+				"gpu_ms": 412.59509,
+				"one_percent_low_fps": 1.80108785706567,
+				"overflow": 0,
+				"p50_frame_ms": 448.907,
+				"p95_frame_ms": 505.022,
+				"p99_frame_ms": 555.22,
+				"rendered_frames": 45,
+				"sim_seconds": 3.00000000000003,
+				"target_speed": 4.0,
+				"time_backlog_sim_seconds": 20.6213017777779,
+				"wall_seconds": 20.325533
+			},
+			"name": "主场景 4倍速短程连续运行与GPU完成栅栏",
+			"status": "PASS"
+		},
+		{
+			"metrics": {
+				"gpu_completed_sim_time": 10.1750001907349,
+				"sim_seconds": 1.06666666666661,
+				"stats": {
+					"active_by_team": [
+						1986,
+						2409,
+						2676,
+						2926
+					],
+					"active_packet_energy": 1323621,
+					"active_particles": 9992,
+					"actual_contacts": 0,
+					"async_readback_latency_ms": 55.946,
+					"balls": [
+						{
+							"birth_scale": 108.791770935059,
+							"contact_mask": 0,
+							"energy": 318160,
+							"flags": 0,
+							"id": 0,
+							"level": 0,
+							"pending_split": false,
+							"radius": 42.0,
+							"sniper_level": 0,
+							"team": 0,
+							"type": 3,
+							"vx": -106.433837890625,
+							"vy": 34.1589622497559,
+							"x": 57.570011138916,
+							"y": 303.097717285156
+						},
+						{
+							"birth_scale": 108.791770935059,
+							"contact_mask": 0,
+							"energy": 200005,
+							"flags": 0,
+							"id": 1,
+							"level": 0,
+							"pending_split": false,
+							"radius": 42.0,
+							"sniper_level": 0,
+							"team": 1,
+							"type": 3,
+							"vx": -88.1260299682617,
+							"vy": 26.796537399292,
+							"x": 584.992553710938,
+							"y": 311.539306640625
+						},
+						{
+							"birth_scale": 108.791770935059,
+							"contact_mask": 0,
+							"energy": 204050,
+							"flags": 0,
+							"id": 2,
+							"level": 0,
+							"pending_split": false,
+							"radius": 42.0,
+							"sniper_level": 0,
+							"team": 2,
+							"type": 3,
+							"vx": 95.0571746826172,
+							"vy": 23.1626319885254,
+							"x": 440.160827636719,
+							"y": 823.306701660156
+						},
+						{
+							"birth_scale": 108.791770935059,
+							"contact_mask": 0,
+							"energy": 208366,
+							"flags": 0,
+							"id": 3,
+							"level": 0,
+							"pending_split": false,
+							"radius": 42.0,
+							"sniper_level": 0,
+							"team": 3,
+							"type": 3,
+							"vx": -77.1077880859375,
+							"vy": 60.9347152709961,
+							"x": 618.157775878906,
+							"y": 895.202392578125
+						},
+						{
+							"birth_scale": 109.635971069336,
+							"contact_mask": 0,
+							"energy": 66140,
+							"flags": 0,
+							"id": 4,
+							"level": 0,
+							"pending_split": false,
+							"radius": 42.0,
+							"sniper_level": 0,
+							"team": 3,
+							"type": 3,
+							"vx": -62.9324760437012,
+							"vy": -71.8319931030273,
+							"x": 703.136474609375,
+							"y": 694.540893554688
+						}
+					],
+					"big_balls": 5,
+					"blocking_readback": false,
+					"captures": 23791,
+					"collision_candidates": 0,
+					"collisions": 8533013,
+					"command_head": 14,
+					"command_ring_occupancy": 0,
+					"consumed_energy": 25925,
+					"cpu_submit_ms": 0.394,
+					"current_particle_cost": 1,
+					"device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+					"explicit_cpu_gpu_sync_wait_ms": 0.0,
+					"gpu_allocation_bytes": 6828544,
+					"gpu_ms": 457.374151,
+					"grid_size": 512,
+					"max_cell_occupancy": 43,
+					"memory_mb": 6.51220703125,
+					"motion_dispatch_groups": 158,
+					"normal_dispatch_groups": 157,
+					"overflow_count": 0,
+					"packet_energy": 1,
+					"packing_count": 0,
+					"packing_ratio": 0.0,
+					"particle_capacity": 10000,
+					"pool_live_ids": 9992,
+					"pool_normal_free": 7,
+					"pool_sniper_free": 1,
+					"precision_mode": "exact",
+					"profiling_enabled": false,
+					"queue_commands": 0,
+					"queue_energy": 2894356.0,
+					"rejected_dead_commands": 0,
+					"sim_time": 10.1750001907349,
+					"step": 2442,
+					"substeps_in_last_batch": 0,
+					"teams": [
+						{
+							"alive": true,
+							"core_radius": 12.0,
+							"death_nonce": 0,
+							"gun": 991651,
+							"gun_angle": 0.181923866271973,
+							"gun_mode": 2.20737767219543,
+							"gun_target_angle": 0.18192395567894,
+							"pending": false,
+							"ready_time": 0.0,
+							"request_nonce": 0,
+							"rescue_cd": 0.0,
+							"shield": 1004096,
+							"shield_radius": 48.0654678344727,
+							"sniper": 0,
+							"state": 0,
+							"storm": 661084,
+							"team": 0,
+							"territory": 0.247142791748047,
+							"x": 256.0,
+							"y": 256.0
+						},
+						{
+							"alive": true,
+							"core_radius": 12.0,
+							"death_nonce": 0,
+							"gun": 991106,
+							"gun_angle": 0.0197505950927734,
+							"gun_mode": 0.0,
+							"gun_target_angle": 0.012667179107666,
+							"pending": false,
+							"ready_time": 0.0,
+							"request_nonce": 0,
+							"rescue_cd": 0.0,
+							"shield": 1000512,
+							"shield_radius": 48.0081901550293,
+							"sniper": 0,
+							"state": 0,
+							"storm": 762018,
+							"team": 1,
+							"territory": 0.252029418945312,
+							"x": 768.0,
+							"y": 256.0
+						},
+						{
+							"alive": true,
+							"core_radius": 12.0,
+							"death_nonce": 0,
+							"gun": 991140,
+							"gun_angle": 1.59048938751221,
+							"gun_mode": 0.0,
+							"gun_target_angle": 1.5834059715271,
+							"pending": false,
+							"ready_time": 0.0,
+							"request_nonce": 0,
+							"rescue_cd": 0.0,
+							"shield": 1000000,
+							"shield_radius": 48.0,
+							"sniper": 0,
+							"state": 0,
+							"storm": 762944,
+							"team": 2,
+							"territory": 0.248943328857422,
+							"x": 256.0,
+							"y": 768.0
+						},
+						{
+							"alive": true,
+							"core_radius": 12.0,
+							"death_nonce": 0,
+							"gun": 991112,
+							"gun_angle": 2.96056509017944,
+							"gun_mode": 2.21645283699036,
+							"gun_target_angle": 2.96056532859802,
+							"pending": false,
+							"ready_time": 0.0,
+							"request_nonce": 0,
+							"rescue_cd": 0.0,
+							"shield": 1002048,
+							"shield_radius": 48.0327529907227,
+							"sniper": 0,
+							"state": 0,
+							"storm": 708310,
+							"team": 3,
+							"territory": 0.251884460449219,
+							"x": 768.0,
+							"y": 768.0
+						}
+					]
+				}
+			},
+			"name": "四阵营风暴、大球和狙击同时运行",
+			"status": "PASS"
+		},
+		{
+			"metrics": {
+				"path": "res://artifacts/validation-1.5/runtime-final/main_scene.png"
+			},
+			"name": "真实主窗口截图",
+			"status": "PASS"
+		},
+		{
+			"metrics": {
+
+			},
+			"name": "暂停冻结模拟时间",
+			"status": "PASS"
+		},
+		{
+			"metrics": {
+				"active_particles": 9989,
+				"completion_fence_wall_ms": 79.913,
+				"fixed_dt": 0.00833333333333333,
+				"gpu_completed_sim_seconds": 10.1833333969116,
+				"gpu_error": "",
+				"gpu_overflow": 0,
+				"pinball_error": "",
+				"sim_time_after": 10.1833333333334,
+				"sim_time_before": 10.1750000000001
+			},
+			"name": "单步恰好一个固定时间步且GPU完成",
+			"status": "PASS"
+		},
+		{
+			"metrics": {
+				"new_allocated_bytes": 6828544,
+				"retired_nodes": 0
+			},
+			"name": "连续快速重开释放旧GPU资源并复位16球",
+			"status": "PASS"
+		},
+		{
+			"metrics": {
+				"pending_readbacks": 0,
+				"release_confirmed": true
+			},
+			"name": "最终关闭释放RD资源与异步回调",
+			"status": "PASS"
+		}
+	],
+	"driver": "vulkan",
+	"godot": "4.6.3-stable (official)",
+	"physical_gpu_claim": false,
+	"speed_runs": [
+		{
+			"active_particles": 9942,
+			"average_drawn_fps": 2.4867299171827,
+			"completion_fence_wall_ms": 77.471,
+			"gpu_completed_sim_seconds": 3.10833334922791,
+			"gpu_ms": 475.805056,
+			"one_percent_low_fps": 1.74858190007904,
+			"overflow": 0,
+			"p50_frame_ms": 434.559,
+			"p95_frame_ms": 539.592,
+			"p99_frame_ms": 571.892,
+			"rendered_frames": 46,
+			"sim_seconds": 3.02499999999999,
+			"target_speed": 1.0,
+			"time_backlog_sim_seconds": 2.93210766666668,
+			"wall_seconds": 18.498189
+		},
+		{
+			"active_particles": 9972,
+			"average_drawn_fps": 2.166817396905,
+			"completion_fence_wall_ms": 61.337,
+			"gpu_completed_sim_seconds": 6.10833311080933,
+			"gpu_ms": 372.453636,
+			"one_percent_low_fps": 1.90701036078729,
+			"overflow": 0,
+			"p50_frame_ms": 461.039,
+			"p95_frame_ms": 520.465,
+			"p99_frame_ms": 524.381,
+			"rendered_frames": 45,
+			"sim_seconds": 3.0000000000001,
+			"target_speed": 2.0,
+			"time_backlog_sim_seconds": 8.82165533333329,
+			"wall_seconds": 20.767786
+		},
+		{
+			"active_particles": 9853,
+			"average_drawn_fps": 2.21396408153233,
+			"completion_fence_wall_ms": 68.841,
+			"gpu_completed_sim_seconds": 9.10833358764648,
+			"gpu_ms": 412.59509,
+			"one_percent_low_fps": 1.80108785706567,
+			"overflow": 0,
+			"p50_frame_ms": 448.907,
+			"p95_frame_ms": 505.022,
+			"p99_frame_ms": 555.22,
+			"rendered_frames": 45,
+			"sim_seconds": 3.00000000000003,
+			"target_speed": 4.0,
+			"time_backlog_sim_seconds": 20.6213017777779,
+			"wall_seconds": 20.325533
+		}
+	],
+	"status": "PASS"
+}

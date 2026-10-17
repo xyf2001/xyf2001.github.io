@@ -1,0 +1,999 @@
+{
+  "started_utc": "20261017T061404100610Z",
+  "project": "/workspace/xyf2001.github.io/chromatic-wars",
+  "suites": [
+    {
+      "name": "contact_energy",
+      "status": "PASS",
+      "reason": "实际通过 27 项断言",
+      "results": [
+        {
+          "detail": "",
+          "name": "接触守恒Compute初始化",
+          "status": "PASS"
+        },
+        {
+          "detail": "含32位进位与2^53以上整数；残余+双方实际消耗等于注入总能量",
+          "metrics": {
+            "accounted": 14,
+            "expected_remaining": 6,
+            "particles": [
+              {
+                "birth_scale": 140.0,
+                "contact_mask": 0,
+                "energy": 6,
+                "flags": 0,
+                "generation": 1,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 1,
+                "pending_split": false,
+                "radius": 1.39999997615814,
+                "sniper_level": 0,
+                "team": 0,
+                "type": 1,
+                "vx": 140.0,
+                "vy": 0.0,
+                "x": 100.139999389648,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "敌粒子整数min等消与幸存者不偏转-[10, 4]",
+          "status": "PASS"
+        },
+        {
+          "detail": "含32位进位与2^53以上整数；残余+双方实际消耗等于注入总能量",
+          "metrics": {
+            "accounted": 8589934599,
+            "expected_remaining": 3,
+            "particles": [
+              {
+                "birth_scale": 140.0,
+                "contact_mask": 0,
+                "energy": 3,
+                "flags": 0,
+                "generation": 2,
+                "id": 0,
+                "level": 1,
+                "particle_generation": 2,
+                "pending_split": false,
+                "radius": 1.39999997615814,
+                "sniper_level": 1,
+                "team": 0,
+                "type": 1,
+                "vx": 140.0,
+                "vy": 0.0,
+                "x": 100.139999389648,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "敌粒子整数min等消与幸存者不偏转-[4294967301, 4294967298]",
+          "status": "PASS"
+        },
+        {
+          "detail": "含32位进位与2^53以上整数；残余+双方实际消耗等于注入总能量",
+          "metrics": {
+            "accounted": 18014398509482004,
+            "expected_remaining": 14,
+            "particles": [
+              {
+                "birth_scale": 140.0,
+                "contact_mask": 0,
+                "energy": 14,
+                "flags": 0,
+                "generation": 3,
+                "id": 0,
+                "level": 2,
+                "particle_generation": 3,
+                "pending_split": false,
+                "radius": 1.39999997615814,
+                "sniper_level": 2,
+                "team": 0,
+                "type": 1,
+                "vx": 140.0,
+                "vy": 0.0,
+                "x": 100.139999389648,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "敌粒子整数min等消与幸存者不偏转-[9007199254741009, 9007199254740995]",
+          "status": "PASS"
+        },
+        {
+          "detail": "两颗不同能量普通粒子仍为等机械质量，逐颗保持出生速度",
+          "metrics": {
+            "particles": [
+              {
+                "birth_scale": 100.0,
+                "contact_mask": 0,
+                "energy": 7,
+                "flags": 0,
+                "generation": 4,
+                "id": 0,
+                "level": 1,
+                "particle_generation": 4,
+                "pending_split": false,
+                "radius": 1.39999997615814,
+                "sniper_level": 1,
+                "team": 0,
+                "type": 1,
+                "vx": -100.0,
+                "vy": 0.0,
+                "x": 99.5989990234375,
+                "y": 100.0
+              },
+              {
+                "birth_scale": 100.0,
+                "contact_mask": 0,
+                "energy": 11,
+                "flags": 0,
+                "generation": 4,
+                "id": 1,
+                "level": 3,
+                "particle_generation": 4,
+                "pending_split": false,
+                "radius": 1.39999997615814,
+                "sniper_level": 3,
+                "team": 0,
+                "type": 1,
+                "vx": 100.0,
+                "vy": 0.0,
+                "x": 102.401000976562,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "己方普通碰撞真实反弹、恒速且无能量损耗",
+          "status": "PASS"
+        },
+        {
+          "detail": "按粒子身份能量检查原方向，不假设free-stack复用后的ID顺序",
+          "metrics": {
+            "particles": [
+              {
+                "birth_scale": 100.0,
+                "contact_mask": 0,
+                "energy": 11,
+                "flags": 0,
+                "generation": 5,
+                "id": 0,
+                "level": 1,
+                "particle_generation": 5,
+                "pending_split": false,
+                "radius": 1.39999997615814,
+                "sniper_level": 1,
+                "team": 0,
+                "type": 1,
+                "vx": -100.0,
+                "vy": 0.0,
+                "x": 101.900001525879,
+                "y": 100.0
+              },
+              {
+                "birth_scale": 100.0,
+                "contact_mask": 0,
+                "energy": 7,
+                "flags": 0,
+                "generation": 5,
+                "id": 1,
+                "level": 2,
+                "particle_generation": 5,
+                "pending_split": false,
+                "radius": 1.39999997615814,
+                "sniper_level": 2,
+                "team": 0,
+                "type": 1,
+                "vx": 100.0,
+                "vy": 0.0,
+                "x": 100.099998474121,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "友方碰撞开关即时关闭仅实体反弹",
+          "status": "PASS"
+        },
+        {
+          "detail": "普通粒子接触不触发实体分裂",
+          "metrics": {
+            "particles": [
+              {
+                "birth_scale": 509.901947021484,
+                "contact_mask": 0,
+                "energy": 17,
+                "flags": 0,
+                "generation": 1,
+                "id": 1023,
+                "level": 1,
+                "particle_generation": 1,
+                "pending_split": false,
+                "radius": 1.39999997615814,
+                "sniper_level": 1,
+                "team": 0,
+                "type": 2,
+                "vx": 500.0,
+                "vy": 100.0,
+                "x": 100.5,
+                "y": 100.099998474121
+              }
+            ]
+          },
+          "name": "狙击被普通粒子等消后方向速度均不偏移",
+          "status": "PASS"
+        },
+        {
+          "detail": "1能狙击先穿x112敌格耗尽，x140友球仍4",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 4,
+                "flags": 0,
+                "generation": 1,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 1,
+                "pending_split": false,
+                "radius": 7.59999990463257,
+                "sniper_level": 0,
+                "team": 0,
+                "type": 3,
+                "vx": 0.300000011920929,
+                "vy": 0.0,
+                "x": 140.000305175781,
+                "y": 100.0
+              }
+            ],
+            "particles": []
+          },
+          "name": "敌格先耗尽狙击则不能隔空给后方己球补能",
+          "status": "PASS"
+        },
+        {
+          "detail": "x720敌格在护盾实体之前，护盾10完整保留",
+          "metrics": {
+            "particles": [],
+            "team": {
+              "alive": true,
+              "core_radius": 12.0,
+              "death_nonce": 0,
+              "gun": 0,
+              "gun_angle": 1.58439588546753,
+              "gun_mode": 0.0,
+              "gun_target_angle": 0.0,
+              "pending": false,
+              "ready_time": 0.0,
+              "request_nonce": 0,
+              "rescue_cd": 0.0,
+              "shield": 10,
+              "shield_radius": 16.1011924743652,
+              "sniper": 0,
+              "state": 0,
+              "storm": 0,
+              "team": 1,
+              "x": 768.0,
+              "y": 256.0
+            }
+          },
+          "name": "敌格先耗尽狙击则不能隔空伤盾",
+          "status": "PASS"
+        },
+        {
+          "detail": "10先对近敌4剩6，远友30吸收6成36；双方等消8",
+          "metrics": {
+            "accounted": 44,
+            "balls": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 36,
+                "flags": 0,
+                "generation": 2,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 2,
+                "pending_split": false,
+                "radius": 8.80000019073486,
+                "sniper_level": 0,
+                "team": 0,
+                "type": 3,
+                "vx": 0.599967241287231,
+                "vy": 0.0,
+                "x": 140.000305175781,
+                "y": 100.0
+              }
+            ],
+            "particles": []
+          },
+          "name": "狙击先撞最近大球、余能再补远球而非slot顺序",
+          "status": "PASS"
+        },
+        {
+          "detail": "独立机械公式检查反弹速度/动量；损耗后不即时拉基础速度，不全量清空小球",
+          "metrics": {
+            "accounted": 200,
+            "after": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 43,
+                "flags": 0,
+                "generation": 3,
+                "id": 0,
+                "level": 2,
+                "particle_generation": 3,
+                "pending_split": false,
+                "radius": 8.96723175048828,
+                "sniper_level": 2,
+                "team": 0,
+                "type": 3,
+                "vx": -33.4093017578125,
+                "vy": 0.0,
+                "x": 499.989990234375,
+                "y": 120.0
+              },
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 43,
+                "flags": 0,
+                "generation": 2,
+                "id": 1,
+                "level": 1,
+                "particle_generation": 2,
+                "pending_split": false,
+                "radius": 8.96723175048828,
+                "sniper_level": 1,
+                "team": 1,
+                "type": 3,
+                "vx": 33.4093017578125,
+                "vy": 0.0,
+                "x": 520.010009765625,
+                "y": 120.0
+              }
+            ],
+            "before": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 100,
+                "flags": 0,
+                "generation": 3,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 3,
+                "pending_split": false,
+                "radius": 10.0,
+                "sniper_level": 0,
+                "team": 0,
+                "type": 3,
+                "vx": 42.0,
+                "vy": 0.0,
+                "x": 500.0,
+                "y": 120.0
+              },
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 100,
+                "flags": 0,
+                "generation": 2,
+                "id": 1,
+                "level": 0,
+                "particle_generation": 2,
+                "pending_split": false,
+                "radius": 10.0,
+                "sniper_level": 0,
+                "team": 1,
+                "type": 3,
+                "vx": -42.0,
+                "vy": 0.0,
+                "x": 520.0,
+                "y": 120.0
+              }
+            ],
+            "expected_speed": 33.4092964810596
+          },
+          "name": "敌大球部分互耗与碰前质量冲量",
+          "status": "PASS"
+        },
+        {
+          "detail": "首次反弹后5个小步离开，接触锁去重",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 43,
+                "flags": 0,
+                "generation": 3,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 3,
+                "pending_split": false,
+                "radius": 8.96723175048828,
+                "sniper_level": 0,
+                "team": 0,
+                "type": 3,
+                "vx": -33.4093017578125,
+                "vy": 0.0,
+                "x": 499.822906494141,
+                "y": 120.0
+              },
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 43,
+                "flags": 0,
+                "generation": 2,
+                "id": 1,
+                "level": 0,
+                "particle_generation": 2,
+                "pending_split": false,
+                "radius": 8.96723175048828,
+                "sniper_level": 0,
+                "team": 1,
+                "type": 3,
+                "vx": 33.4093017578125,
+                "vy": 0.0,
+                "x": 520.176940917969,
+                "y": 120.0
+              }
+            ],
+            "extra_consumed": 0
+          },
+          "name": "大球连续接触不重复能量结算",
+          "status": "PASS"
+        },
+        {
+          "detail": "法向恢复系数小于1、切向速度不变，碰撞能量不增加",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 100,
+                "flags": 0,
+                "generation": 4,
+                "id": 0,
+                "level": 2,
+                "particle_generation": 4,
+                "pending_split": false,
+                "radius": 10.0,
+                "sniper_level": 2,
+                "team": 0,
+                "type": 3,
+                "vx": -33.4093017578125,
+                "vy": 30.0,
+                "x": 489.889984130859,
+                "y": 120.029998779297
+              },
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 100,
+                "flags": 0,
+                "generation": 3,
+                "id": 1,
+                "level": 1,
+                "particle_generation": 3,
+                "pending_split": false,
+                "radius": 10.0,
+                "sniper_level": 1,
+                "team": 0,
+                "type": 3,
+                "vx": 33.4093017578125,
+                "vy": 30.0,
+                "x": 509.910003662109,
+                "y": 120.029998779297
+              }
+            ]
+          },
+          "name": "同阵营大球斜碰保持切向速度且不增能",
+          "status": "PASS"
+        },
+        {
+          "detail": "50对4只各耗4，余46不被删除或空气大球反射",
+          "metrics": {
+            "accounted": 54,
+            "balls": [],
+            "particles": [
+              {
+                "birth_scale": 140.0,
+                "contact_mask": 0,
+                "energy": 46,
+                "flags": 0,
+                "generation": 7,
+                "id": 0,
+                "level": 1,
+                "particle_generation": 7,
+                "pending_split": false,
+                "radius": 1.39999997615814,
+                "sniper_level": 1,
+                "team": 0,
+                "type": 1,
+                "vx": 140.0,
+                "vy": 0.0,
+                "x": 100.139999389648,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "高能普通粒子击散小大球后余能继续",
+          "status": "PASS"
+        },
+        {
+          "detail": "50依次对4与6，余40；真实扫掠+TOI顺序不漏接触、不重复结算",
+          "metrics": {
+            "accounted": 60,
+            "balls": [],
+            "particles": [
+              {
+                "birth_scale": 40000.0,
+                "contact_mask": 0,
+                "energy": 40,
+                "flags": 0,
+                "generation": 8,
+                "id": 0,
+                "level": 2,
+                "particle_generation": 8,
+                "pending_split": false,
+                "radius": 1.39999997615814,
+                "sniper_level": 2,
+                "team": 0,
+                "type": 1,
+                "vx": 40000.0,
+                "vy": 0.0,
+                "x": 140.0,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "高能普通粒子同子步穿过多个被击散的大球",
+          "status": "PASS"
+        },
+        {
+          "detail": "球100吸收10、游离粒子消失、能量不进入已消耗账本",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 110,
+                "flags": 0,
+                "generation": 7,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 7,
+                "pending_split": false,
+                "radius": 10.146427154541,
+                "sniper_level": 0,
+                "team": 0,
+                "type": 3,
+                "vx": 0.280826538801193,
+                "vy": 41.9157524108887,
+                "x": 110.0,
+                "y": 100.041999816895
+              }
+            ]
+          },
+          "name": "己方粒子被大球完整吸收并轻微推动",
+          "status": "PASS"
+        },
+        {
+          "detail": "盾/球仍存时逐小步检查不重复扣能；若破盾同一次接触直接返回",
+          "metrics": {
+            "after_impact": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 1,
+                "energy": 994,
+                "flags": 0,
+                "generation": 8,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 8,
+                "pending_split": false,
+                "radius": 16.4583301544189,
+                "sniper_level": 0,
+                "team": 1,
+                "type": 3,
+                "vx": 30.1241912841797,
+                "vy": 0.0,
+                "x": 288.668029785156,
+                "y": 256.0
+              }
+            ],
+            "after_separation": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 1,
+                "energy": 994,
+                "flags": 0,
+                "generation": 8,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 8,
+                "pending_split": false,
+                "radius": 16.4583301544189,
+                "sniper_level": 0,
+                "team": 1,
+                "type": 3,
+                "vx": 30.1241912841797,
+                "vy": 0.0,
+                "x": 288.818634033203,
+                "y": 256.0
+              }
+            ],
+            "shield": 4
+          },
+          "name": "大球撞盾部分消耗、去重且同触不杀核",
+          "status": "PASS"
+        },
+        {
+          "detail": "1盾只各扣1，大球999被实体反射，核心仍存活",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 1,
+                "energy": 999,
+                "flags": 0,
+                "generation": 9,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 9,
+                "pending_split": false,
+                "radius": 16.4820899963379,
+                "sniper_level": 0,
+                "team": 1,
+                "type": 3,
+                "vx": 30.1241912841797,
+                "vy": 0.0,
+                "x": 288.598815917969,
+                "y": 256.0
+              }
+            ],
+            "team": {
+              "alive": true,
+              "core_radius": 12.0,
+              "death_nonce": 0,
+              "gun": 0,
+              "gun_angle": 0.0441980361938477,
+              "gun_mode": 0.0,
+              "gun_target_angle": 0.0,
+              "pending": false,
+              "ready_time": 0.0,
+              "request_nonce": 0,
+              "rescue_cd": 0.0,
+              "shield": 0,
+              "shield_radius": 0.0,
+              "sniper": 0,
+              "state": 0,
+              "storm": 0,
+              "team": 0,
+              "x": 256.0,
+              "y": 256.0
+            }
+          },
+          "name": "刚破盾不能在同接触杀核心",
+          "status": "PASS"
+        },
+        {
+          "detail": "静止球0.001模拟秒仅增加≤0.3速度，不瞬时跳40且不消耗/增生弹药",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 100,
+                "flags": 0,
+                "generation": 10,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 10,
+                "pending_split": false,
+                "radius": 10.0,
+                "sniper_level": 0,
+                "team": 0,
+                "type": 3,
+                "vx": 0.300000011920929,
+                "vy": 0.0,
+                "x": 100.000297546387,
+                "y": 100.0
+              }
+            ],
+            "first_speed": 0.300000011920929
+          },
+          "name": "大球最低移速为独立有限加速度驱动",
+          "status": "PASS"
+        },
+        {
+          "detail": "150毫模拟秒后恰到40，独立驱动避免永久停球",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 100,
+                "flags": 0,
+                "generation": 10,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 10,
+                "pending_split": false,
+                "radius": 10.0,
+                "sniper_level": 0,
+                "team": 0,
+                "type": 3,
+                "vx": 40.0,
+                "vy": 0.0,
+                "x": 103.393325805664,
+                "y": 100.0
+              }
+            ]
+          },
+          "name": "大球基础推进达到设定速度后停止加速",
+          "status": "PASS"
+        },
+        {
+          "detail": "零能调试注入也不会占活跃槽、碰撞或染色",
+          "metrics": {
+            "balls": [],
+            "particles": []
+          },
+          "name": "零能实体立即退出物理与空间系统",
+          "status": "PASS"
+        },
+        {
+          "detail": "左球已输出的过期命令只能记显式损耗，不能生产攻击或从总账消失；优先槽+命令环合计五条",
+          "metrics": {
+            "balls": [],
+            "consumed_delta": 83,
+            "particles": [],
+            "rejected_delta": 5,
+            "team": {
+              "alive": false,
+              "core_radius": 12.0,
+              "death_nonce": 0,
+              "gun": 0,
+              "gun_angle": 0.304286479949951,
+              "gun_mode": 0.0,
+              "gun_target_angle": 0.0,
+              "pending": false,
+              "ready_time": 0.0,
+              "request_nonce": 0,
+              "rescue_cd": 0.0,
+              "shield": 0,
+              "shield_radius": 0.0,
+              "sniper": 0,
+              "state": 2,
+              "storm": 0,
+              "team": 0,
+              "x": 256.0,
+              "y": 256.0
+            }
+          },
+          "name": "死队拒绝五类普通输出仍完整记录83能量损耗",
+          "status": "PASS"
+        },
+        {
+          "detail": "成功命令清a.x后，8个子步及调试空flush不再增加消费或拒绝计数",
+          "metrics": {
+            "consumed": 18014407099416849,
+            "rejected": 5
+          },
+          "name": "清优先槽与后续空刷新不重复收费",
+          "status": "PASS"
+        },
+        {
+          "detail": "op2 death豁免拒绝分支；死亡不生产普通武器的规则保持",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 29,
+                "flags": 0,
+                "generation": 11,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 11,
+                "pending_split": false,
+                "radius": 8.61554908752441,
+                "sniper_level": 0,
+                "team": 0,
+                "type": 3,
+                "vx": 39.2902908325195,
+                "vy": 14.8416042327881,
+                "x": 278.131225585938,
+                "y": 264.359893798828
+              }
+            ],
+            "consumed": 18014407099416849,
+            "rejected": 5
+          },
+          "name": "带死亡标记的29能量余波仍正常出球且不收费",
+          "status": "PASS"
+        },
+        {
+          "detail": "定时31能量仍留CPU队列，不能因队伍已死而提前吞掉未来输入",
+          "metrics": {
+            "consumed": 18014407099416849,
+            "due": 0.192,
+            "queued": 1,
+            "sim_time": 0.189
+          },
+          "name": "未来死队命令未到期不提前计损耗",
+          "status": "PASS"
+        },
+        {
+          "detail": "31在实际生效时拒绝并计账，既有29死亡余波保持，总账不重复或丢失",
+          "metrics": {
+            "balls": [
+              {
+                "birth_scale": 99.9999923706055,
+                "contact_mask": 0,
+                "energy": 29,
+                "flags": 0,
+                "generation": 11,
+                "id": 0,
+                "level": 0,
+                "particle_generation": 11,
+                "pending_split": false,
+                "radius": 8.61554908752441,
+                "sniper_level": 0,
+                "team": 0,
+                "type": 3,
+                "vx": 39.2902908325195,
+                "vy": 14.8416042327881,
+                "x": 278.288330078125,
+                "y": 264.419219970703
+              }
+            ],
+            "consumed_delta": 31,
+            "queued": 0,
+            "rejected_delta": 1
+          },
+          "name": "定时死队命令到期仅一次计31损耗",
+          "status": "PASS"
+        },
+        {
+          "detail": "8轮真实GPU同相位并发；每轮32敌我对、64次消费原子加法、每轮至少63次低word进位，残余9沿原向继续",
+          "metrics": {
+            "rounds": [
+              {
+                "accounted": 274877907040,
+                "consumed_delta": 274877906752,
+                "expected_consumed_delta": 274877906752,
+                "expected_low_word_carries": 64,
+                "remaining": 288,
+                "survivors": 32,
+                "trial": 0,
+                "valid": true
+              },
+              {
+                "accounted": 274877907040,
+                "consumed_delta": 274877906752,
+                "expected_consumed_delta": 274877906752,
+                "expected_low_word_carries": 63,
+                "remaining": 288,
+                "survivors": 32,
+                "trial": 1,
+                "valid": true
+              },
+              {
+                "accounted": 274877907040,
+                "consumed_delta": 274877906752,
+                "expected_consumed_delta": 274877906752,
+                "expected_low_word_carries": 64,
+                "remaining": 288,
+                "survivors": 32,
+                "trial": 2,
+                "valid": true
+              },
+              {
+                "accounted": 274877907040,
+                "consumed_delta": 274877906752,
+                "expected_consumed_delta": 274877906752,
+                "expected_low_word_carries": 64,
+                "remaining": 288,
+                "survivors": 32,
+                "trial": 3,
+                "valid": true
+              },
+              {
+                "accounted": 274877907040,
+                "consumed_delta": 274877906752,
+                "expected_consumed_delta": 274877906752,
+                "expected_low_word_carries": 64,
+                "remaining": 288,
+                "survivors": 32,
+                "trial": 4,
+                "valid": true
+              },
+              {
+                "accounted": 274877907040,
+                "consumed_delta": 274877906752,
+                "expected_consumed_delta": 274877906752,
+                "expected_low_word_carries": 64,
+                "remaining": 288,
+                "survivors": 32,
+                "trial": 5,
+                "valid": true
+              },
+              {
+                "accounted": 274877907040,
+                "consumed_delta": 274877906752,
+                "expected_consumed_delta": 274877906752,
+                "expected_low_word_carries": 64,
+                "remaining": 288,
+                "survivors": 32,
+                "trial": 6,
+                "valid": true
+              },
+              {
+                "accounted": 274877907040,
+                "consumed_delta": 274877906752,
+                "expected_consumed_delta": 274877906752,
+                "expected_low_word_carries": 64,
+                "remaining": 288,
+                "survivors": 32,
+                "trial": 7,
+                "valid": true
+              }
+            ]
+          },
+          "name": "32独立格并行u64原子加法进位与唯一配对",
+          "status": "PASS"
+        }
+      ],
+      "engine_errors": [],
+      "log": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5/rules-0.5-generation/contact-first/contact_energy.log",
+      "returncode": 0,
+      "elapsed_seconds": 20.532,
+      "timed_out": false
+    }
+  ],
+  "seed": 20261016,
+  "duration_sim_seconds": 1200,
+  "requested_speed": 1.0,
+  "wall_budget_seconds": 3600,
+  "particle_capacity": 10000,
+  "host": {
+    "platform": "linux"
+  },
+  "godot": "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+  "source_sha256_before": {
+    "project.godot": "50dd33506a714514953a0a2c15519c3e2224e2cf957b8bd8763f9a6aa1a29688",
+    "shaders/battle.glsl": "6e7eda9ff084d4971432c838ffe8a042d0abcf5ef23d2a21f1c3688feeedc173",
+    "scripts/gpu_world.gd": "37e131f9bc9ce863aae8a6851fe263346e26ba43f06e7062aa99f6b01554bd3d",
+    "scripts/game_settings.gd": "cf9c19660d1caafc0431d5fa35dbcfb58d1eeebc0fe6ca3d03a8e747ddb1834d",
+    "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+    "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+    "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+    "tests/gpu_suite.gd": "1f1eef3b0a3b8bc4814b0f0cfd41d04ad30b35bb3a12e45eaf593807828a6e8f",
+    "tests/contact_energy_suite.gd": "da9a0de1e262fba77f76065123568b02adf9ba94c7f3eef714bb271dfe403921"
+  },
+  "source_sha256_after": {
+    "project.godot": "50dd33506a714514953a0a2c15519c3e2224e2cf957b8bd8763f9a6aa1a29688",
+    "shaders/battle.glsl": "6e7eda9ff084d4971432c838ffe8a042d0abcf5ef23d2a21f1c3688feeedc173",
+    "scripts/gpu_world.gd": "37e131f9bc9ce863aae8a6851fe263346e26ba43f06e7062aa99f6b01554bd3d",
+    "scripts/game_settings.gd": "cf9c19660d1caafc0431d5fa35dbcfb58d1eeebc0fe6ca3d03a8e747ddb1834d",
+    "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+    "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+    "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+    "tests/gpu_suite.gd": "1f1eef3b0a3b8bc4814b0f0cfd41d04ad30b35bb3a12e45eaf593807828a6e8f",
+    "tests/contact_energy_suite.gd": "da9a0de1e262fba77f76065123568b02adf9ba94c7f3eef714bb271dfe403921"
+  },
+  "sources_unchanged_during_run": true,
+  "status": "PASS"
+}

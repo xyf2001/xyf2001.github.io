@@ -1,0 +1,204 @@
+{
+  "checkpoint": "1.5.1-energy-magazine/c8 full-own-territory guard",
+  "shader_sha256": "c8c1007e7d7fd6b84f6a9b87857dd5e305f25075bfdb8cb94b702a9dd1d136b1",
+  "host_sha256": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+  "schema": 3,
+  "throughput": "version2 full measured wall denominator retained",
+  "backend": "software Vulkan llvmpipe LLVM19.1.7/256bits, not RTX5060Ti",
+  "groups": [
+    {
+      "path": "scale-current",
+      "samples": 120,
+      "warmup": 10,
+      "profiling": false,
+      "fixture_sha256": "23d9ef29da26c96c608ca70504737bfa307b8c9227bddba04af6b54a2f661ef2",
+      "runs": [
+        {
+          "label": "current",
+          "cases": 13,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        }
+      ]
+    },
+    {
+      "path": "capacity-uniform140",
+      "samples": 60,
+      "warmup": 10,
+      "profiling": false,
+      "fixture_sha256": "23d9ef29da26c96c608ca70504737bfa307b8c9227bddba04af6b54a2f661ef2",
+      "runs": [
+        {
+          "label": "baseline",
+          "cases": 6,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        },
+        {
+          "label": "current",
+          "cases": 6,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        }
+      ]
+    },
+    {
+      "path": "peak-current",
+      "samples": 20,
+      "warmup": 3,
+      "profiling": false,
+      "fixture_sha256": "0d985e09005318c08767ba00225f2e7f2fa96f0cc7a917ff2ebacaa2dffa0d1f",
+      "runs": [
+        {
+          "label": "current",
+          "cases": 3,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        }
+      ]
+    },
+    {
+      "path": "profile-current",
+      "samples": 12,
+      "warmup": 3,
+      "profiling": true,
+      "fixture_sha256": "23d9ef29da26c96c608ca70504737bfa307b8c9227bddba04af6b54a2f661ef2",
+      "runs": [
+        {
+          "label": "current",
+          "cases": 13,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        }
+      ]
+    },
+    {
+      "path": "peak-profile-current",
+      "samples": 12,
+      "warmup": 3,
+      "profiling": true,
+      "fixture_sha256": "0d985e09005318c08767ba00225f2e7f2fa96f0cc7a917ff2ebacaa2dffa0d1f",
+      "runs": [
+        {
+          "label": "current",
+          "cases": 3,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        }
+      ]
+    }
+  ],
+  "actual_cases_passed": 44,
+  "scope": "full-owned guard avoids no-op territory traversal; benefit does not generalize proportionally to mixed battles",
+  "same_rules_before_path": "../performance/ (f80checkpoint)",
+  "long_endurance": {
+    "sequence_status": "INTERRUPTED",
+    "sequence": "artifacts/validation-1.5.1/long-sequence-final/sequence_status.json",
+    "actual_independent_battles": [
+      {
+        "requested_speed": 1,
+        "suite_status": "PASS",
+        "actual_godot_exit": 0,
+        "target_sim_seconds": 1200.0,
+        "completed_sim_seconds": 1200.00000000147,
+        "gpu_sim_seconds": 1200.0,
+        "wall_seconds": 5382.636976,
+        "final_gpu_validation": true,
+        "natural_end": false,
+        "outcome": {
+          "living": [
+            2,
+            3
+          ],
+          "settled": false
+        },
+        "timed_out": false,
+        "requested_duration_covered": true,
+        "twenty_minute_endurance_observed": true,
+        "result": "artifacts/validation-1.5.1/long-sequence-final/battle-1x/battle_1.0x.json"
+      },
+      {
+        "requested_speed": 2,
+        "suite_status": "NOT TESTED",
+        "actual_godot_exit": 77,
+        "target_sim_seconds": 120.0,
+        "completed_sim_seconds": 120.000000000042,
+        "gpu_sim_seconds": 120.0,
+        "wall_seconds": 464.716147,
+        "final_gpu_validation": true,
+        "natural_end": false,
+        "outcome": {
+          "living": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "settled": false
+        },
+        "timed_out": false,
+        "requested_duration_covered": true,
+        "twenty_minute_endurance_observed": false,
+        "result": "artifacts/validation-1.5.1/long-sequence-final/battle-2x/battle_2.0x.json"
+      },
+      {
+        "requested_speed": 4,
+        "suite_status": "FAIL",
+        "scope_status": "INTERRUPTED BY USER",
+        "actual_godot_exit": -15,
+        "target_sim_seconds": 120,
+        "completed_sim_seconds": null,
+        "gpu_sim_seconds": null,
+        "wall_seconds": null,
+        "last_periodic_progress": {
+          "active": 2414,
+          "big": 0,
+          "cpu_queue_commands": 0,
+          "deaths": 0,
+          "gpu_queue_commands": 0,
+          "gpu_sim_seconds_completed": 89.3333358764648,
+          "living": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "outputs": 71,
+          "overflow": 0,
+          "pinball_error": "",
+          "requested_speed": 4.0,
+          "rescues": 0,
+          "runtime_error": "",
+          "sim_seconds_scheduled": 89.4666666666839,
+          "wall_seconds": 302.669294
+        },
+        "final_gpu_validation": false,
+        "natural_end": null,
+        "outcome": null,
+        "timed_out": false,
+        "requested_duration_covered": false,
+        "twenty_minute_endurance_observed": false,
+        "result": "artifacts/validation-1.5.1/long-sequence-final/battle-4x/STOP_REASON.json"
+      }
+    ],
+    "scope": "Each requested-duration checkpoint and the independent1200-s endurance flag remain distinct; no forced winner."
+  }
+}

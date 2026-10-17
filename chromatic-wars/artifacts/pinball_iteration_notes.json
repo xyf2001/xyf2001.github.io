@@ -1,0 +1,50 @@
+{
+  "scope": "Development iteration record; summaries from captured tool output, not reconstructed pristine engine logs.",
+  "iterations": [
+    {
+      "result": "ENVIRONMENT STARTUP FAILED",
+      "detail": "Default XDG_DATA_HOME resolved outside the writable workspace to /home/agent/.local/share/godot; Godot aborted before the CPU suite ran. Re-run uses writable /tmp/cw-{cache,config,data,runtime}.",
+      "game_test_result": null
+    },
+    {
+      "result": "STOPPED AFTER EARLY ASSERTION FAILURES",
+      "failures": [
+        {
+          "name": "开局16球与四队对等",
+          "cause": "exp(log(100)) produces a tiny double rounding difference; old assertion required threshold == 100.0 exactly. The curve now evaluates T0*exp(logGrowth), preserving the exact start value."
+        },
+        {
+          "name": "旧球锁定出生门槛",
+          "cause": "Same exact-start rounding assertion; radius was unchanged (9.39615242270663), birth threshold printed 100.0."
+        },
+        {
+          "name": "完整输出后按当前门槛重生",
+          "cause": "Test compared the new threshold at actual output substep to the end of the outer fixed step. Corrected expected value to threshold_at(ball.birth_time). Captured actual threshold 14802.5859773336, radius4.2, value2."
+        }
+      ],
+      "detail": "The initial run was stopped and cleanly restarted after fixing exact-start evaluation and the incorrect substep-time assertion. A brief restart was also stopped to ensure only one CPU process and one clean final log. Original temporary log was overwritten; these summaries are retained explicitly, not labelled passing runs."
+    },
+    {
+      "result": "CONFIRMED PHYSICS OBSERVER BUG",
+      "detail": "Pre-release-guard diagnostics at 600 simulation seconds recorded 321 still re-launches; 13 had instantaneous speed >40, including 2 with no nearby solid contacts. Old 3-second history could remain small after a ball had already left its support. Added a current-speed guard to still detection, preserving the 3-second window and independent fast local-loop detection.",
+      "raw_log": "cpu_multiseed_before_release_guard_1_5.log"
+    },
+    {
+      "result": "REPRODUCED DEFAULT GEOMETRY BUG, THEN FIXED",
+      "detail": "The original 15-peg layout had minimum wall clearance36, smaller than default maximum diameter72. Targeted suite before correction had 13 PASS/3 FAIL, including real non-overlapping left and right corridor balls failing to output within1.2 simulated seconds. Kept15 indices, row heights and custom coordinates; moved lower preset columns to102/194/286/378 with ±4 stagger. After fix minimum wall clearance76, interpeg80; real left/right balls output full16384 at0.6583/0.6917 simulated seconds without unsticking.",
+      "before_log": "pinball_properties_before_peg_fix_1_5.log",
+      "after_log": "pinball_properties_1_5.log"
+    },
+    {
+      "result": "FINAL LONG RUN COMPLETED",
+      "detail": "Final default physical geometry and current-speed observer fixes: three seeds1800/1200/1200 simulated seconds, wall828.021seconds, final CPU23/0, properties17/0, floor27/0. Config-preservation branch executed after the long run; it does not change default physical parameters.",
+      "raw_log": "cpu_multiseed_1_5.log"
+    }
+  ],
+  "final_logs": [
+    "cpu_suite_1_5.log",
+    "pinball_properties_1_5.log",
+    "channel_floor_1_5.log",
+    "cpu_multiseed_1_5.log"
+  ]
+}

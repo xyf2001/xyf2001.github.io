@@ -1,0 +1,7 @@
+{
+  "commit": "bdbad1fdd47f0f9aa0f3023775af88f3929c37fd",
+  "project_version": "1.4.3-air-aim",
+  "shader_sha256": "3c1d6864b2c5e47391bce212989037372ddd067e6b9001216e4e1749346f8a08",
+  "source_directory": "/workspace/chromatic-baseline-1.4.3",
+  "comparison_rule": "Identical fixture, backend, thread configuration, map/render resolution, active counts, timestep and capacities before/after."
+}

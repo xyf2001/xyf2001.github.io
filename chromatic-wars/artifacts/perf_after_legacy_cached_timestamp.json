@@ -1,0 +1,1620 @@
+{
+	"driver": "vulkan",
+	"failed": false,
+	"fixture_not_real_battle": true,
+	"godot": "4.6.3-stable (official)",
+	"physical_gpu_claim": false,
+	"results": [
+		{
+			"actual_gpu_substeps_per_fixed_step": 2,
+			"config": {
+				"air_exponent": 2.8,
+				"air_force": 2950.0,
+				"air_height": 180.0,
+				"air_width": 96.0,
+				"ball_speed": 92.0,
+				"emergency_cd": 180.0,
+				"fixed_dt": 0.00833333333333333,
+				"fps_limit": 0,
+				"friction": 0.0,
+				"gravity": 820.0,
+				"grid_size": 512,
+				"growth_duration": 1200.0,
+				"growth_target": 1000000.0,
+				"gun_duration": 1200.0,
+				"gun_end": 0.0,
+				"gun_start": 0.0,
+				"intro_gun": 0.0,
+				"intro_shield": 0.0,
+				"packet_energy": 1,
+				"particle_capacity": 10000,
+				"particle_radius": 1.2,
+				"precision_mode": "exact",
+				"radius_k": 3.0,
+				"radius_max": 36.0,
+				"radius_min": 4.2,
+				"render_size": 768,
+				"restitution": 1.0,
+				"seed": 20261016,
+				"shield_scale": 1.0,
+				"sniper_speed": 620.0,
+				"time_scale": 0.25,
+				"trail_length": 0.12,
+				"visual_density": 1.0
+			},
+			"device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+			"final_energy": {
+				"accounted_without_shield": 64,
+				"active": 64,
+				"active_energy": 64,
+				"consumed": 0,
+				"gpu_time": 0.100000001490116,
+				"max_cell_occupancy": 1,
+				"overflow": 0,
+				"reserve": 0,
+				"shield": 0
+			},
+			"fixed_dt": 0.00833333333333333,
+			"initial_energy": {
+				"accounted_without_shield": 64,
+				"active": 64,
+				"active_energy": 64,
+				"consumed": 0,
+				"gpu_time": 0.0,
+				"max_cell_occupancy": 0,
+				"overflow": 0,
+				"reserve": 0,
+				"shield": 0
+			},
+			"measured_batches": 10,
+			"median_gpu_ms": 89.460676,
+			"median_wall_ms": 128.08,
+			"p90_gpu_ms": 151.047444,
+			"p90_wall_ms": 205.479,
+			"samples": [
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2859992256770,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2860013421665,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 64,
+						"active": 64,
+						"active_energy": 64,
+						"consumed": 0,
+						"gpu_time": 0.025000000372529,
+						"max_cell_occupancy": 1,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 21.164895,
+					"index": 0,
+					"sim_seconds_per_wall_second": 0.110643458094897,
+					"sim_steps_per_wall_second": 13.2772149713876,
+					"viewport_fps_including_async_wait": 26.5544299427752,
+					"wall_ms_including_small_snapshot": 75.317,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2860087261249,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2860238308693,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 64,
+						"active": 64,
+						"active_energy": 64,
+						"consumed": 0,
+						"gpu_time": 0.0333333350718021,
+						"max_cell_occupancy": 1,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 151.047444,
+					"index": 1,
+					"sim_seconds_per_wall_second": 0.0405556447779741,
+					"sim_steps_per_wall_second": 4.86667737335689,
+					"viewport_fps_including_async_wait": 9.73335474671378,
+					"wall_ms_including_small_snapshot": 205.479,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [],
+					"energy": {
+						"accounted_without_shield": 64,
+						"active": 64,
+						"active_energy": 64,
+						"consumed": 0,
+						"gpu_time": 0.0416666679084301,
+						"max_cell_occupancy": 1,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 3,
+					"gpu_ms": 151.047444,
+					"index": 2,
+					"sim_seconds_per_wall_second": 0.172133630780247,
+					"sim_steps_per_wall_second": 20.6560356936297,
+					"viewport_fps_including_async_wait": 61.968107080889,
+					"wall_ms_including_small_snapshot": 48.412,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2860361476669,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2860377890319,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 64,
+						"active": 64,
+						"active_energy": 64,
+						"consumed": 0,
+						"gpu_time": 0.0500000007450581,
+						"max_cell_occupancy": 1,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 16.41365,
+					"index": 3,
+					"sim_seconds_per_wall_second": 0.201147344452759,
+					"sim_steps_per_wall_second": 24.137681334331,
+					"viewport_fps_including_async_wait": 48.275362668662,
+					"wall_ms_including_small_snapshot": 41.429,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2860425853705,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2860515314381,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 64,
+						"active": 64,
+						"active_energy": 64,
+						"consumed": 0,
+						"gpu_time": 0.058333333581686,
+						"max_cell_occupancy": 1,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 89.460676,
+					"index": 4,
+					"sim_seconds_per_wall_second": 0.0583162466730581,
+					"sim_steps_per_wall_second": 6.99794960076698,
+					"viewport_fps_including_async_wait": 13.995899201534,
+					"wall_ms_including_small_snapshot": 142.899,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2860585634785,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2860701014944,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 64,
+						"active": 64,
+						"active_energy": 64,
+						"consumed": 0,
+						"gpu_time": 0.0666666701436043,
+						"max_cell_occupancy": 1,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 115.380159,
+					"index": 5,
+					"sim_seconds_per_wall_second": 0.0501500489464478,
+					"sim_steps_per_wall_second": 6.01800587357373,
+					"viewport_fps_including_async_wait": 12.0360117471475,
+					"wall_ms_including_small_snapshot": 166.168,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2860759734419,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2860775885061,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 64,
+						"active": 64,
+						"active_energy": 64,
+						"consumed": 0,
+						"gpu_time": 0.0750000029802322,
+						"max_cell_occupancy": 1,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 16.150642,
+					"index": 6,
+					"sim_seconds_per_wall_second": 0.224945563173712,
+					"sim_steps_per_wall_second": 26.9934675808454,
+					"viewport_fps_including_async_wait": 53.9869351616909,
+					"wall_ms_including_small_snapshot": 37.046,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2860804123603,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2860820485935,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 64,
+						"active": 64,
+						"active_energy": 64,
+						"consumed": 0,
+						"gpu_time": 0.0833333358168602,
+						"max_cell_occupancy": 1,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 16.362332,
+					"index": 7,
+					"sim_seconds_per_wall_second": 0.200701652978814,
+					"sim_steps_per_wall_second": 24.0841983574577,
+					"viewport_fps_including_async_wait": 48.1683967149153,
+					"wall_ms_including_small_snapshot": 41.521,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2860884854364,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2861003324523,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 64,
+						"active": 64,
+						"active_energy": 64,
+						"consumed": 0,
+						"gpu_time": 0.0916666686534882,
+						"max_cell_occupancy": 1,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 118.470159,
+					"index": 8,
+					"sim_seconds_per_wall_second": 0.0435711621648942,
+					"sim_steps_per_wall_second": 5.2285394597873,
+					"viewport_fps_including_async_wait": 10.4570789195746,
+					"wall_ms_including_small_snapshot": 191.258,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2861114165843,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2861202392174,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 64,
+						"active": 64,
+						"active_energy": 64,
+						"consumed": 0,
+						"gpu_time": 0.100000001490116,
+						"max_cell_occupancy": 1,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 88.226331,
+					"index": 9,
+					"sim_seconds_per_wall_second": 0.0650635019779305,
+					"sim_steps_per_wall_second": 7.80762023735165,
+					"viewport_fps_including_async_wait": 15.6152404747033,
+					"wall_ms_including_small_snapshot": 128.08,
+					"warmup": false
+				}
+			],
+			"scenario": "sparse_64",
+			"small_snapshot_is_completion_fence": true,
+			"statistics_every_batch": true,
+			"steps_per_batch": 1,
+			"strict_particle_reserve_consumption_conservation": true,
+			"warmup_batches_excluded": 2
+		},
+		{
+			"actual_gpu_substeps_per_fixed_step": 2,
+			"config": {
+				"air_exponent": 2.8,
+				"air_force": 2950.0,
+				"air_height": 180.0,
+				"air_width": 96.0,
+				"ball_speed": 92.0,
+				"emergency_cd": 180.0,
+				"fixed_dt": 0.00833333333333333,
+				"fps_limit": 0,
+				"friction": 0.0,
+				"gravity": 820.0,
+				"grid_size": 512,
+				"growth_duration": 1200.0,
+				"growth_target": 1000000.0,
+				"gun_duration": 1200.0,
+				"gun_end": 0.0,
+				"gun_start": 0.0,
+				"intro_gun": 0.0,
+				"intro_shield": 0.0,
+				"packet_energy": 1,
+				"particle_capacity": 10000,
+				"particle_radius": 1.2,
+				"precision_mode": "exact",
+				"radius_k": 3.0,
+				"radius_max": 36.0,
+				"radius_min": 4.2,
+				"render_size": 768,
+				"restitution": 1.0,
+				"seed": 20261016,
+				"shield_scale": 1.0,
+				"sniper_speed": 620.0,
+				"time_scale": 0.25,
+				"trail_length": 0.12,
+				"visual_density": 1.0
+			},
+			"device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+			"final_energy": {
+				"accounted_without_shield": 10000,
+				"active": 10000,
+				"active_energy": 10000,
+				"consumed": 0,
+				"gpu_time": 0.100000001490116,
+				"max_cell_occupancy": 4,
+				"overflow": 0,
+				"reserve": 0,
+				"shield": 0
+			},
+			"fixed_dt": 0.00833333333333333,
+			"initial_energy": {
+				"accounted_without_shield": 10000,
+				"active": 10000,
+				"active_energy": 10000,
+				"consumed": 0,
+				"gpu_time": 0.0,
+				"max_cell_occupancy": 0,
+				"overflow": 0,
+				"reserve": 0,
+				"shield": 0
+			},
+			"measured_batches": 10,
+			"median_gpu_ms": 54.000558,
+			"median_wall_ms": 157.826,
+			"p90_gpu_ms": 141.844154,
+			"p90_wall_ms": 223.986,
+			"samples": [
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2862238796475,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2862324104403,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 10000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.025000000372529,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 85.307928,
+					"index": 0,
+					"sim_seconds_per_wall_second": 0.0528007637102463,
+					"sim_steps_per_wall_second": 6.33609164522956,
+					"viewport_fps_including_async_wait": 12.6721832904591,
+					"wall_ms_including_small_snapshot": 157.826,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2862413434688,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2862535484487,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 10000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0333333350718021,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 122.049799,
+					"index": 1,
+					"sim_seconds_per_wall_second": 0.0449512548592307,
+					"sim_steps_per_wall_second": 5.39415058310768,
+					"viewport_fps_including_async_wait": 10.7883011662154,
+					"wall_ms_including_small_snapshot": 185.386,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2862616584017,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2862719265213,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 10000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0416666679084301,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 102.681196,
+					"index": 2,
+					"sim_seconds_per_wall_second": 0.0509269727581437,
+					"sim_steps_per_wall_second": 6.11123673097725,
+					"viewport_fps_including_async_wait": 12.2224734619545,
+					"wall_ms_including_small_snapshot": 163.633,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2862787118422,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2862841118980,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 10000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0500000007450581,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 54.000558,
+					"index": 3,
+					"sim_seconds_per_wall_second": 0.0428490872287439,
+					"sim_steps_per_wall_second": 5.14189046744926,
+					"viewport_fps_including_async_wait": 10.2837809348985,
+					"wall_ms_including_small_snapshot": 194.481,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2862997497302,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2863045617076,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 10000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.058333333581686,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 48.119774,
+					"index": 4,
+					"sim_seconds_per_wall_second": 0.109634697188966,
+					"sim_steps_per_wall_second": 13.156163662676,
+					"viewport_fps_including_async_wait": 26.3123273253519,
+					"wall_ms_including_small_snapshot": 76.01,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2863080128382,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2863107972100,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 10000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0666666701436043,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 27.843718,
+					"index": 5,
+					"sim_seconds_per_wall_second": 0.164025850474035,
+					"sim_steps_per_wall_second": 19.6831020568842,
+					"viewport_fps_including_async_wait": 39.3662041137683,
+					"wall_ms_including_small_snapshot": 50.805,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2863138342538,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2863280186692,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 10000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0750000029802322,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 141.844154,
+					"index": 6,
+					"sim_seconds_per_wall_second": 0.0372047062465214,
+					"sim_steps_per_wall_second": 4.46456474958256,
+					"viewport_fps_including_async_wait": 8.92912949916513,
+					"wall_ms_including_small_snapshot": 223.986,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2863386114834,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2863431317359,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 10000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0833333358168602,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 45.202525,
+					"index": 7,
+					"sim_seconds_per_wall_second": 0.0845002822309427,
+					"sim_steps_per_wall_second": 10.1400338677131,
+					"viewport_fps_including_async_wait": 20.2800677354262,
+					"wall_ms_including_small_snapshot": 98.619,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2863506424981,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2863547322077,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 10000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0916666686534882,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 40.897096,
+					"index": 8,
+					"sim_seconds_per_wall_second": 0.116413351214424,
+					"sim_steps_per_wall_second": 13.9696021457309,
+					"viewport_fps_including_async_wait": 27.9392042914618,
+					"wall_ms_including_small_snapshot": 71.584,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2863584914701,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2863619311801,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 10000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.100000001490116,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 0,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 34.3971,
+					"index": 9,
+					"sim_seconds_per_wall_second": 0.0941460016193112,
+					"sim_steps_per_wall_second": 11.2975201943173,
+					"viewport_fps_including_async_wait": 22.5950403886347,
+					"wall_ms_including_small_snapshot": 88.515,
+					"warmup": false
+				}
+			],
+			"scenario": "full_10000",
+			"small_snapshot_is_completion_fence": true,
+			"statistics_every_batch": true,
+			"steps_per_batch": 1,
+			"strict_particle_reserve_consumption_conservation": true,
+			"warmup_batches_excluded": 2
+		},
+		{
+			"actual_gpu_substeps_per_fixed_step": 2,
+			"config": {
+				"air_exponent": 2.8,
+				"air_force": 2950.0,
+				"air_height": 180.0,
+				"air_width": 96.0,
+				"ball_speed": 92.0,
+				"emergency_cd": 180.0,
+				"fixed_dt": 0.00833333333333333,
+				"fps_limit": 0,
+				"friction": 0.0,
+				"gravity": 820.0,
+				"grid_size": 512,
+				"growth_duration": 1200.0,
+				"growth_target": 1000000.0,
+				"gun_duration": 1200.0,
+				"gun_end": 0.0,
+				"gun_start": 0.0,
+				"intro_gun": 0.0,
+				"intro_shield": 0.0,
+				"packet_energy": 1,
+				"particle_capacity": 10000,
+				"particle_radius": 1.2,
+				"precision_mode": "exact",
+				"radius_k": 3.0,
+				"radius_max": 36.0,
+				"radius_min": 4.2,
+				"render_size": 768,
+				"restitution": 1.0,
+				"seed": 20261016,
+				"shield_scale": 1.0,
+				"sniper_speed": 620.0,
+				"time_scale": 0.25,
+				"trail_length": 0.12,
+				"visual_density": 1.0
+			},
+			"device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+			"final_energy": {
+				"accounted_without_shield": 810000,
+				"active": 10000,
+				"active_energy": 10000,
+				"consumed": 0,
+				"gpu_time": 0.100000001490116,
+				"max_cell_occupancy": 4,
+				"overflow": 0,
+				"reserve": 800000,
+				"shield": 0
+			},
+			"fixed_dt": 0.00833333333333333,
+			"initial_energy": {
+				"accounted_without_shield": 810000,
+				"active": 10000,
+				"active_energy": 10000,
+				"consumed": 0,
+				"gpu_time": 0.0,
+				"max_cell_occupancy": 0,
+				"overflow": 0,
+				"reserve": 800000,
+				"shield": 0
+			},
+			"measured_batches": 10,
+			"median_gpu_ms": 45.056696,
+			"median_wall_ms": 151.199,
+			"p90_gpu_ms": 170.075108,
+			"p90_wall_ms": 253.627,
+			"samples": [
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2864401737159,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2864486199511,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.025000000372529,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 800000,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 84.462352,
+					"index": 0,
+					"sim_seconds_per_wall_second": 0.0437730246109454,
+					"sim_steps_per_wall_second": 5.25276295331344,
+					"viewport_fps_including_async_wait": 10.5055259066269,
+					"wall_ms_including_small_snapshot": 190.376,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2864602200562,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2864630031355,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0333333350718021,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 800000,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 27.830793,
+					"index": 1,
+					"sim_seconds_per_wall_second": 0.138478070612738,
+					"sim_steps_per_wall_second": 16.6173684735285,
+					"viewport_fps_including_async_wait": 33.2347369470571,
+					"wall_ms_including_small_snapshot": 60.178,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2864661800669,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2864689877891,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0416666679084301,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 800000,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 28.077222,
+					"index": 2,
+					"sim_seconds_per_wall_second": 0.134593124983176,
+					"sim_steps_per_wall_second": 16.1511749979811,
+					"viewport_fps_including_async_wait": 32.3023499959622,
+					"wall_ms_including_small_snapshot": 61.915,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2864735431841,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2864780488537,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0500000007450581,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 800000,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 45.056696,
+					"index": 3,
+					"sim_seconds_per_wall_second": 0.0551150029651872,
+					"sim_steps_per_wall_second": 6.61380035582246,
+					"viewport_fps_including_async_wait": 13.2276007116449,
+					"wall_ms_including_small_snapshot": 151.199,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2864913151514,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2865083226622,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.058333333581686,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 800000,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 170.075108,
+					"index": 4,
+					"sim_seconds_per_wall_second": 0.0409941575126713,
+					"sim_steps_per_wall_second": 4.91929890152056,
+					"viewport_fps_including_async_wait": 9.83859780304111,
+					"wall_ms_including_small_snapshot": 203.281,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2865124186628,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2865151576960,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0666666701436043,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 800000,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 27.390332,
+					"index": 5,
+					"sim_seconds_per_wall_second": 0.161155160188229,
+					"sim_steps_per_wall_second": 19.3386192225875,
+					"viewport_fps_including_async_wait": 38.677238445175,
+					"wall_ms_including_small_snapshot": 51.71,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2865185007116,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2865333649630,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0750000029802322,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 800000,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 148.642514,
+					"index": 6,
+					"sim_seconds_per_wall_second": 0.0328566490686454,
+					"sim_steps_per_wall_second": 3.94279788823745,
+					"viewport_fps_including_async_wait": 7.8855957764749,
+					"wall_ms_including_small_snapshot": 253.627,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2865467460918,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2865574599182,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0833333358168602,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 800000,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 107.138264,
+					"index": 7,
+					"sim_seconds_per_wall_second": 0.0418149004888998,
+					"sim_steps_per_wall_second": 5.01778805866798,
+					"viewport_fps_including_async_wait": 10.035576117336,
+					"wall_ms_including_small_snapshot": 199.291,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2865675235204,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2865704224391,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.0916666686534882,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 800000,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 28.989187,
+					"index": 8,
+					"sim_seconds_per_wall_second": 0.0798487345572547,
+					"sim_steps_per_wall_second": 9.58184814687057,
+					"viewport_fps_including_async_wait": 19.1636962937411,
+					"wall_ms_including_small_snapshot": 104.364,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2865789350964,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2865818159126,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 10000,
+						"active_energy": 10000,
+						"consumed": 0,
+						"gpu_time": 0.100000001490116,
+						"max_cell_occupancy": 4,
+						"overflow": 0,
+						"reserve": 800000,
+						"shield": 0
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 28.808162,
+					"index": 9,
+					"sim_seconds_per_wall_second": 0.163932276298016,
+					"sim_steps_per_wall_second": 19.6718731557619,
+					"viewport_fps_including_async_wait": 39.3437463115238,
+					"wall_ms_including_small_snapshot": 50.834,
+					"warmup": false
+				}
+			],
+			"scenario": "full_10000_blocked_storm_sniper",
+			"small_snapshot_is_completion_fence": true,
+			"statistics_every_batch": true,
+			"steps_per_batch": 1,
+			"strict_particle_reserve_consumption_conservation": true,
+			"warmup_batches_excluded": 2
+		},
+		{
+			"actual_gpu_substeps_per_fixed_step": 2,
+			"config": {
+				"air_exponent": 2.8,
+				"air_force": 2950.0,
+				"air_height": 180.0,
+				"air_width": 96.0,
+				"ball_speed": 92.0,
+				"emergency_cd": 180.0,
+				"fixed_dt": 0.00833333333333333,
+				"fps_limit": 0,
+				"friction": 0.0,
+				"gravity": 820.0,
+				"grid_size": 512,
+				"growth_duration": 1200.0,
+				"growth_target": 1000000.0,
+				"gun_duration": 1200.0,
+				"gun_end": 0.0,
+				"gun_start": 0.0,
+				"intro_gun": 0.0,
+				"intro_shield": 1000000.0,
+				"packet_energy": 1,
+				"particle_capacity": 10000,
+				"particle_radius": 1.2,
+				"precision_mode": "exact",
+				"radius_k": 3.0,
+				"radius_max": 36.0,
+				"radius_min": 4.2,
+				"render_size": 768,
+				"restitution": 1.0,
+				"seed": 20261016,
+				"shield_scale": 1.0,
+				"sniper_speed": 620.0,
+				"time_scale": 0.25,
+				"trail_length": 0.12,
+				"visual_density": 1.0
+			},
+			"device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+			"final_energy": {
+				"accounted_without_shield": 810000,
+				"active": 9997,
+				"active_energy": 9997,
+				"consumed": 854,
+				"gpu_time": 0.100000001490116,
+				"max_cell_occupancy": 57,
+				"overflow": 0,
+				"reserve": 799149,
+				"shield": 3999772
+			},
+			"fixed_dt": 0.00833333333333333,
+			"initial_energy": {
+				"accounted_without_shield": 810000,
+				"active": 10000,
+				"active_energy": 10000,
+				"consumed": 0,
+				"gpu_time": 0.0,
+				"max_cell_occupancy": 0,
+				"overflow": 0,
+				"reserve": 800000,
+				"shield": 4000000
+			},
+			"measured_batches": 10,
+			"median_gpu_ms": 28.340284,
+			"median_wall_ms": 47.739,
+			"p90_gpu_ms": 33.98156,
+			"p90_wall_ms": 53.665,
+			"samples": [
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2866245629819,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2866274137151,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 9942,
+						"active_energy": 9942,
+						"consumed": 703,
+						"gpu_time": 0.025000000372529,
+						"max_cell_occupancy": 57,
+						"overflow": 0,
+						"reserve": 799355,
+						"shield": 3999772
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 28.507332,
+					"index": 0,
+					"sim_seconds_per_wall_second": 0.158070777771455,
+					"sim_steps_per_wall_second": 18.9684933325746,
+					"viewport_fps_including_async_wait": 37.9369866651492,
+					"wall_ms_including_small_snapshot": 52.719,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2866304590525,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2866332930809,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 9994,
+						"active_energy": 9994,
+						"consumed": 761,
+						"gpu_time": 0.0333333350718021,
+						"max_cell_occupancy": 57,
+						"overflow": 0,
+						"reserve": 799245,
+						"shield": 3999772
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 28.340284,
+					"index": 1,
+					"sim_seconds_per_wall_second": 0.18385732671447,
+					"sim_steps_per_wall_second": 22.0628792057363,
+					"viewport_fps_including_async_wait": 44.1257584114727,
+					"wall_ms_including_small_snapshot": 45.325,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2866356710324,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2866384746689,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 9987,
+						"active_energy": 9987,
+						"consumed": 785,
+						"gpu_time": 0.0416666679084301,
+						"max_cell_occupancy": 57,
+						"overflow": 0,
+						"reserve": 799228,
+						"shield": 3999772
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 28.036365,
+					"index": 2,
+					"sim_seconds_per_wall_second": 0.181399972427204,
+					"sim_steps_per_wall_second": 21.7679966912645,
+					"viewport_fps_including_async_wait": 43.535993382529,
+					"wall_ms_including_small_snapshot": 45.939,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2866408160539,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2866435581439,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 9995,
+						"active_energy": 9995,
+						"consumed": 800,
+						"gpu_time": 0.0500000007450581,
+						"max_cell_occupancy": 57,
+						"overflow": 0,
+						"reserve": 799205,
+						"shield": 3999772
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 27.4209,
+					"index": 3,
+					"sim_seconds_per_wall_second": 0.188990187629458,
+					"sim_steps_per_wall_second": 22.678822515535,
+					"viewport_fps_including_async_wait": 45.35764503107,
+					"wall_ms_including_small_snapshot": 44.094,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2866458114133,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2866492095693,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 9991,
+						"active_energy": 9991,
+						"consumed": 818,
+						"gpu_time": 0.058333333581686,
+						"max_cell_occupancy": 57,
+						"overflow": 0,
+						"reserve": 799191,
+						"shield": 3999772
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 33.98156,
+					"index": 4,
+					"sim_seconds_per_wall_second": 0.155284325600174,
+					"sim_steps_per_wall_second": 18.6341190720209,
+					"viewport_fps_including_async_wait": 37.2682381440417,
+					"wall_ms_including_small_snapshot": 53.665,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2866517670910,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2866545237949,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 9999,
+						"active_energy": 9999,
+						"consumed": 826,
+						"gpu_time": 0.0666666701436043,
+						"max_cell_occupancy": 57,
+						"overflow": 0,
+						"reserve": 799175,
+						"shield": 3999772
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 27.567039,
+					"index": 5,
+					"sim_seconds_per_wall_second": 0.17456028264801,
+					"sim_steps_per_wall_second": 20.9472339177612,
+					"viewport_fps_including_async_wait": 41.8944678355223,
+					"wall_ms_including_small_snapshot": 47.739,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2866571237151,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2866601814771,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 9994,
+						"active_energy": 9994,
+						"consumed": 836,
+						"gpu_time": 0.0750000029802322,
+						"max_cell_occupancy": 57,
+						"overflow": 0,
+						"reserve": 799170,
+						"shield": 3999772
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 30.57762,
+					"index": 6,
+					"sim_seconds_per_wall_second": 0.169866960196774,
+					"sim_steps_per_wall_second": 20.3840352236129,
+					"viewport_fps_including_async_wait": 40.7680704472257,
+					"wall_ms_including_small_snapshot": 49.058,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2866626418584,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2866654520877,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 9997,
+						"active_energy": 9997,
+						"consumed": 843,
+						"gpu_time": 0.0833333358168602,
+						"max_cell_occupancy": 57,
+						"overflow": 0,
+						"reserve": 799160,
+						"shield": 3999772
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 28.102293,
+					"index": 7,
+					"sim_seconds_per_wall_second": 0.18212547716875,
+					"sim_steps_per_wall_second": 21.85505726025,
+					"viewport_fps_including_async_wait": 43.7101145205,
+					"wall_ms_including_small_snapshot": 45.756,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2866678131321,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2866704679637,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 9996,
+						"active_energy": 9996,
+						"consumed": 849,
+						"gpu_time": 0.0916666686534882,
+						"max_cell_occupancy": 57,
+						"overflow": 0,
+						"reserve": 799155,
+						"shield": 3999772
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 26.548316,
+					"index": 8,
+					"sim_seconds_per_wall_second": 0.186236386120175,
+					"sim_steps_per_wall_second": 22.348366334421,
+					"viewport_fps_including_async_wait": 44.6967326688419,
+					"wall_ms_including_small_snapshot": 44.746,
+					"warmup": false
+				},
+				{
+					"captured_timestamps": [
+						{
+							"gpu_ns": 2866730563236,
+							"label": "颜色大战_开始"
+						},
+						{
+							"gpu_ns": 2866760379496,
+							"label": "颜色大战_结束"
+						}
+					],
+					"energy": {
+						"accounted_without_shield": 810000,
+						"active": 9997,
+						"active_energy": 9997,
+						"consumed": 854,
+						"gpu_time": 0.100000001490116,
+						"max_cell_occupancy": 57,
+						"overflow": 0,
+						"reserve": 799149,
+						"shield": 3999772
+					},
+					"expected_gpu_substeps": 2,
+					"fixed_steps": 1,
+					"frames_during_wait": 2,
+					"gpu_ms": 29.81626,
+					"index": 9,
+					"sim_seconds_per_wall_second": 0.171235222400307,
+					"sim_steps_per_wall_second": 20.5482266880368,
+					"viewport_fps_including_async_wait": 41.0964533760736,
+					"wall_ms_including_small_snapshot": 48.666,
+					"warmup": false
+				}
+			],
+			"scenario": "full_10000_shields_storm_sniper",
+			"small_snapshot_is_completion_fence": true,
+			"statistics_every_batch": true,
+			"steps_per_batch": 1,
+			"strict_particle_reserve_consumption_conservation": false,
+			"warmup_batches_excluded": 2
+		}
+	]
+}

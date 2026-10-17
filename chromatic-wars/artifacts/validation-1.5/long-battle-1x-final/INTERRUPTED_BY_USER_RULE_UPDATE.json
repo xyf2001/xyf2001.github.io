@@ -1,0 +1,89 @@
+{
+  "started_utc": "2026-10-17T05:20:21.739016+00:00",
+  "git_commit": "69633f51b06d6d528ef1f30c37371dcffecacb02",
+  "source_sha256_before": {
+    "shaders/battle.glsl": "b879f4b992c76e4f324a68b3ff076348f0c24f6d512e5b112b0bd4533f9e5356",
+    "scripts/gpu_world.gd": "250d8706288ba5ed039d107fd86d6b36159a2aa3cec7818d21276d3f14de8418",
+    "scripts/game_settings.gd": "f43eeaf3d162a66b1d96e416561d14949da64a2cc986470dd62eb546a3be56c1",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/battle_suite.gd": "1b92e87a0be9172b9779f07b0d1563632459ae53b49cef73575674f20695cddb"
+  },
+  "backend": "llvmpipe software Vulkan; not RTX5060Ti",
+  "cpu_affinity": "0-3",
+  "LP_NUM_THREADS": 4,
+  "cgroup_cpu_max": "400000 100000",
+  "duration_sim_seconds": 1200,
+  "requested_speed": 1,
+  "wall_budget_seconds": 14400,
+  "process_timeout_seconds": 14700,
+  "independent_fresh_game": true,
+  "not_continuation_of": "../long-battle-1x",
+  "godot_pid": 135721,
+  "runner_pid": 135716,
+  "parameter_version": "historical gun_target_switch_cd0.08simsec",
+  "not_validation_of_new_default0_5": true,
+  "startup_source_recovered_utc": "2026-10-17T05:58:51.654448+00:00",
+  "startup_frozen_sources": {
+    "shaders/battle.glsl": {
+      "sha256": "b879f4b992c76e4f324a68b3ff076348f0c24f6d512e5b112b0bd4533f9e5356",
+      "recovered_from": "Git 7fa888f49663adece040c207876feb2fa59dd3fe",
+      "artifact_relative_path": "frozen_old_parameter_source/shaders/battle.glsl"
+    },
+    "scripts/gpu_world.gd": {
+      "sha256": "250d8706288ba5ed039d107fd86d6b36159a2aa3cec7818d21276d3f14de8418",
+      "recovered_from": "Git 7fa888f49663adece040c207876feb2fa59dd3fe",
+      "artifact_relative_path": "frozen_old_parameter_source/scripts/gpu_world.gd"
+    },
+    "scripts/game_settings.gd": {
+      "sha256": "f43eeaf3d162a66b1d96e416561d14949da64a2cc986470dd62eb546a3be56c1",
+      "recovered_from": "Git 7fa888f49663adece040c207876feb2fa59dd3fe",
+      "artifact_relative_path": "frozen_old_parameter_source/scripts/game_settings.gd"
+    },
+    "scripts/pinball_physics.gd": {
+      "sha256": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+      "recovered_from": "Git 7fa888f49663adece040c207876feb2fa59dd3fe",
+      "artifact_relative_path": "frozen_old_parameter_source/scripts/pinball_physics.gd"
+    },
+    "tests/battle_suite.gd": {
+      "sha256": "1b92e87a0be9172b9779f07b0d1563632459ae53b49cef73575674f20695cddb",
+      "recovered_from": "Git 7fa888f49663adece040c207876feb2fa59dd3fe",
+      "artifact_relative_path": "frozen_old_parameter_source/tests/battle_suite.gd"
+    }
+  },
+  "working_tree_changes_after_start_are_not_live_parameters": true,
+  "status": "INTERRUPTED_BY_USER_RULE_UPDATE",
+  "interrupted_utc": "2026-10-17T06:01:56.412538+00:00",
+  "reason": "Parent-authorized stop after new explicit CD0.5simsec strict-hold/generation requirement; oldCD0.08 run is historical and not a pass of new final rules.",
+  "target1200simsec_passed": false,
+  "final_completion_fence_performed": false,
+  "last_gpu_telemetry": {
+    "active": 4362,
+    "big": 1,
+    "cpu_queue_commands": 0,
+    "deaths": 0,
+    "gpu_queue_commands": 0,
+    "gpu_sim_seconds_completed": 710.266662597656,
+    "living": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "outputs": 511,
+    "overflow": 0,
+    "pinball_error": "",
+    "requested_speed": 1.0,
+    "rescues": 0,
+    "runtime_error": "",
+    "sim_seconds_scheduled": 710.399999999518,
+    "wall_seconds": 2477.257942
+  },
+  "working_tree_sha256_at_interrupt": {
+    "shaders/battle.glsl": "b879f4b992c76e4f324a68b3ff076348f0c24f6d512e5b112b0bd4533f9e5356",
+    "scripts/gpu_world.gd": "6e4d43b2e094646979862c7d37b979f1bd40ea09b6e03c9ded69d9ca3569c18d",
+    "scripts/game_settings.gd": "cf9c19660d1caafc0431d5fa35dbcfb58d1eeebc0fe6ca3d03a8e747ddb1834d",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/battle_suite.gd": "1b92e87a0be9172b9779f07b0d1563632459ae53b49cef73575674f20695cddb"
+  },
+  "source_changes_after_start_are_authorized_new_rule_development": true
+}

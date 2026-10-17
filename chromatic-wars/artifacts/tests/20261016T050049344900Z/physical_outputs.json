@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "name": "独立复核至少100次真实物理落槽与显示",
+  "detail": "逐条比较正式物理原始落点与相位对应的连续可见矩形，包含标签及独立位置/内容索引",
+  "metrics": {
+    "events": 120,
+    "mismatches": 0,
+    "position_counts": [
+      9,
+      31,
+      30,
+      10,
+      29,
+      11
+    ],
+    "content_counts": [
+      18,
+      19,
+      14,
+      24,
+      23,
+      22
+    ],
+    "source": "/workspace/chromatic-wars/artifacts/tests/20261016T050049344900Z/cpu.log"
+  },
+  "errors": []
+}

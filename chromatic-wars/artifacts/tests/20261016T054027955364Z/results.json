@@ -1,0 +1,50 @@
+{
+  "started_utc": "20261016T054027955364Z",
+  "project": "/workspace/chromatic-wars",
+  "suites": [
+    {
+      "name": "settings",
+      "status": "PASS",
+      "reason": "实际通过 4 项断言",
+      "results": [
+        {
+          "detail": "低重力/大摩擦/最小球半径都按同一边界验证，不在物理层静默改为另一数值",
+          "metrics": {
+            "friction": 0.3,
+            "gravity": 50.0,
+            "radius_min": 9.0
+          },
+          "name": "参数UI可接受范围与实际物理一致",
+          "status": "PASS"
+        },
+        {
+          "detail": "手改存档中的非菜单数值安全回到明确默认值",
+          "name": "离散时步与速度配置不产生显示错位",
+          "status": "PASS"
+        },
+        {
+          "detail": "非法数值不会进入物理或GPU参数",
+          "name": "配置拒绝NaN和无穷",
+          "status": "PASS"
+        },
+        {
+          "detail": "存量包的混合标识由独立实际GPU测试验证",
+          "name": "精确发射模式的包能量为一",
+          "status": "PASS"
+        }
+      ],
+      "engine_errors": [],
+      "log": "/workspace/chromatic-wars/artifacts/tests/20261016T054027955364Z/settings.log",
+      "returncode": 0,
+      "elapsed_seconds": 0.318,
+      "timed_out": false
+    }
+  ],
+  "seed": 20261016,
+  "duration_sim_seconds": 1200,
+  "host": {
+    "platform": "linux"
+  },
+  "godot": "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+  "status": "PASS"
+}
