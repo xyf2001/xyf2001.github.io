@@ -1,5 +1,6 @@
 extends "res://tests/gpu_suite.gd"
 ## 正式Compute武器契约：读少量team/weapon/sniper槽，绝不CPU代算战斗结果。
+var _wrap_fixture_written:=false
 
 func run_suite() -> void:
 	if RenderingServer.get_current_rendering_method()!="forward_plus" or RenderingServer.get_current_rendering_driver_name()!="vulkan":
@@ -21,8 +22,10 @@ func run_suite() -> void:
 		return
 	await _test_gun_lock_and_cadence()
 	await _test_gun_aim_and_switch()
+	await _test_gun_target_invalidation_and_reuse()
 	await _test_storm_circles()
 	await _test_sniper_integer_split()
+	await _test_sniper_full_pool_retry()
 	await _test_shield_growth_and_paint()
 	await _test_zero_entities()
 	await _shutdown_world()
@@ -88,8 +91,9 @@ func _test_gun_lock_and_cadence()->void:
 
 func _test_gun_aim_and_switch()->void:
 	await reset_weapons()
-	world.update_settings({"gun_rate":1200.0,"particle_cost_delay":0.0,"particle_cost_growth":0.0,"gun_target_switch_cd":0.08})
-	world.output(0,4,10000.0)
+	check(is_equal_approx(float(world.settings.get("gun_target_switch_cd",-1.0)),0.5),"机枪默认目标切换CD为0.5模拟秒","验证正式配置默认值，不用夹具覆盖旧0.08值冒充新默认",{"configured_cd":world.settings.get("gun_target_switch_cd",-1.0)})
+	world.update_settings({"gun_rate":1200.0,"particle_cost_delay":0.0,"particle_cost_growth":0.0,"gun_target_switch_cd":0.5})
+	world.output(0,4,1000000.0)
 	await _advance()
 	var safe:Dictionary=await _snapshot()
 	check(float(safe.teams[0].get("gun_mode",-1))<0.5,"机枪周围安全时连续自由旋转","全图己色且没有威胁，防御/补地模式不误触发",{"team":safe.teams[0]})
@@ -100,25 +104,135 @@ func _test_gun_aim_and_switch()->void:
 	var mode:=float(paint.teams[0].get("gun_mode",0))
 	var recolored:bool=paint.get("terrain",[])==[0]
 	check((mode>=0.5 and mode<2.0) or recolored,"机枪发现离散射线之间的周围单格缺口","非16射线格在完整扫描周期内进入补地或已被真实粒子染色；不能仅挪格让夹具通过",{"team":paint.teams[0],"weapon":weapon(paint),"terrain":paint.get("terrain",[]),"cell":missing_cell})
-	_inject(1,1000.0,Vector2(456,256),Vector2(-40,0),13)
+	_inject(1,1000.0,Vector2(456,256),Vector2(-40,20),13)
 	await _advance()
 	var first:Dictionary=await _snapshot()
 	var first_target:=int(weapon(first).get("gun_target",-1))
-	check(first_target>=4096 and float(first.teams[0].get("gun_mode",0))>=2.0,"机枪迫近大球防御优先于补地","真实敌球进入近防范围，锁定其physical ID并切换防御模式",{"weapon":weapon(first),"team":first.teams[0]})
+	check(first_target>=4096 and int(weapon(first).get("gun_target_generation",0))>0 and float(first.teams[0].get("gun_mode",0))>=2.0,"机枪迫近大球防御优先于补地","真实敌球进入近防范围，锁定其physical ID和出生代并切换防御模式",{"weapon":weapon(first),"team":first.teams[0]})
 	_inject(2,1000.0,Vector2(256,61),Vector2(0,40),13)
 	await _advance()
 	var during_cd:Dictionary=await _snapshot()
-	check(int(weapon(during_cd).get("gun_target",-2))==first_target and sim_time<float(weapon(first).get("target_switch_ready",0)),"机枪轻微评分差遵守目标切换CD","略近的第二目标在0.08模拟秒内不导致来回跳锁",{"first":weapon(first),"during_cd":weapon(during_cd),"sim_time":sim_time})
-	await _advance(12)
-	var switched:Dictionary=await _snapshot()
-	var second_target:=int(weapon(switched).get("gun_target",-1))
-	var angle:=wrapf(float(switched.teams[0].gun_angle),-PI,PI)
-	check(second_target!=first_target and second_target>=4096 and angle< -0.01,"机枪CD后切换目标且炮口连续跟踪","更高评分目标在北侧，炮口实际朝北转动，未锁死旧角度",{"weapon":weapon(switched),"team":switched.teams[0],"wrapped_angle":angle})
-	var previous_ready:=float(weapon(switched).get("target_switch_ready",0))
-	_inject(3,1000.0,Vector2(256,316),Vector2(0,-500),13)
+	var ready_time:=float(weapon(first).get("target_switch_ready",0))
+	check(int(weapon(during_cd).get("gun_target",-2))==first_target and sim_time<ready_time,"机枪轻微评分差遵守目标切换CD","略近的第二目标在0.5模拟秒内不导致来回跳锁",{"first":weapon(first),"during_cd":weapon(during_cd),"sim_time":sim_time})
+	# 高分威胁仍必须等待有效原目标的0.5秒；位置保证等待期间不会撞到核心。
+	_inject(3,1000.0,Vector2(256,356),Vector2(0,-120),13)
 	await _advance()
 	var urgent:Dictionary=await _snapshot()
-	check(int(weapon(urgent).get("gun_target",-1))!=second_target and sim_time<previous_ready,"机枪紧迫威胁可抢占切换CD","新目标近且高速逼近，评分提升超过0.35，立即改变锁定",{"weapon":weapon(urgent),"previous_ready":previous_ready,"sim_time":sim_time})
+	check(int(weapon(urgent).get("gun_target",-1))==first_target and sim_time<ready_time and is_equal_approx(float(weapon(urgent).get("target_switch_ready",0)),ready_time),"机枪高分新威胁也不得抢占有效原目标","取消旧+0.35抢占例外；新近身威胁出现时目标身份与到期时间均保持",{"weapon":weapon(urgent),"first":weapon(first),"sim_time":sim_time})
+	var before_angle:=float(urgent.teams[0].get("gun_target_angle",0))
+	var before_energy:=accounted(urgent)
+	var before_spawn:=int(urgent.metrics[16])
+	var before_gun:=int(urgent.teams[0].gun)
+	await _advance(24)
+	var tracked:Dictionary=await _snapshot()
+	var tracked_angle:=float(tracked.teams[0].get("gun_target_angle",0))
+	check(int(weapon(tracked).get("gun_target",-1))==first_target and sim_time<ready_time and absf(angle_difference(before_angle,tracked_angle))>0.005 and absf(angle_difference(float(tracked.teams[0].gun_angle),tracked_angle))<0.08,"机枪0.5秒锁定身份期间持续追踪移动目标","原目标横向位移使目标角和实际炮口角连续改变，不锁死旧角度",{"before_angle":before_angle,"tracked_angle":tracked_angle,"team":tracked.teams[0],"weapon":weapon(tracked)})
+	var fired:=int(tracked.metrics[16])-before_spawn
+	check(fired==240 and before_gun-int(tracked.teams[0].gun)==240,"机枪锁定和目标切换CD不降低1200固定射速","0.2模拟秒真实发出240颗，枪库存恰好减少240",{"fired":fired,"gun_spent":before_gun-int(tracked.teams[0].gun)})
+	check(accounted(tracked)==before_energy,"机枪目标保持期间整数能量守恒","无新增输入的追踪窗口，在场+库存+累计实际消耗保持相等",{"before":before_energy,"after":accounted(tracked)})
+	var steps_to_ready:=maxi(1,int(ceil((ready_time-sim_time)/(1.0/120.0)))+1)
+	await _advance(steps_to_ready)
+	var switched:Dictionary=await _snapshot()
+	var next_target:=int(weapon(switched).get("gun_target",-1))
+	check(sim_time>=ready_time and next_target>=4096 and next_target!=first_target and float(weapon(switched).get("target_switch_ready",0))>ready_time,"机枪0.5秒期限后允许切换更高分目标","原目标在期限内有效，过期后才切向更高分近身目标并重开0.5秒CD",{"weapon":weapon(switched),"first_ready":ready_time,"sim_time":sim_time,"team":switched.teams[0]})
+	world.update_settings({"gun_rate":0.0})
+
+func _gun_target_fixture(position:Vector2,velocity:Vector2)->Dictionary:
+	await reset_weapons()
+	world.update_settings({"gun_rate":1200.0,"particle_cost_delay":0.0,"particle_cost_growth":0.0,"gun_target_switch_cd":0.5})
+	world.output(0,4,1000000.0)
+	_inject(1,1000.0,position,velocity,13)
+	await _advance()
+	return await _snapshot()
+
+func _ball_physical_id(ball:Dictionary)->int:
+	# balls读回只覆盖大球缓冲尾段，id是该段0..63；武器锁保存全粒子物理ID。
+	return int(world.settings.particle_capacity)+int(ball.id)
+
+func _write_generation_wrap_fixture_rd(physical_id:int,contact_mask:int)->void:
+	# 仅测试罕见28位回卷边界，不改能量/运动/活跃列表；随后仍由实际Compute重生。
+	var words:=PackedByteArray()
+	words.resize(4)
+	words.encode_u32(0,0xfffffff0 | (contact_mask & 15))
+	world._rd.buffer_update(world._buffers[0],physical_id*64+48,4,words)
+	words.encode_u32(0,1)
+	world._rd.buffer_update(world._buffers[9],12,4,words)
+	call_deferred("_mark_generation_wrap_written")
+
+func _mark_generation_wrap_written()->void:
+	_wrap_fixture_written=true
+
+func _test_gun_target_invalidation_and_reuse()->void:
+	var locked:Dictionary=await _gun_target_fixture(Vector2(456,256),Vector2(-40,0))
+	var old_target:=int(weapon(locked).get("gun_target",-1))
+	var old_generation:=int(weapon(locked).get("gun_target_generation",0))
+	var old_ready:=float(weapon(locked).get("target_switch_ready",0))
+	world.debug_command({"op":14})
+	await _advance()
+	var died:Dictionary=await _snapshot()
+	check(old_target==4096 and old_generation>0 and sim_time<old_ready and int(weapon(died).get("gun_target",-1))==4294967295 and float(died.teams[0].get("gun_mode",0))<2.0,"机枪原目标死亡后立即解除身份锁定","真实debug清除实体后尚未到0.5秒，不继续瞄准失效物理槽",{"locked":weapon(locked),"after":weapon(died),"sim_time":sim_time})
+
+	locked=await _gun_target_fixture(Vector2(456,256),Vector2(-40,0))
+	old_target=int(weapon(locked).get("gun_target",-1));old_generation=int(weapon(locked).get("gun_target_generation",0));old_ready=float(weapon(locked).get("target_switch_ready",0))
+	# 同批清除后重用相同slot，中间不推进；旧ID仍非空，只有出生代可识别新生命。
+	world.debug_command({"op":14})
+	_inject(2,1000.0,Vector2(256,456),Vector2(0,-40),13)
+	await _advance()
+	var reused:Dictionary=await _snapshot()
+	var new_generation:=int(weapon(reused).get("gun_target_generation",0))
+	var matching_generation:=-1
+	for ball:Dictionary in reused.get("balls",[]):
+		if _ball_physical_id(ball)==old_target:matching_generation=int(ball.get("generation",-1))
+	check(int(weapon(reused).get("gun_target",-1))==old_target and new_generation>old_generation and new_generation==matching_generation and sim_time<old_ready and float(weapon(reused).get("target_switch_ready",0))>old_ready,"机枪同物理槽重生立即按新实体重锁","op14与新op13同批执行，ID相同但generation增加，CD必须以新生命重置",{"before":weapon(locked),"after":weapon(reused),"particle_generation":matching_generation,"sim_time":sim_time})
+	check(absf(angle_difference(float(reused.teams[0].get("gun_target_angle",0)),PI/2.0))<0.02,"机枪槽位重用不沿旧实体位置瞄准","相同槽由东侧改为南侧，新一代目标角立即朝南，旧角度不可残留",{"team":reused.teams[0]})
+
+	locked=await _gun_target_fixture(Vector2(456,256),Vector2(-40,0))
+	old_target=int(weapon(locked).get("gun_target",-1));old_ready=float(weapon(locked).get("target_switch_ready",0))
+	if not check(old_target==4096,"机枪回卷夹具先锁定有效物理槽","只有确认4096已是有效目标才允许窄范围修改该槽代数",{"weapon":weapon(locked)}):
+		return
+	var contact_mask:=0
+	for ball:Dictionary in locked.get("balls",[]):
+		if _ball_physical_id(ball)==old_target:contact_mask=int(ball.get("contact_mask",0))
+	_wrap_fixture_written=false
+	RenderingServer.call_on_render_thread(_write_generation_wrap_fixture_rd.bind(old_target,contact_mask))
+	var write_deadline:=Time.get_ticks_msec()+10000
+	while not _wrap_fixture_written and Time.get_ticks_msec()<write_deadline:await process_frame
+	if not check(_wrap_fixture_written,"机枪28位出生代回卷夹具写入","只把已有实体代数设为最大值并模拟旧gen1缓存，不代算任何碰撞或能量"):
+		return
+	world.debug_command({"op":14})
+	_inject(2,1000.0,Vector2(256,456),Vector2(0,-40),13)
+	await _advance()
+	var wrapped:Dictionary=await _snapshot()
+	check(int(weapon(wrapped).get("gun_target",-1))==old_target and int(weapon(wrapped).get("gun_target_generation",0))==1 and sim_time<old_ready and float(weapon(wrapped).get("target_switch_ready",0))>old_ready,"机枪出生代最大值回卷不误认旧gen1生命","真实重生max→1时必须使残留同ID旧gen1锁失效，重新锁定并刷新0.5秒期限",{"old_ready":old_ready,"after":weapon(wrapped),"balls":wrapped.get("balls",[]),"sim_time":sim_time})
+
+	locked=await _gun_target_fixture(Vector2(456,256),Vector2(-40,0))
+	old_ready=float(weapon(locked).get("target_switch_ready",0))
+	world.debug_command({"op":14})
+	_inject(0,1000.0,Vector2(456,256),Vector2(-40,0),13)
+	_inject(2,1000.0,Vector2(256,456),Vector2(0,-40),13)
+	await _advance()
+	var friendly:Dictionary=await _snapshot()
+	check(sim_time<old_ready and int(weapon(friendly).get("gun_target",-1))==4097,"机枪缓存槽成为己方后立即重选敌方","同批重用原槽为己方球，不能因未到CD继续锁己方；重选实际敌方4097",{"weapon":weapon(friendly),"balls":friendly.get("balls",[]),"sim_time":sim_time})
+
+	locked=await _gun_target_fixture(Vector2(456,256),Vector2(-40,0))
+	old_ready=float(weapon(locked).get("target_switch_ready",0))
+	world.debug_command({"op":14})
+	_inject(1,1000.0,Vector2(800,256),Vector2(-40,0),13)
+	_inject(2,1000.0,Vector2(256,456),Vector2(0,-40),13)
+	await _advance()
+	var outside:Dictionary=await _snapshot()
+	check(sim_time<old_ready and int(weapon(outside).get("gun_target",-1))==4097,"机枪缓存目标超出防守范围立即重选","原物理槽位于世界x800，明显超过核心附近防守半径；不等CD才选择近敌",{"weapon":weapon(outside),"balls":outside.get("balls",[]),"sim_time":sim_time})
+
+	# 原实体不换代：先处于近身紧急范围，随后自然向外飞离，必须即时失效。
+	locked=await _gun_target_fixture(Vector2(361,256),Vector2(500,0))
+	old_target=int(weapon(locked).get("gun_target",-1));old_generation=int(weapon(locked).get("gun_target_generation",0));old_ready=float(weapon(locked).get("target_switch_ready",0))
+	_inject(2,1000.0,Vector2(256,456),Vector2(0,-40),13)
+	await _advance(3)
+	var receding:Dictionary=await _snapshot()
+	var original_survives:=false
+	for ball:Dictionary in receding.get("balls",[]):
+		if _ball_physical_id(ball)==old_target and int(ball.get("generation",-1))==old_generation and float(ball.vx)>0.0:original_survives=true
+	check(old_target==4096 and old_generation>0 and original_survives and sim_time<old_ready and int(weapon(receding).get("gun_target",-1))==4097,"机枪原实体不再有效逼近立即重选","旧球保持同代存活，真实向外运动离开近身保护范围后立即改锁逼近敌球",{"before":weapon(locked),"after":weapon(receding),"balls":receding.get("balls",[]),"sim_time":sim_time})
 	world.update_settings({"gun_rate":0.0})
 
 func _test_storm_circles()->void:
@@ -188,6 +302,48 @@ func _test_sniper_integer_split()->void:
 	var tiny:Dictionary=await _snapshot()
 	var shots:Array=tiny.get("snipers",[])
 	check(shots.size()==1 and int(shots[0].energy)==3 and int(shots[0].get("sniper_level",-1))==2,"狙击小能量不制造零能子体","floor(3×3/10)=0；不产生0能量实体",{"snipers":shots})
+
+func _test_sniper_full_pool_retry()->void:
+	await reset_weapons()
+	var initial:Dictionary=await _snapshot()
+	var baseline:=accounted(initial)
+	var consumed_before:=int(initial.get("consumed_energy",0))
+	# 4095个真实普通实体占满常规池与七个保留槽，最后一个保留槽注入狙击。
+	# .01避免op17把近零向量回退为(30,17)；这几步仍留在原格。
+	world.debug_command({"op":17,"team":0,"count":4095,"energy":1,"vx":0.01,"vy":0.0})
+	_inject(0,100.0,Vector2(1022.7,400.0),Vector2(620.0,0.0),12)
+	# 1/480秒只产生一个真实GPU物理子步，能区分事件阶段和后续回收阶段。
+	var one_substep:=1.0/480.0
+	await _advance(1,one_substep)
+	var full:Dictionary=await _snapshot()
+	var full_shots:Array=[]
+	for particle:Dictionary in full.get("particles",[]):
+		if int(particle.type)==2:full_shots.append(particle)
+	check(int(full.metrics[0])==4096 and full_shots.size()==1 and int(full_shots[0].energy)==100 and bool(full_shots[0].pending_split),"满池狙击分裂保留待重试状态","真实墙碰后没有空槽，保持100能量，不提前扣除30%或丢失请求",{"active":full.metrics[0],"snipers":full_shots})
+	# 网格0只覆盖(8,8)这一颗；它按真实领土规则耗尽并在mode12回收。
+	world.debug_command({"op":15,"team":1,"energy":0,"count":1})
+	await _advance(1,one_substep)
+	var reclaimed:Dictionary=await _snapshot()
+	var waiting:Array=[]
+	for particle:Dictionary in reclaimed.get("particles",[]):
+		if int(particle.type)==2:waiting.append(particle)
+	check(int(reclaimed.metrics[0])==4095 and int(reclaimed.consumed_energy)-consumed_before==1 and waiting.size()==1 and bool(waiting[0].pending_split),"狙击分裂等待真实槽位回收","一颗普通粒子染敌格消耗1；事件阶段不能复用尚未完成回收的槽",{"active":reclaimed.metrics[0],"consumed_delta":int(reclaimed.consumed_energy)-consumed_before,"snipers":waiting})
+	await _advance(1,one_substep)
+	var retried:Dictionary=await _snapshot()
+	var energies:Array=[]
+	var valid:=true
+	for particle:Dictionary in retried.get("particles",[]):
+		if int(particle.type)!=2:continue
+		energies.append(int(particle.energy))
+		valid=valid and int(particle.sniper_level)==2 and not bool(particle.pending_split)
+	energies.sort()
+	check(energies==[30,70] and valid and int(retried.metrics[0])==4096 and accounted(retried)-baseline==4195,"空槽出现后无新墙碰仍重试70/30分裂","两颗狙击从全池筛选；场内4194加已消耗1等于输入4195",{"energies":energies,"active":retried.metrics[0],"accounted_delta":accounted(retried)-baseline,"consumed_delta":int(retried.consumed_energy)-consumed_before})
+	await _advance(3,one_substep)
+	var settled:Dictionary=await _snapshot()
+	var sniper_count:=0
+	for particle:Dictionary in settled.get("particles",[]):
+		if int(particle.type)==2:sniper_count+=1
+	check(sniper_count==2 and int(weapon(settled).get("sniper_split_count",-1))==1 and accounted(settled)-baseline==4195,"延期分裂完成后不会每步重复执行","清除pending后继续真实推进，仍只有两颗狙击及一次分裂",{"sniper_count":sniper_count,"weapon":weapon(settled),"accounted_delta":accounted(settled)-baseline})
 
 func _test_shield_growth_and_paint()->void:
 	await reset_weapons()

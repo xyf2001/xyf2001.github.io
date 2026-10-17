@@ -97,7 +97,7 @@ func run() -> void:
 	finish()
 
 func finish() -> void:
-	var data := {"version":1,"project_version":ProjectSettings.get_setting("application/config/version", "unknown"),"driver":RenderingServer.get_current_rendering_driver_name(),"fixture":"deterministic initial state upload, production compute thereafter","fixture_not_real_battle":true,"production_telemetry_suppressed_during_samples":true,"stats_readback_initial_final_only":true,"sample_fence_bytes":4,"physical_gpu_claim":false,"affinity_expected":"0-3","LP_NUM_THREADS":OS.get_environment("LP_NUM_THREADS"),"fps_note":"drawn FPS includes async fence wait; completed fixed-step throughput separately reported; software Vulkan is not RTX 5060 Ti performance","candidate_note":"baseline has no candidate counter; unavailable values are null","counter_scope":"ordinary/sniper particle pair resolve candidates and confirmed contacts; does not claim big-ball contact totals","explicit_blocking_gpu_sync_calls":0,"driver_internal_cpu_wait_ms":null,"completion_fence_wait_note":"wall time includes asynchronous queueing and frame scheduling, not exact CPU blocked-on-GPU time","physical_vram_bytes":null,"physical_vram_note":"RenderingDevice allocations are not measured VRAM residency","profiling_enabled":str(options.get("profiling","false"))=="true","sampling_note":"1%low comes from actual drawn frame intervals; sample count is reported, not a hardware FPS guarantee","failed":failed,"results":results}
+	var data := {"version":2,"project_version":ProjectSettings.get_setting("application/config/version", "unknown"),"driver":RenderingServer.get_current_rendering_driver_name(),"fixture":"deterministic initial state upload, production compute thereafter","fixture_not_real_battle":true,"production_telemetry_suppressed_during_samples":true,"stats_readback_initial_final_only":true,"sample_fence_bytes":4,"physical_gpu_claim":false,"affinity_expected":"0-3","LP_NUM_THREADS":OS.get_environment("LP_NUM_THREADS"),"throughput_note":"completed_fixed_steps_per_wall_second = measured sample count / entire measured wall interval including timestamp collection frames; median_batch_completion_rate_per_wall_second separately inverts batch p50", "fps_note":"drawn FPS includes async fence wait; completed fixed-step throughput separately reported; software Vulkan is not RTX 5060 Ti performance","candidate_note":"baseline has no candidate counter; unavailable values are null","counter_scope":"particle-pair and big-contact candidates/confirmed contacts (including sniper-kind-big); excludes complete wall/terrain-DDA and shield/core geometry query counts","explicit_blocking_gpu_sync_calls":0,"driver_internal_cpu_wait_ms":null,"completion_fence_wait_note":"wall time includes asynchronous queueing and frame scheduling, not exact CPU blocked-on-GPU time","physical_vram_bytes":null,"physical_vram_note":"RenderingDevice allocations are not measured VRAM residency","profiling_enabled":str(options.get("profiling","false"))=="true","sampling_note":"1%low comes from actual drawn frame intervals; sample count is reported, not a hardware FPS guarantee","failed":failed,"results":results}
 	var path: String = str(options.get("json", "res://artifacts/validation/matrix.json"))
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file:
@@ -139,13 +139,14 @@ func fixture_bytes(count: int, scenario: String, radius: float) -> PackedByteArr
 		var pos := Vector2((float(i%columns)+0.5)*spacing,(float(i/columns)+0.5)*spacing)
 		if scenario == "dense_crossing": pos += Vector2(448.0,448.0)
 		pos = pos.clamp(Vector2(radius+0.01,radius+0.01),Vector2(1023.99-radius,1023.99-radius))
-		var team := i % 4 if scenario != "uniform" else 0
+		var team := 0 if scenario in ["uniform","uniform140"] else i % 4
 		if scenario == "four_storm":
 			var local_columns := int(ceil(sqrt(ceil(float(count)/4.0))))
 			var local_spacing := 512.0/float(local_columns)
 			var local_index := i/4
 			pos = Vector2((float(local_index%local_columns)+0.5)*local_spacing,(float(local_index/local_columns)+0.5)*local_spacing)+Vector2(float(team%2)*512.0,float(team/2)*512.0)
 		var velocity := Vector2(30.0,17.0)
+		if scenario == "uniform140": velocity = velocity.normalized()*140.0
 		var type := 1
 		if scenario == "dense_crossing": velocity = (Vector2(512,512)-pos).normalized()*140.0
 		if scenario == "fast_sniper":
@@ -168,7 +169,7 @@ func benchmark(scenario: String, count: int, capacity: int) -> void:
 	sim_time = 0.0
 	world = MatrixWorld.new()
 	var config := Settings.defaults()
-	config.merge({"particle_capacity":capacity,"grid_size":512,"render_size":768,"gun_rate":0.0,"gun_start":0.0,"gun_end":0.0,"intro_gun":0.0,"intro_shield":0.0,"initial_gun":0.0,"initial_shield":0.0,"precision_mode":"exact","packet_energy":1,"fps_limit":0,"seed":20261016,"gpu_profiling":str(options.get("profiling","false"))=="true","time_scale":1.0,"storm_ring_particles":360},true)
+	config.merge({"particle_capacity":capacity,"grid_size":512,"render_size":768,"gun_rate":0.0,"gun_target_switch_cd":0.5,"gun_start":0.0,"gun_end":0.0,"intro_gun":0.0,"intro_shield":0.0,"initial_gun":0.0,"initial_shield":0.0,"precision_mode":"exact","packet_energy":1,"fps_limit":0,"seed":20261016,"gpu_profiling":str(options.get("profiling","false"))=="true","time_scale":1.0,"storm_ring_particles":360},true)
 	if scenario == "fast_sniper": config["sniper_speed"] = 2000.0
 	world.configure(config)
 	world.debug_snapshot_ready.connect(func(data:Dictionary): snapshots[int(data.get("request_id",-1))]=data)
@@ -182,10 +183,12 @@ func benchmark(scenario: String, count: int, capacity: int) -> void:
 	root.add_child(view)
 	world.start()
 	while not world.active and not expired(): await process_frame
-	var output := {"scenario":scenario,"strict_same_workload_expected":scenario=="uniform","requested_active_is_initial_fixture":true,"requested_active":count,"capacity":capacity,"config":config,"effective_config":world.settings.duplicate(true),"status":"FAIL","samples":[],"reason":""}
+	var uniform_scene := scenario in ["uniform","uniform140"]
+	var initial_velocity := Vector2(30.0,17.0).normalized()*140.0 if scenario=="uniform140" else Vector2(30.0,17.0)
+	var output := {"scenario":scenario,"strict_same_workload_expected":uniform_scene,"initial_normal_velocity_xy": [initial_velocity.x,initial_velocity.y] if uniform_scene else null,"initial_normal_speed":initial_velocity.length() if uniform_scene else null,"requested_active_is_initial_fixture":true,"requested_active":count,"capacity":capacity,"config":config,"effective_config":world.settings.duplicate(true),"status":"FAIL","samples":[],"reason":""}
 	if world.active:
 		if scenario != "four_storm": world.debug_command({"op":16,"team":0})
-		if scenario == "uniform":
+		if uniform_scene:
 			for team in range(1,4): world.debug_command({"op":10,"team":team,"energy":0,"gun":0,"state":2})
 		world.flush()
 		RenderingServer.call_on_render_thread(world.install_fixture_rd.bind(fixture_bytes(count,scenario,float(world.settings.particle_radius)),count))
@@ -260,7 +263,7 @@ func benchmark(scenario: String, count: int, capacity: int) -> void:
 			output["physical_vram_bytes"] = null
 			output["device"] = world.stats.get("device","unknown")
 			var completed: bool = output.samples.size()==sample_count
-			var uniform_valid := scenario!="uniform" or (int(output.final.get("active",-1))==count and int(output.final.get("normal_energy",-1))==count)
+			var uniform_valid := not uniform_scene or (int(output.final.get("active",-1))==count and int(output.final.get("normal_energy",-1))==count)
 			var expected_accounted:=count+(4320 if scenario=="four_storm" else 0)
 			var energy_valid:bool=int(output.final.get("accounted_energy",-1))==expected_accounted
 			output["expected_accounted_energy"]=expected_accounted
@@ -271,7 +274,8 @@ func benchmark(scenario: String, count: int, capacity: int) -> void:
 			for sample: Dictionary in output.samples: walls.append(sample.wall_ms)
 			output["step_batch_p50_ms"] = percentile(walls,0.5)
 			output["step_batch_p95_ms"] = percentile(walls,0.95)
-			output["completed_fixed_steps_per_wall_second"] = 1000.0/maxf(percentile(walls,0.5),0.001)
+			output["median_batch_completion_rate_per_wall_second"] = 1000.0/maxf(percentile(walls,0.5),0.001)
+			output["completed_fixed_steps_per_wall_second"] = float(output.samples.size())/maxf(wall_seconds,0.001)
 		else: output["reason"] = "Fixture not established: "+JSON.stringify(small_state(initial))
 	else: output["reason"] = "Initialization failed: "+runtime_error
 	if output.status!="PASS": failed=true

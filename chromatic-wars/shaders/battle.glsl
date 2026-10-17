@@ -53,6 +53,17 @@ uvec2 divide64_small(uvec2 dividend,uint divisor,out uint remainder) {
 }
 float value64(uvec2 a) { return float(a.y)*4294967296.0+float(a.x); }
 uvec2 energy(uint i) { return p[i].info.xy; }
+// aux.x低4位保留护盾接触；高28位是每物理槽出生代数，0只表示从未出生。
+// 所有出生/分裂均由串行prepare/events写入，无跨线程generation竞争。
+uint particle_generation(uint i) {return p[i].aux.x>>4u;}
+uint next_particle_generation(uint i) {
+ uint previous=particle_generation(i);if(previous<0x0fffffffu)return previous+1u;
+ // 极罕见的每槽代数回绕也不能复活旧锁：只在wrap分支清理四队该物理ID。
+ // 此helper仅在初始化结束后的串行出生/分裂pass调用，不与并行目标更新竞争。
+ for(uint t=0u;t<4u;t++)if(weapon[t].gun.z==i){weapon[t].gun.z=0xffffffffu;weapon[t].gun.w=0u;}
+ return 1u;
+}
+void set_particle_generation(uint i,uint generation) {p[i].aux.x=(p[i].aux.x&15u)|((generation&0x0fffffffu)<<4u);}
 void set_energy(uint i,uvec2 e) {
  p[i].info.xy=e;
  if(zero64(e)){if(i<cap()&&p[i].info.w!=0u)atomicOr(pool[4],1u);p[i].info.w=0u;}
@@ -141,10 +152,10 @@ void confine_after_contact(uint i) {
 }
 bool spawn_timed(uint t,uint type,uvec2 e,float angle,uint seed,float first_move_dt) {
  if(zero64(e))return false;
- int slot=type==2u?free_sniper_slot():free_slot(type==3u);if(slot<0)return false;uint i=uint(slot);float radius=type==3u?clamp(par[5].x+par[5].y*sqrt(value64(e)/max(threshold(),1.0)),par[5].x,par[5].z):par[4].x;
+ int slot=type==2u?free_sniper_slot():free_slot(type==3u);if(slot<0)return false;uint i=uint(slot);uint generation=next_particle_generation(i);float radius=type==3u?clamp(par[5].x+par[5].y*sqrt(value64(e)/max(threshold(),1.0)),par[5].x,par[5].z):par[4].x;
  vec2 d=direction(angle);float speed=type==3u?par[3].w:(type==2u?par[3].z:par[3].y);
  vec2 pos=team[t].core.xy+d*(max(team[t].core.z,shield_radius(t))+radius+3.0);pos=clamp(pos,vec2(radius+1.0),vec2(world()-radius-1.0));
- p[i].pv=vec4(pos,d*speed);p[i].info=uvec4(e,t,type);p[i].geom=vec4(radius,type==3u?threshold():speed,pos);p[i].aux=uvec4(0u,type==3u?0u:(type==2u?1u:seed),0u,0u);
+ p[i].pv=vec4(pos,d*speed);p[i].info=uvec4(e,t,type);p[i].geom=vec4(radius,type==3u?threshold():speed,pos);p[i].aux=uvec4(0u,type==3u?0u:(type==2u?1u:seed),0u,0u);set_particle_generation(i,generation);
  // 机枪在子步内逐发出生；只推进出生后的实际时长，不把同批弹丸堆在同一位置。
  if(type==1u&&first_move_dt>=0.0){p[i].aux.y=floatBitsToUint(first_move_dt);p[i].aux.z|=0x80000000u;}
  if(type==3u)next_id[i]=floatBitsToInt(angle);
@@ -216,12 +227,12 @@ bool execute_command(Command c) {uint op=c.a.x;uint t=c.a.y;if(op==0u)return tru
  if(t>=4u)return true;
  if(op==17u){uint count=c.b.z==0u?cap():min(c.b.z,cap());uint width=uint(ceil(sqrt(float(count))));float spacing=world()/float(width);vec2 velocity=uintBitsToFloat(c.b.xy);if(dot(velocity,velocity)<0.00001)velocity=vec2(30.0,17.0);
   for(uint k=0u;k<active_count();k++)p[active_id(k)].info.w=0u;
-  for(uint i=0u;i<count;i++){vec2 position=(vec2(i%width,i/width)+0.5)*spacing;position=clamp(position,vec2(par[4].x),vec2(world()-par[4].x));p[i].pv=vec4(position,velocity);p[i].info=uvec4(zero64(c.a.zw)?uvec2(1u,0u):c.a.zw,t,1u);p[i].geom=vec4(par[4].x,max(length(velocity),1.0),position);p[i].aux=uvec4(0u,hash32(i),0u,0u);pool[16u+i]=i;}
+  for(uint i=0u;i<count;i++){uint generation=next_particle_generation(i);vec2 position=(vec2(i%width,i/width)+0.5)*spacing;position=clamp(position,vec2(par[4].x),vec2(world()-par[4].x));p[i].pv=vec4(position,velocity);p[i].info=uvec4(zero64(c.a.zw)?uvec2(1u,0u):c.a.zw,t,1u);p[i].geom=vec4(par[4].x,max(length(velocity),1.0),position);p[i].aux=uvec4(0u,hash32(i),0u,0u);set_particle_generation(i,generation);pool[16u+i]=i;}
   pool[0]=count;pool[1]=0u;pool[2]=0u;pool[4]=0u;
   for(uint i=count;i<cap();i++){uint base=16u+cap();if(i<cap()-8u)pool[base+pool[1]++]=i;else pool[base+cap()-8u+pool[2]++]=i;}
   refresh_indirect();stat[20]=0u;return true;}
  if(op==10u){team[t].shield_gun=uvec4(c.a.zw,c.b.xy);team[t].life.x=c.b.z;team[t].clocks.x=uintBitsToFloat(c.b.w);team[t].storm_sniper=uvec4(0u);team[t].misc.y=0u;team[t].visual=vec4(0.0);initialize_weapons(t);return true;}
- if(op>=11u&&op<=13u){if(zero64(c.a.zw))return true;int slot=op==12u?free_sniper_slot():free_slot(op==13u);if(slot<0)return false;uint i=uint(slot);uint ty=op==11u?1u:(op==12u?2u:3u);p[i].pv=uintBitsToFloat(c.b);p[i].info=uvec4(c.a.zw,t,ty);float launched_speed=length(p[i].pv.zw);if(launched_speed<0.00001)launched_speed=ty==2u?par[3].z:par[3].y;p[i].geom=vec4(ty==3u?par[5].x:par[4].x,ty==3u?threshold():launched_speed,p[i].pv.xy);p[i].aux=uvec4(0u,ty==3u?0u:(ty==2u?1u:hash32(i+stat[7])),0u,0u);if(ty==3u){p[i].geom.x=ball_radius(i);next_id[i]=floatBitsToInt(dot(p[i].pv.zw,p[i].pv.zw)>0.0000001?atan(p[i].pv.w,p[i].pv.z):0.0);}return true;}
+ if(op>=11u&&op<=13u){if(zero64(c.a.zw))return true;int slot=op==12u?free_sniper_slot():free_slot(op==13u);if(slot<0)return false;uint i=uint(slot);uint generation=next_particle_generation(i);uint ty=op==11u?1u:(op==12u?2u:3u);p[i].pv=uintBitsToFloat(c.b);p[i].info=uvec4(c.a.zw,t,ty);float launched_speed=length(p[i].pv.zw);if(launched_speed<0.00001)launched_speed=ty==2u?par[3].z:par[3].y;p[i].geom=vec4(ty==3u?par[5].x:par[4].x,ty==3u?threshold():launched_speed,p[i].pv.xy);p[i].aux=uvec4(0u,ty==3u?0u:(ty==2u?1u:hash32(i+stat[7])),0u,0u);set_particle_generation(i,generation);if(ty==3u){p[i].geom.x=ball_radius(i);next_id[i]=floatBitsToInt(dot(p[i].pv.zw,p[i].pv.zw)>0.0000001?atan(p[i].pv.w,p[i].pv.z):0.0);}return true;}
  // 淘汰后只允许带明确死亡余波标记的大球；异步通知到达前的普通输出不能继续生产。
  if(op>=1u&&op<=5u&&team[t].life.x==2u&&!(op==2u&&(c.b.z&1u)!=0u)){
   // CPU淘汰通知异步期间，左侧可能已真实输出并移除该能量。
@@ -294,13 +305,18 @@ void refresh_gun_aim(uint t) {
  uint even_key=team[t].accounting.x,odd_key=team[t].life.w;
  if(even_key!=0xffffffffu){uint index=even_key&0xfffffu;if(index<cap())consider_gun_projectile(t,index,center,query_radius,best_threat,threat_position,target_id);}
  if(odd_key!=0xffffffffu){uint index=odd_key&0xfffffu;if(index<cap())consider_gun_projectile(t,index,center,query_radius,best_threat,threat_position,target_id);}
- uint previous=weapon[t].gun.z;vec2 previous_position=center;float previous_score=-1.0;
- if(previous<cap()){previous_score=gun_projectile_score(t,previous,center,query_radius);previous_position=p[previous].pv.xy;}
- else if(previous<total())previous_score=gun_ball_score(t,previous,previous_position);
+ uint previous=weapon[t].gun.z,previous_generation=weapon[t].gun.w;vec2 previous_position=center;float previous_score=-1.0;
+ // 物理槽会重用：只有ID和出生代数均匹配才是此前锁定的同一个实体。
+ if(previous<total()&&particle_generation(previous)==previous_generation){
+  if(previous<cap()){previous_score=gun_projectile_score(t,previous,center,query_radius);previous_position=p[previous].pv.xy;}
+  else previous_score=gun_ball_score(t,previous,previous_position);
+ }
  if(previous_score>best_threat){target_id=previous;best_threat=previous_score;threat_position=previous_position;}
- // 仅抑制短时间反复换目标，目标本身每步持续跟踪；迫近的新威胁可以立即抢占。
- if(previous_score>=0.0&&target_id!=previous&&pc.clock.y<weapon[t].aim.x&&best_threat<previous_score+0.35){target_id=previous;best_threat=previous_score;threat_position=previous_position;}
- if(target_id!=previous){weapon[t].gun.z=target_id;weapon[t].aim.x=pc.clock.y+max(par[14].x,0.0);}
+ // 冷却锁目标身份而不锁角度；有效原目标持续逐步追踪，不因新目标评分高而抢占。
+ // 原目标死亡、换代、变己方或脱离有效威胁范围时，previous_score<0立即重新选择。
+ if(previous_score>=0.0&&target_id!=previous&&pc.clock.y<weapon[t].aim.x){target_id=previous;best_threat=previous_score;threat_position=previous_position;}
+ uint selected_generation=target_id<total()?particle_generation(target_id):0u;
+ if(target_id!=previous||selected_generation!=previous_generation){weapon[t].gun.z=target_id;weapon[t].gun.w=selected_generation;weapon[t].aim.x=pc.clock.y+max(par[14].x,0.0);}
  if(best_threat>=0.0){vec2 delta=threat_position-center;team[t].visual.y=atan(delta.y,delta.x);team[t].visual.z=2.0+clamp(best_threat,0.0,1.0);return;}
  // 只查核心附近可实际发射到达的环带，不为每一发重复查询整张领土。
  float begin=max(team[t].core.z,shield_radius(t))+par[4].x+5.0;
@@ -733,7 +749,7 @@ void resolve_sniper_splits(uint event_count) {
   uvec2 child_energy=add64(add64(quotient,quotient),quotient);child_energy=add64(child_energy,uvec2((remainder*3u)/10u,0u));
   if(zero64(child_energy)){p[i].aux.y=level+1u;p[i].aux.z&=~0x40000000u;continue;}
   int slot=free_sniper_slot();if(slot<0)continue; // 不消耗、不改方向；保留bit30稍后重试。
-  uint child=uint(slot);p[child]=p[i];uvec2 parent_energy=sub64(before,child_energy);
+  uint child=uint(slot);uint child_generation=next_particle_generation(child);p[child]=p[i];set_particle_generation(child,child_generation);uvec2 parent_energy=sub64(before,child_energy);
   float angle=clamp(par[14].z,0.0,30.0)*TAU/360.0;float c=cos(angle),s=sin(angle);vec2 velocity=p[i].pv.zw;
   p[i].pv.zw=vec2(c*velocity.x-s*velocity.y,s*velocity.x+c*velocity.y);
   p[child].pv.zw=vec2(c*velocity.x+s*velocity.y,-s*velocity.x+c*velocity.y);

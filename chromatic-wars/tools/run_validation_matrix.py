@@ -16,8 +16,19 @@ import time
 
 SOURCE_FILES = ("shaders/battle.glsl", "scripts/gpu_world.gd", "scripts/gpu_collisions.gd", "scripts/gpu_emitters.gd", "scripts/gpu_render.gd", "scripts/game_settings.gd", "project.godot", "tools/validation_matrix.gd")
 
-def source_hashes(project: Path) -> dict[str, str]:
-    return {name: hashlib.sha256((project / name).read_bytes()).hexdigest() for name in SOURCE_FILES}
+def source_hashes(project: Path, extra_files: tuple[str, ...] = ()) -> dict[str, str]:
+    names = dict.fromkeys(SOURCE_FILES + extra_files)
+    return {name: hashlib.sha256((project / name).read_bytes()).hexdigest() for name in names}
+
+def git_metadata(project: Path) -> dict:
+    try:
+        commit = subprocess.run(["git", "-C", str(project), "rev-parse", "HEAD"], capture_output=True, text=True, check=False)
+        if commit.returncode:
+            return {"available":False,"commit":None,"reason":"snapshot is not a Git working tree; source SHA256 is recorded"}
+        status = subprocess.run(["git", "-C", str(project), "status", "--porcelain", "--untracked-files=no", "--", "."], capture_output=True, text=True, check=False)
+        return {"available":True,"commit":commit.stdout.strip(),"tracked_worktree_dirty":bool(status.stdout.strip()),"tracked_changes_porcelain":status.stdout}
+    except OSError as error:
+        return {"available":False,"commit":None,"reason":str(error)}
 
 DEFAULT_CASES = "uniform:1000:10000,uniform:10000:10000,uniform:1000:100000,uniform:10000:100000,uniform:1000:1000000,uniform:10000:1000000,uniform:5000:10000,uniform:30000:30000,uniform:50000:50000,uniform:100000:100000,dense_crossing:1000:10000,fast_sniper:1000:10000,four_storm:1000:10000"
 
@@ -27,6 +38,7 @@ def main() -> int:
     parser.add_argument("--godot", required=True)
     parser.add_argument("--project", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--baseline", type=Path)
+    parser.add_argument("--fixture", type=Path, default=Path("tools/validation_matrix.gd"), help="Standalone fixture inside current project; parent matrix is copied alongside it")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--cases", default=DEFAULT_CASES)
     parser.add_argument("--samples", type=int, default=60)
@@ -42,28 +54,47 @@ def main() -> int:
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     output = (args.output or args.project / "artifacts" / "validation" / stamp).resolve()
     output.mkdir(parents=True, exist_ok=True)
-    source_fixture = args.project.resolve() / "tools" / "validation_matrix.gd"
+    project_root = args.project.resolve()
+    source_fixture = (args.fixture if args.fixture.is_absolute() else project_root / args.fixture).resolve()
+    try:
+        fixture_relative = source_fixture.relative_to(project_root)
+    except ValueError:
+        parser.error("fixture must be inside current project")
     fixture = source_fixture.read_bytes()
+    parent_relative = Path("tools/validation_matrix.gd")
+    assets = {parent_relative: (project_root / parent_relative).read_bytes(), fixture_relative: fixture}
+    asset_metadata = {}
+    for relative, contents in assets.items():
+        evidence = relative.stem + "_fixture" + relative.suffix
+        (output / evidence).write_bytes(contents)
+        asset_metadata[relative.as_posix()] = {"sha256":hashlib.sha256(contents).hexdigest(),"evidence_file":evidence}
     report = {"started_utc":stamp,"fixture_sha256":hashlib.sha256(fixture).hexdigest(),
+              "fixture_relative_path":fixture_relative.as_posix(),"fixture_assets":asset_metadata,
               "samples":args.samples,"warmup":args.warmup,"cases":args.cases,
               "profiling":args.profiling,"affinity":args.affinity,"LP_NUM_THREADS":args.threads,
-              "physical_vram_claim":False,"hardware_fps_claim":False,"runs":[]}
+              "physical_vram_claim":False,"hardware_fps_claim":False,
+              "cgroup_cpu_max":Path("/sys/fs/cgroup/cpu.max").read_text().strip() if Path("/sys/fs/cgroup/cpu.max").exists() else None,
+              "cgroup_cpuset_effective":Path("/sys/fs/cgroup/cpuset.cpus.effective").read_text().strip() if Path("/sys/fs/cgroup/cpuset.cpus.effective").exists() else None,
+              "runs":[]}
     env = os.environ.copy()
     env["LP_NUM_THREADS"] = str(args.threads)
     for label, project in (([("baseline", args.baseline)] if args.baseline else []) + [("current", args.project)]):
         project = project.resolve()
-        target_fixture = project / "tools" / "validation_matrix.gd"
-        if target_fixture != source_fixture:
-            # Only this standalone fixture is copied; baseline game sources stay frozen.
-            target_fixture.write_bytes(fixture)
+        for relative, contents in assets.items():
+            target_fixture = project / relative
+            if target_fixture != project_root / relative:
+                # Only standalone test fixtures are copied; baseline game sources stay frozen.
+                target_fixture.parent.mkdir(parents=True,exist_ok=True)
+                target_fixture.write_bytes(contents)
         result_path = output / (label + "_matrix.json")
         log_path = output / (label + "_matrix.log")
         command = (["taskset", "-c", args.affinity] if args.affinity else []) + [args.godot,"--path",str(project),
             "--rendering-method","forward_plus","--rendering-driver","vulkan","--audio-driver","Dummy",
-            "--script","res://tools/validation_matrix.gd","--","--cases",args.cases,
+            "--script","res://"+fixture_relative.as_posix(),"--","--cases",args.cases,
             "--samples",str(args.samples),"--warmup",str(args.warmup),"--profiling",str(args.profiling).lower(),
             "--case-timeout",str(args.case_timeout),"--json",str(result_path)]
-        hashes_before = source_hashes(project)
+        hashes_before = source_hashes(project,(fixture_relative.as_posix(),))
+        git_before = git_metadata(project)
         started = time.monotonic()
         cpu_stat = Path("/sys/fs/cgroup/cpu.stat")
         cgroup_before = cpu_stat.read_text() if cpu_stat.exists() else None
@@ -82,13 +113,14 @@ def main() -> int:
                     os.killpg(proc.pid,signal.SIGKILL)
                     code=proc.wait()
         raw = log_path.read_text(encoding="utf-8",errors="replace")
-        errors=[line for line in raw.splitlines() if "SCRIPT ERROR:" in line or "SHADER ERROR:" in line or "Parse Error:" in line]
+        errors=[line for line in raw.splitlines() if line.startswith("ERROR:") or "SCRIPT ERROR:" in line or "SHADER ERROR:" in line or "Parse Error:" in line]
         data=json.loads(result_path.read_text()) if result_path.exists() else {}
-        hashes_after = source_hashes(project)
+        hashes_after = source_hashes(project,(fixture_relative.as_posix(),))
         ok=hashes_before==hashes_after and code==0 and not timed_out and not errors and data.get("results") and not data.get("failed",True)
         run={"label":label,"project":str(project),"returncode":code,"timed_out":timed_out,
              "elapsed_wall_seconds":time.monotonic()-started,"status":"PASS" if ok else "FAIL",
              "cgroup_cpu_before":cgroup_before,"cgroup_cpu_after":cpu_stat.read_text() if cpu_stat.exists() else None,
+             "git_before":git_before,"git_after":git_metadata(project),
              "source_sha256_before":hashes_before,"source_sha256_after":hashes_after,"sources_unchanged_during_run":hashes_before==hashes_after,
              "engine_errors":errors,"raw_log":str(log_path),"json":str(result_path),"summary":[]}
         for case in data.get("results",[]):

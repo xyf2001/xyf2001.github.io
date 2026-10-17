@@ -64,6 +64,16 @@ func percentile(values: Array[float], fraction: float) -> float:
 	sorted.sort()
 	return sorted[clampi(int(ceil(fraction * sorted.size())) - 1, 0, sorted.size() - 1)]
 
+static func one_percent_low_fps(values: Array[float]) -> float:
+	if values.is_empty(): return -1.0
+	var sorted := values.duplicate()
+	sorted.sort()
+	var count := maxi(1, int(ceil(float(sorted.size()) * 0.01)))
+	var slow_total_ms := 0.0
+	for i in range(sorted.size() - count, sorted.size()):
+		slow_total_ms += float(sorted[i])
+	return float(count) * 1000.0 / maxf(slow_total_ms, 0.001)
+
 func run() -> void:
 	var target_seconds := float(options.get("sim-seconds-per-speed", "3"))
 	if not is_finite(target_seconds) or target_seconds <= 0.0:
@@ -117,7 +127,7 @@ func run() -> void:
 			if not scene.pinball.error.is_empty() or not scene.world.error_message.is_empty(): break
 		scene.paused = true
 		var wall_seconds := float(Time.get_ticks_usec() - began) / 1000000.0
-		var measured := {"target_speed": speed, "sim_seconds": scene.elapsed - sim_start, "wall_seconds": wall_seconds, "rendered_frames": Engine.get_frames_drawn() - first_frame, "average_drawn_fps": float(Engine.get_frames_drawn() - first_frame) / maxf(wall_seconds, 0.001), "p50_frame_ms": percentile(frame_ms, 0.50), "p95_frame_ms": percentile(frame_ms, 0.95), "p99_frame_ms": percentile(frame_ms, 0.99), "one_percent_low_fps": 1000.0 / maxf(percentile(frame_ms, 0.99), 0.001), "time_backlog_sim_seconds": scene.accumulator, "active_particles": scene.world.stats.get("active_particles", -1), "gpu_ms": scene.world.stats.get("gpu_ms", -1), "overflow": scene.world.stats.get("overflow_count", -1)}
+		var measured := {"target_speed": speed, "sim_seconds": scene.elapsed - sim_start, "wall_seconds": wall_seconds, "rendered_frames": Engine.get_frames_drawn() - first_frame, "average_drawn_fps": float(Engine.get_frames_drawn() - first_frame) / maxf(wall_seconds, 0.001), "p50_frame_ms": percentile(frame_ms, 0.50), "p95_frame_ms": percentile(frame_ms, 0.95), "p99_frame_ms": percentile(frame_ms, 0.99), "one_percent_low_fps": one_percent_low_fps(frame_ms), "one_percent_low_method":"inverse_mean_of_slowest_ceil_1pct_frame_intervals", "one_percent_low_sample_count":maxi(1, int(ceil(float(frame_ms.size()) * 0.01))) if not frame_ms.is_empty() else 0, "frame_time_sample_count":frame_ms.size(), "time_backlog_sim_seconds": scene.accumulator, "active_particles": scene.world.stats.get("active_particles", -1), "gpu_ms": scene.world.stats.get("gpu_ms", -1), "overflow": scene.world.stats.get("overflow_count", -1)}
 		var completed: Dictionary = await gpu_snapshot()
 		measured["gpu_completed_sim_seconds"] = completed.get("sim_time", -1)
 		measured["completion_fence_wall_ms"] = completed.get("validation_fence_wall_ms", -1)
@@ -187,5 +197,12 @@ func finish() -> void:
 		quit(1)
 		return
 	file.store_string(JSON.stringify(report, "\t"))
+	file.flush()
+	var write_error := file.get_error()
+	file.close()
+	if write_error != OK:
+		print("RUNTIME_VALIDATION FAIL：保存实际测试结果失败：", error_string(write_error))
+		quit(1)
+		return
 	print("RUNTIME_VALIDATION " + JSON.stringify({"status": report.status, "checks": checks.size(), "artifact_dir": artifacts}))
 	quit(1 if failed else 0)

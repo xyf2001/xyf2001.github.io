@@ -43,6 +43,8 @@ func run_suite() -> void:
 	await _test_explicit_ball_drive()
 	await _test_zero_energy_exclusion()
 	await _test_dead_command_energy_accounting()
+	if str(options.get("include-atomic", "false")).to_lower() in ["true", "1", "yes"]:
+		await _test_parallel_atomic_carry()
 	await _shutdown_world()
 	finish()
 

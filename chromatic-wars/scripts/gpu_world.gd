@@ -79,7 +79,7 @@ func configure(value: Dictionary) -> void:
 	if not settings.has("gun_rate"):
 		var legacy_rate: Variant = settings.get("gun_end", 1200.0)
 		settings["gun_rate"] = 1200.0 if is_equal_approx(float(legacy_rate), 1400.0) else legacy_rate
-	var defaults := {"particle_capacity":10000, "grid_size":512, "render_size":768, "seed":2026, "intro_shield":1000000.0, "intro_gun":1000000.0, "gun_rate":1200.0, "gun_rotation_speed":1.7, "particle_cost_delay":60.0, "particle_cost_growth":0.25, "storm_ring_particles":360, "storm_ring_interval":0.10, "particle_speed":140.0, "ball_speed":42.0, "sniper_speed":600.0, "emergency_cd":180.0, "particle_radius":1.4, "packet_energy":1, "shield_scale":1.0, "precision_mode":"exact", "trail_length":0.55, "visual_density":1.0}
+	var defaults := {"particle_capacity":10000, "grid_size":512, "render_size":768, "seed":2026, "intro_shield":1000000.0, "intro_gun":1000000.0, "gun_rate":1200.0, "gun_rotation_speed":1.7, "gun_target_switch_cd":0.5, "particle_cost_delay":60.0, "particle_cost_growth":0.25, "storm_ring_particles":360, "storm_ring_interval":0.10, "particle_speed":140.0, "ball_speed":42.0, "sniper_speed":600.0, "emergency_cd":180.0, "particle_radius":1.4, "packet_energy":1, "shield_scale":1.0, "precision_mode":"exact", "trail_length":0.55, "visual_density":1.0}
 	for key: String in defaults:
 		if not settings.has(key):
 			settings[key] = defaults[key]
@@ -114,6 +114,8 @@ func update_settings(value: Dictionary) -> void:
 func _normalize_emission_settings() -> void:
 	settings["gun_rate"] = clampf(float(settings.get("gun_rate", 1200.0)), 0.0, 10000.0)
 	settings["gun_rotation_speed"] = clampf(float(settings.get("gun_rotation_speed", 1.7)), 0.1, 6.0)
+	var switch_cd: Variant = settings.get("gun_target_switch_cd", 0.5)
+	settings["gun_target_switch_cd"] = clampf(float(switch_cd), 0.0, 2.0) if (switch_cd is int or switch_cd is float) and is_finite(float(switch_cd)) else 0.5
 	settings["gun_start"] = settings["gun_rate"]
 	settings["gun_end"] = settings["gun_rate"]
 	settings["particle_cost_delay"] = clampf(float(settings.get("particle_cost_delay", 60.0)), 0.0, 7200.0)
@@ -479,7 +481,7 @@ func _make_params(configuration: Dictionary) -> PackedByteArray:
 	bytes.encode_float(212, float(configuration.get("particle_cost_growth", 0.25)))
 	bytes.encode_float(216, float(configuration.get("storm_ring_particles", 360)))
 	bytes.encode_float(220, float(configuration.get("storm_ring_interval", 0.10)))
-	bytes.encode_float(224, float(configuration.get("gun_target_switch_cd", 0.08)))
+	bytes.encode_float(224, float(configuration.get("gun_target_switch_cd", 0.5)))
 	bytes.encode_float(228, float(configuration.get("growth_curve_time", 1200.0)))
 	bytes.encode_float(232, float(configuration.get("sniper_split_angle", 8.0)))
 	return bytes
@@ -653,7 +655,8 @@ func _decode_particles(bytes: PackedByteArray, first_id: int = 0) -> Array[Dicti
 		var offset := index * PARTICLE_STRIDE
 		if bytes.decode_u32(offset + 28) == 0:
 			continue
-		particles.append({"id":first_id + index, "x":bytes.decode_float(offset), "y":bytes.decode_float(offset + 4), "vx":bytes.decode_float(offset + 8), "vy":bytes.decode_float(offset + 12), "energy":_decode_energy(bytes, offset + 16), "team":int(bytes.decode_u32(offset + 24)), "type":int(bytes.decode_u32(offset + 28)), "radius":bytes.decode_float(offset + 32), "birth_scale":bytes.decode_float(offset + 36), "contact_mask":int(bytes.decode_u32(offset + 48)), "sniper_level":int(bytes.decode_u32(offset + 52)) & 3, "level":int(bytes.decode_u32(offset + 52)) & 3, "flags":int(bytes.decode_u32(offset + 56)), "pending_split":(int(bytes.decode_u32(offset + 56)) & 0x40000000) != 0})
+		var contact_and_generation := int(bytes.decode_u32(offset + 48))
+		particles.append({"id":first_id + index, "x":bytes.decode_float(offset), "y":bytes.decode_float(offset + 4), "vx":bytes.decode_float(offset + 8), "vy":bytes.decode_float(offset + 12), "energy":_decode_energy(bytes, offset + 16), "team":int(bytes.decode_u32(offset + 24)), "type":int(bytes.decode_u32(offset + 28)), "radius":bytes.decode_float(offset + 32), "birth_scale":bytes.decode_float(offset + 36), "contact_mask":contact_and_generation & 0xf, "generation":contact_and_generation >> 4, "particle_generation":contact_and_generation >> 4, "sniper_level":int(bytes.decode_u32(offset + 52)) & 3, "level":int(bytes.decode_u32(offset + 52)) & 3, "flags":int(bytes.decode_u32(offset + 56)), "pending_split":(int(bytes.decode_u32(offset + 56)) & 0x40000000) != 0})
 	return particles
 
 func _decode_diagnostics(bytes: PackedByteArray) -> Dictionary:
@@ -671,7 +674,7 @@ func _decode_weapon_states(bytes: PackedByteArray) -> Array[Dictionary]:
 		var words: Array[int] = []
 		for word: int in 32:
 			words.append(int(bytes.decode_u32(offset + word * 4)))
-		result.append({"gun_shot_energy":_decode_energy(bytes, offset), "gun_target":int(bytes.decode_u32(offset + 8)), "target_switch_ready":bytes.decode_float(offset + 16), "gun_paint_target_cell":int(bytes.decode_float(offset + 20)), "gun_paint_cursor":int(bytes.decode_float(offset + 24)), "gun_paint_scan_cells":int(bytes.decode_float(offset + 28)), "storm_total_shots":int(bytes.decode_u32(offset + 32)), "storm_next_shot":int(bytes.decode_u32(offset + 36)), "storm_rings":int(bytes.decode_u32(offset + 40)), "storm_ring":int(bytes.decode_u32(offset + 44)), "storm_base_energy":_decode_energy(bytes, offset + 48), "storm_remainder":_decode_energy(bytes, offset + 56), "next_ring_time":bytes.decode_float(offset + 64), "last_ring_complete_time":bytes.decode_float(offset + 72), "storm_completed_events":int(bytes.decode_u32(offset + 112)), "storm_completed_rings":int(bytes.decode_u32(offset + 116)), "sniper_split_count":int(bytes.decode_u32(offset + 120)), "shield_reference_energy":bytes.decode_float(offset + 80), "shield_expansion_radius":bytes.decode_float(offset + 84), "raw_words":words})
+		result.append({"gun_shot_energy":_decode_energy(bytes, offset), "gun_target":int(bytes.decode_u32(offset + 8)), "gun_target_generation":int(bytes.decode_u32(offset + 12)), "target_switch_ready":bytes.decode_float(offset + 16), "gun_paint_target_cell":int(bytes.decode_float(offset + 20)), "gun_paint_cursor":int(bytes.decode_float(offset + 24)), "gun_paint_scan_cells":int(bytes.decode_float(offset + 28)), "storm_total_shots":int(bytes.decode_u32(offset + 32)), "storm_next_shot":int(bytes.decode_u32(offset + 36)), "storm_rings":int(bytes.decode_u32(offset + 40)), "storm_ring":int(bytes.decode_u32(offset + 44)), "storm_base_energy":_decode_energy(bytes, offset + 48), "storm_remainder":_decode_energy(bytes, offset + 56), "next_ring_time":bytes.decode_float(offset + 64), "last_ring_complete_time":bytes.decode_float(offset + 72), "storm_completed_events":int(bytes.decode_u32(offset + 112)), "storm_completed_rings":int(bytes.decode_u32(offset + 116)), "sniper_split_count":int(bytes.decode_u32(offset + 120)), "shield_reference_energy":bytes.decode_float(offset + 80), "shield_expansion_radius":bytes.decode_float(offset + 84), "raw_words":words})
 	return result
 
 func _stats_main(combined: Dictionary, gpu_ms: float) -> void:

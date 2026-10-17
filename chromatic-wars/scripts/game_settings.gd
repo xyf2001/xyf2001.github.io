@@ -13,7 +13,7 @@ static func defaults() -> Dictionary:
 		"growth_target": 1000000.0, "growth_duration": 1200.0, "growth_curve_time": 1200.0,
 		"radius_min": 4.2, "radius_max": 36.0, "radius_k": 3.0,
 		"intro_shield": 1000000.0, "intro_gun": 1000000.0,
-		"gun_rate": 1200.0, "gun_rotation_speed": 1.7, "gun_target_switch_cd": 0.08,
+		"gun_rate": 1200.0, "gun_rotation_speed": 1.7, "gun_target_switch_cd": 0.5,
 		"gun_start": 1200.0, "gun_end": 1200.0, "gun_duration": 1200.0,
 		"particle_cost_delay": 60.0, "particle_cost_growth": 0.25,
 		"storm_ring_particles": 360, "storm_ring_interval": 0.10,

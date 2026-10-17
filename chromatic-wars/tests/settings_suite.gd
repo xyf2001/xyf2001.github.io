@@ -1,4 +1,5 @@
 extends "res://tests/test_harness.gd"
+const DirectGPUWorld = preload("res://scripts/gpu_world.gd")
 func run_suite() -> void:
 	var config := GameSettings.validate({"gravity":20.0,"friction":1.0,"radius_min":12.0,"fixed_dt":0.017,"time_scale":0.3})
 	var machine := PinballPhysics.new()
@@ -16,7 +17,25 @@ func run_suite() -> void:
 	var bounded := GameSettings.validate({"growth_curve_time":0.0,"gun_target_switch_cd":99.0,"sniper_split_angle":90.0,"friendly_particle_collisions":"false","gun_rate":0.0})
 	check(bounded.growth_curve_time == 1.0 and bounded.gun_target_switch_cd == 2.0 and bounded.sniper_split_angle == 30.0 and bounded.friendly_particle_collisions and bounded.gun_rate == 0.0, "新参数有界且保留明确调试停火", "非法碰撞布尔值不会静默关物理；0射速是显式调试选项")
 	var growth_nonfinite := GameSettings.validate({"growth_curve_time":NAN,"gun_target_switch_cd":INF})
-	check(growth_nonfinite.growth_curve_time == 1200.0 and growth_nonfinite.gun_target_switch_cd == 0.08, "增长缓和与索敌冷却拒绝非有限值")
+	check(growth_nonfinite.growth_curve_time == 1200.0 and growth_nonfinite.gun_target_switch_cd == 0.5, "增长缓和与索敌冷却拒绝非有限值")
+	check(GameSettings.defaults().gun_target_switch_cd == 0.5 and GameSettings.validate({}).gun_target_switch_cd == 0.5 and GameSettings.validate({"gun_target_switch_cd":0.08}).gun_target_switch_cd == 0.08 and GameSettings.validate({"gun_target_switch_cd":0.0}).gun_target_switch_cd == 0.0, "目标切换默认0.5模拟秒并保留显式自定义", "缺失字段使用新默认，不把合法旧0.08或自定义0静默覆盖")
+	var direct_world := DirectGPUWorld.new()
+	for direct_case: Dictionary in [
+		{"name":"partial空配置","config":{},"expected":0.5},
+		{"name":"显式旧0.08","config":{"gun_target_switch_cd":0.08},"expected":0.08},
+		{"name":"显式0","config":{"gun_target_switch_cd":0.0},"expected":0.0},
+		{"name":"显式0.35","config":{"gun_target_switch_cd":0.35},"expected":0.35},
+		{"name":"NaN","config":{"gun_target_switch_cd":NAN},"expected":0.5},
+		{"name":"无穷","config":{"gun_target_switch_cd":INF},"expected":0.5},
+		{"name":"超出上限","config":{"gun_target_switch_cd":4.0},"expected":2.0},
+		{"name":"负值","config":{"gun_target_switch_cd":-1.0},"expected":0.0},
+		{"name":"非法类型","config":{"gun_target_switch_cd":"invalid"},"expected":0.5}]:
+		direct_world.configure(direct_case.config)
+		var gpu_params := direct_world._make_params(direct_world.settings)
+		var effective_cd := float(direct_world.settings.get("gun_target_switch_cd", -1.0))
+		var encoded_cd := gpu_params.decode_float(224)
+		check(is_equal_approx(effective_cd, float(direct_case.expected)) and is_equal_approx(encoded_cd, float(direct_case.expected)), "直接GPUWorld配置与实际GPU参数一致 · " + str(direct_case.name), "无需创建RenderingDevice或运行GPU；验证真实configure与224字节参数编码，不以测试get默认值遮盖缺失字段", {"effective_cd":effective_cd,"encoded_cd":encoded_cd,"expected":direct_case.expected})
+	direct_world.free()
 	var live := GameSettings.LIVE_KEYS
 	check("growth_curve_time" in live and "gun_target_switch_cd" in live and "sniper_split_angle" in live and "friendly_particle_collisions" in live, "曲线冷却分裂角与友方碰撞开关均可即时更新")
 	var retained := GameSettings.validate({"render_size":1536,"grid_size":1024,"friendly_particle_collisions":true,"disabled_preset_pegs":[14,0,14,-1],"custom_pegs":[Vector3(40,180,8)]})
@@ -32,7 +51,11 @@ func run_suite() -> void:
 	old_file.set_value("游戏", "friendly_particle_collisions", false)
 	var old_saved := old_file.save(GameSettings.CONFIG_PATH)
 	var migrated_file := GameSettings.load_file()
-	check(old_saved == OK and migrated_file.gun_rate == 777.0 and migrated_file.storm_ring_particles == 360 and not migrated_file.friendly_particle_collisions and migrated_file.growth_curve_time == 1200.0, "真实旧存档读取会迁移旧别名并补齐新字段", "gun_rate_end别名不被默认gun_end遮盖")
+	check(old_saved == OK and migrated_file.gun_rate == 777.0 and migrated_file.storm_ring_particles == 360 and not migrated_file.friendly_particle_collisions and migrated_file.growth_curve_time == 1200.0 and migrated_file.gun_target_switch_cd == 0.5, "真实旧存档读取会迁移旧别名并补齐新字段", "gun_rate_end别名不被默认gun_end遮盖；缺失目标CD采用0.5模拟秒")
+	old_file.set_value("游戏", "gun_target_switch_cd", 0.08)
+	var custom_old_saved := old_file.save(GameSettings.CONFIG_PATH)
+	var custom_migrated_file := GameSettings.load_file()
+	check(custom_old_saved == OK and custom_migrated_file.gun_target_switch_cd == 0.08, "真实旧存档保留用户显式目标切换CD", "旧默认与显式自定义无法可靠区分，因此保留所有合法存档值")
 	if config_existed:
 		var restore := FileAccess.open(GameSettings.CONFIG_PATH, FileAccess.WRITE)
 		if restore:
@@ -48,7 +71,7 @@ func run_suite() -> void:
 	for sim_time: float in [0.0,600.0,1200.0,2400.0,1000000000.0]:
 		displayed_growth_matches = displayed_growth_matches and is_equal_approx(ui._growth_threshold(sim_time), machine.threshold_at(sim_time))
 	check(displayed_growth_matches, "UI门槛备用显示与真实弛缓指数一致", "包含长期上限；不继续显示旧线性门槛")
-	check(ui._inputs.has("growth_curve_time") and ui._inputs.has("gun_target_switch_cd") and ui._inputs.has("sniper_split_angle") and not ui._inputs.has("storm_ring_particles"), "设置面板暴露有效新参数且不显示废弃风暴数量开关")
+	check(ui._inputs.has("growth_curve_time") and ui._inputs.has("gun_target_switch_cd") and is_equal_approx(ui._inputs.gun_target_switch_cd.value, 0.5) and ui._inputs.has("sniper_split_angle") and not ui._inputs.has("storm_ring_particles"), "设置面板暴露有效新参数且不显示废弃风暴数量开关", "目标切换CD控件默认0.5模拟秒，保持即时更新")
 	ui._change("friendly_particle_collisions", false)
 	check(not ui._config.friendly_particle_collisions and not ui._inputs.friendly_particle_collisions.button_pressed, "友方碰撞关闭同步到UI与配置")
 	ui._change("friendly_particle_collisions", true)

@@ -15,6 +15,36 @@ def digest(path: Path) -> str:
         return hashlib.file_digest(handle, "sha256").hexdigest()
 
 
+def runtime_source_hashes(root: Path) -> dict[str, str]:
+    """Shared contract for a validation summary and its eventual source archive."""
+    files = [root / "project.godot", root / "export_presets.cfg"]
+    for folder in ["scenes", "scripts", "shaders", "assets"]:
+        files.extend(path for path in (root / folder).rglob("*")
+                     if path.is_file() and path.suffix not in {".import", ".uid"})
+    return {path.relative_to(root).as_posix(): digest(path) for path in sorted(files)}
+
+
+def validate_release_evidence(root: Path, executable: Path, validation_path: Path,
+                              pck_path: Path, allow_partial: bool) -> tuple[str, dict[str, str], dict]:
+    if not validation_path.is_file():
+        raise RuntimeError("本次验证尚无结束结果，不能打包为最终交付")
+    validation = json.loads(validation_path.read_text(encoding="utf-8"))
+    status = str(validation["status"])
+    if status != "PASS" and not (allow_partial and status == "PARTIAL"):
+        raise RuntimeError("本次验证失败，或未明确允许PARTIAL；请先诊断实际记录")
+    hashes = runtime_source_hashes(root)
+    if validation.get("runtime_source_sha256") != hashes:
+        raise RuntimeError("验证汇总与当前运行源码SHA256不一致；不能借用旧版本结果")
+    pck = json.loads(pck_path.read_text(encoding="utf-8"))
+    if pck.get("status") != "PASS":
+        raise RuntimeError("最终内嵌PCK检查未通过")
+    if pck.get("main_pack_sha256") != digest(executable):
+        raise RuntimeError("内嵌PCK检查未绑定当前Windows EXE的SHA256；请检查实际导出文件")
+    if "PENDING" in (root / "TEST_REPORT.md").read_text(encoding="utf-8"):
+        raise RuntimeError("测试报告仍有未回填结果")
+    return status, hashes, pck
+
+
 def include(path: Path, root: Path) -> bool:
     relative = path.relative_to(root)
     if any(part in {".godot", ".git", "export", "__pycache__", "runtime"} for part in relative.parts):
@@ -34,6 +64,15 @@ def build_zip(destination: Path, files: list[tuple[Path, str]]) -> None:
         for name in archive.namelist():
             if name.startswith("/") or ".." in Path(name).parts:
                 raise RuntimeError(f"不安全的ZIP路径：{name}")
+
+
+def verify_member_hashes(path: Path, expected: dict[str, str]) -> None:
+    with zipfile.ZipFile(path) as archive:
+        for name, checksum in expected.items():
+            with archive.open(name) as handle:
+                actual = hashlib.file_digest(handle, "sha256").hexdigest()
+            if actual != checksum:
+                raise RuntimeError(f"打包期间文件改变或ZIP内容与验证SHA256不符：{name}")
 
 
 def main() -> None:
@@ -60,26 +99,15 @@ def main() -> None:
         release_validation = "NOT TESTED (user requested)"
         release_validation_status = "NOT TESTED"
         export_resource_check = "NOT TESTED (user requested)"
+        hashes = runtime_source_hashes(root)
+        pck = {}
     else:
         battle_path = root / args.validation_file
-        if not battle_path.is_file():
-            raise RuntimeError("本次验证尚无结束结果，不能打包为最终交付")
-        battle = json.loads(battle_path.read_text())
-        release_validation_status = str(battle["status"])
-        if release_validation_status != "PASS" and not (args.allow_partial_validation and release_validation_status == "PARTIAL"):
-            raise RuntimeError("本次验证失败，请先诊断实际记录")
         pck_path = root / args.pck_dir / "export_pck.json"
-        pck = json.loads(pck_path.read_text())
-        if pck["status"] != "PASS":
-            raise RuntimeError("最终内嵌PCK检查未通过")
-        if "PENDING" in (root / "TEST_REPORT.md").read_text():
-            raise RuntimeError("测试报告仍有未回填结果")
+        release_validation_status, hashes, pck = validate_release_evidence(
+            root, executable, battle_path, pck_path, args.allow_partial_validation)
         release_validation = str(battle_path.relative_to(root))
         export_resource_check = str(pck_path.relative_to(root))
-    runtime_files = [root / "project.godot", root / "export_presets.cfg"]
-    for folder in ["scenes", "scripts", "shaders", "assets"]:
-        runtime_files += [path for path in (root / folder).rglob("*") if path.is_file() and path.suffix not in {".import", ".uid"}]
-    hashes = {str(path.relative_to(root)): digest(path) for path in sorted(runtime_files)}
     info = {"built_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
             "release_label": args.release_label,
             "godot": "4.6.3.stable.official.7d41c59c4",
@@ -87,6 +115,9 @@ def main() -> None:
             "windows_os_execution": "NOT TESTED",
             "physical_gpu_execution": "NOT TESTED",
             "windows_exe_sha256": digest(executable),
+            "export_pck_main_pack_sha256": pck.get("main_pack_sha256", "NOT TESTED"),
+            "export_pck_execution_os": pck.get("execution_os", "NOT TESTED"),
+            "export_pck_device": pck.get("device", "NOT TESTED"),
             "runtime_source_sha256": hashes,
             "test_report": "TEST_REPORT.md",
             "export_resource_check": export_resource_check,
@@ -98,6 +129,7 @@ def main() -> None:
     files = sorted(path for path in root.rglob("*") if include(path, root))
     source_zip = output / "颜色大战_Godot工程.zip"
     build_zip(source_zip, [(path, "ChromaticWars/" + path.relative_to(root).as_posix()) for path in files])
+    verify_member_hashes(source_zip, {"ChromaticWars/" + name: checksum for name, checksum in hashes.items()})
     with zipfile.ZipFile(source_zip) as archive:
         for required in ["project.godot", "scenes/main.tscn", "shaders/battle.glsl", "scripts/main.gd", "TEST_REPORT.md", "assets/chinese_ui.otf"]:
             if "ChromaticWars/" + required not in archive.namelist():
@@ -126,6 +158,7 @@ def main() -> None:
     selected += [(path, path.relative_to(root).as_posix()) for path in files if path.relative_to(root).parts[0] in {"docs", "artifacts"}]
     windows_zip = output / "颜色大战_Windows_x64.zip"
     build_zip(windows_zip, selected)
+    verify_member_hashes(windows_zip, {"颜色大战.exe": info["windows_exe_sha256"]})
     manifest = {"files": {path.name: {"bytes": path.stat().st_size, "sha256": digest(path)} for path in [source_zip, windows_zip]},
                 "executable": {"filename": executable.name, "bytes": executable.stat().st_size, "sha256": digest(executable)},
                 "zip_integrity": "PASS"}

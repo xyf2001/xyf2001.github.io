@@ -143,9 +143,30 @@ func run() -> void:
 	_finish()
 
 func _finish() -> void:
-	var result := {"checks":checks, "failures":failures, "failed":not failures.is_empty(), "backend":RenderingServer.get_current_rendering_driver_name(), "fixture_not_benchmark":true, "cases":observations}
-	var file := FileAccess.open("res://artifacts/pool_integrity_suite.json", FileAccess.WRITE)
+	var output := "res://artifacts/pool_integrity_suite.json"
+	var arguments := OS.get_cmdline_user_args()
+	var output_index := arguments.find("--json")
+	if output_index >= 0 and output_index + 1 < arguments.size():
+		output = arguments[output_index + 1]
+	else:
+		var artifact_index := arguments.find("--artifact-dir")
+		if artifact_index >= 0 and artifact_index + 1 < arguments.size():
+			output = arguments[artifact_index + 1].path_join("pool_integrity_suite.json")
+	if checks <= 0:
+		failures.append("No physical pool checks executed")
+	var result := {"checks":checks, "failures":failures, "failed":not failures.is_empty(), "backend":RenderingServer.get_current_rendering_driver_name(), "fixture_not_benchmark":true, "cases":observations, "artifact_path":output}
+	var file := FileAccess.open(output, FileAccess.WRITE)
+	var saved := false
 	if file != null:
 		file.store_string(JSON.stringify(result, "\t"))
+		file.flush()
+		saved = file.get_error() == OK
+		file.close()
+	if not saved:
+		failures.append("Pool evidence could not be opened, written and flushed: " + output)
+		result["failed"] = true
+		push_error(failures.back())
 	print("GPU_POOL_SUITE " + JSON.stringify(result))
-	quit(0 if failures.is_empty() else 1)
+	var passed := checks > 0 and failures.is_empty() and saved
+	print("CHROMATIC_TEST " + JSON.stringify({"status":"PASS" if passed else "FAIL", "name":"GPU pool allocation/reclamation/indirect regression", "detail":"Aggregate of real per-entity checks; raw observations retained", "metrics":{"checks":checks,"failures":failures.size(),"observations":observations.size(),"artifact_saved":saved,"path":output}}))
+	quit(0 if passed else 1)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -15,6 +16,12 @@ import sys
 import time
 
 RESULT_PREFIX = "CHROMATIC_TEST "
+SOURCE_FILES = ("project.godot", "shaders/battle.glsl", "scripts/gpu_world.gd", "scripts/game_settings.gd", "scripts/gpu_collisions.gd", "scripts/gpu_emitters.gd", "scripts/gpu_render.gd", "scripts/pinball_physics.gd", "tests/test_harness.gd", "tests/gpu_suite.gd")
+
+
+def source_hashes(project: Path, suites: list[str]) -> dict[str, str]:
+    names = dict.fromkeys(SOURCE_FILES + tuple("tests/" + suite + "_suite.gd" for suite in suites))
+    return {name: hashlib.sha256((project / name).read_bytes()).hexdigest() for name in names if (project / name).is_file()}
 
 
 def read_results(output: str) -> list[dict]:
@@ -34,7 +41,7 @@ def classify(returncode: int | None, results: list[dict], timed_out: bool = Fals
     if timed_out:
         return "FAIL", "超过截止时间，已终止进程"
     if returncode == 77 and results and any(r["status"] == "NOT TESTED" for r in results) and not any(r["status"] == "FAIL" for r in results):
-        return "NOT TESTED", "运行环境不满足此套件要求"
+        return "NOT TESTED", "套件含未完成项目，请查看逐项原因与实际覆盖时长"
     if returncode != 0:
         return "FAIL", f"Godot 退出码 {returncode}"
     if any(r["status"] == "FAIL" for r in results):
@@ -89,9 +96,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--wrapper", default="", help="图形套件的可选命令前缀，例如 xvfb-run -a")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--import-project", action="store_true", help="先在图形环境执行编辑器导入")
+    parser.add_argument("--include-gpu", action="store_true", help="weapon_validation同进程续跑完整GPU回归")
+    parser.add_argument("--include-atomic", action="store_true", help="contact_energy增加并行64位进位专项")
     args = parser.parse_args(argv)
     if args.timeout <= 0 or args.duration <= 0 or args.capacity <= 0:
         parser.error("时间与容量必须大于0")
+    if args.include_gpu and args.suite != "weapon_validation":
+        parser.error("--include-gpu仅用于--suite weapon_validation，避免重复执行gpu套件")
+    if args.include_atomic and args.suite != "contact_energy":
+        parser.error("--include-atomic仅用于--suite contact_energy")
     args.project = args.project.resolve()
     timestamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     output_dir = (args.output or args.project / "artifacts" / "tests" / timestamp).resolve()
@@ -99,7 +112,9 @@ def main(argv: list[str] | None = None) -> int:
     suites = ["settings", "channel_floor", "cpu", "pinball_properties", "contact_energy", "pool_integrity", "weapon_validation", "gpu"] if args.suite == "all" else [args.suite]
     report = {"started_utc": timestamp, "project": str(args.project), "suites": [],
               "seed": args.seed, "duration_sim_seconds": args.duration,
+              "requested_speed":args.speed,"wall_budget_seconds":args.wall_seconds,"particle_capacity":args.capacity,
               "host": {"platform": sys.platform}, "godot": args.godot}
+    report["source_sha256_before"] = source_hashes(args.project, suites)
     env = os.environ.copy()
     # Godot/fontconfig need writable user directories in cloud sandboxes.
     for key, child in [("XDG_CACHE_HOME", "cache"), ("XDG_CONFIG_HOME", "config"), ("XDG_DATA_HOME", "data")]:
@@ -114,11 +129,11 @@ def main(argv: list[str] | None = None) -> int:
         common = [binary, "--path", str(args.project)]
         if args.import_project:
             import_log = output_dir / "import.log"
-            outcome = run_command(shlex.split(args.wrapper) + common + ["--editor", "--import", "--quit"],
+            outcome = run_command(shlex.split(args.wrapper) + common + ["--rendering-method", "forward_plus", "--rendering-driver", "vulkan", "--audio-driver", "Dummy", "--editor", "--import", "--quit"],
                                   args.project, import_log, args.timeout, env)
             import_text = import_log.read_text(encoding="utf-8", errors="replace")
             errors = [line for line in import_text.splitlines()
-                      if "SCRIPT ERROR:" in line or "SHADER ERROR:" in line or "Parse Error:" in line]
+                      if line.startswith("ERROR:") or "SCRIPT ERROR:" in line or "SHADER ERROR:" in line or "Parse Error:" in line]
             ok = outcome["returncode"] == 0 and not outcome["timed_out"] and not errors
             report["suites"].append({"name": "import", "status": "PASS" if ok else "FAIL",
                                      "reason": "实际编辑器导入" if ok else "导入失败，查看原始日志",
@@ -138,6 +153,8 @@ def main(argv: list[str] | None = None) -> int:
             command += ["--script", "res://tests/" + suite + "_suite.gd", "--", "--seed", str(args.seed),
                         "--duration", str(args.duration), "--capacity", str(args.capacity), "--speed", str(args.speed),
                         "--wall_seconds", str(args.wall_seconds), "--artifact-dir", str(output_dir)]
+            if args.include_gpu: command += ["--include-gpu", "true"]
+            if args.include_atomic: command += ["--include-atomic", "true"]
             log_path = output_dir / (suite + ".log")
             print(f"正在运行 {suite}，截止 {args.timeout:g} 秒；日志：{log_path}", flush=True)
             outcome = run_command(command, args.project, log_path, args.timeout, env)
@@ -146,12 +163,16 @@ def main(argv: list[str] | None = None) -> int:
             status, reason = classify(outcome["returncode"], results, outcome["timed_out"])
             # Godot can return 0 after parse/runtime errors: those cannot count as passing.
             engine_errors = [line for line in raw.splitlines()
-                             if "SCRIPT ERROR:" in line or "SHADER ERROR:" in line or "Parse Error:" in line]
+                             if line.startswith("ERROR:") or "SCRIPT ERROR:" in line or "SHADER ERROR:" in line or "Parse Error:" in line]
             if engine_errors:
-                status, reason = "FAIL", "Godot 报告脚本或着色器错误"
+                status, reason = "FAIL", "Godot 报告引擎、脚本或着色器错误"
             report["suites"].append({"name": suite, "status": status, "reason": reason, "results": results,
                                      "engine_errors": engine_errors, "log": str(log_path), **outcome})
             print(f"{status}：{suite}：{reason}", flush=True)
+    report["source_sha256_after"] = source_hashes(args.project, suites)
+    report["sources_unchanged_during_run"] = report["source_sha256_before"] == report["source_sha256_after"]
+    if not report["sources_unchanged_during_run"]:
+        report["suites"].append({"name":"source_integrity","status":"FAIL","reason":"运行期间关键源码或测试夹具发生变化，不能绑定为同一冻结版本"})
     statuses = [r["status"] for r in report["suites"]]
     report["status"] = "FAIL" if "FAIL" in statuses else ("NOT TESTED" if "NOT TESTED" in statuses else "PASS")
     if not statuses:
