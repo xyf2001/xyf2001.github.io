@@ -1,0 +1,42 @@
+{
+  "version": "1.5.4-active-cells-rescue",
+  "status": "BUILD FAILED",
+  "started_utc": "2026-10-17T18:11:06.944075+00:00",
+  "tests": "NOT TESTED (user requested)",
+  "game_started": false,
+  "pck_execution": "NOT TESTED",
+  "source_sha256_before_export": {
+    "assets/chinese_ui.otf": "00b1630b749eaecac4f8f040d50db77c117c9d34c3b02ded99b4fb7bddfea5a5",
+    "assets/字体许可.txt": "849f4ea9c214fa4ac3593b770c699f387534b11ce671264c1b10d85bdcb5997b",
+    "export_presets.cfg": "7a3eeda24649279bd8db3f9401075cc84bb8705cf9153902ee2c80ffdf7af784",
+    "project.godot": "32b1ed10a28a941cb91a5e702fe61982719251a6f8ea3c066c866b1147633a39",
+    "scenes/main.tscn": "546a539b45d22dbd1212db4c311fb0d98eed00d38ba214af6c5633cf15007710",
+    "scripts/air_curtain.gd": "d6ba23a18297100995670d8c3ce52735c374c77ad85199a53259f92f3fde4651",
+    "scripts/battle_labels.gd": "1a6e7c06fb3a81894e85c65c01a63c755c0daf83b605f9657dc21bf3623f5dd9",
+    "scripts/game_settings.gd": "efd8af485f903832fa718279fc50fef854a212d974ed6944169919332edd4660",
+    "scripts/game_ui.gd": "e9f82f548589eecdf77b879c13d27cfc24be57ab2b3e1059d0dec115d5c92f84",
+    "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+    "scripts/gpu_emitters.gd": "6975fb35713b6a6da6028b5ded04acfa7325bf097d56298013feca43011ad91f",
+    "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+    "scripts/gpu_world.gd": "89eee97b5a26968fe50d53d9bccee1667d515001b7ca2830e7340f9a63dc1b10",
+    "scripts/main.gd": "05aeaedfa709c1d72daff304f3ffd4d4ed3a6e05e3a6bd77a420a738f0053923",
+    "scripts/multiplier_channels.gd": "e7c4b000d21c581e8bbb5d654475dddd8885223f3347ed9d566a702659bbcc12",
+    "scripts/pinball_physics.gd": "401a8bcf622e7bb3531e2c7cf88c88e5a8aac407abc7f2a474046dbd576c2313",
+    "scripts/weapon_conveyor.gd": "e5ae5376ebe8aba381297aaf4a1a25bb08472195b2bbe3e3b3df13aa8f83eff4",
+    "shaders/battle.glsl": "a9c3e3fe5f80a341e5f131af8aefdaec00370fabb4a10ae536e4ce161db07774"
+  },
+  "baseline_telemetry": "../build-1.5.3-no-tests/user_telemetry_1.5.2.json (user provided; latest 1.5.3 lag report has no complete telemetry)",
+  "import": {
+    "actual_exit": 0,
+    "command": [
+      "/tmp/cw-root-gpu.sh",
+      "--audio-driver",
+      "Dummy",
+      "--path",
+      "/workspace/xyf2001.github.io/chromatic-wars",
+      "--editor",
+      "--import"
+    ],
+    "log": "import.log"
+  }
+}

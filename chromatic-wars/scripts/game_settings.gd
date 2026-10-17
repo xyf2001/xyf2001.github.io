@@ -9,6 +9,7 @@ const LIVE_KEYS := ["gravity", "restitution", "friction", "air_force", "air_heig
 
 static func defaults() -> Dictionary:
 	return {
+		"team_count": 4, # 参战队数仅在新开局生效，每队4颗左侧弹药球。
 		"gravity": 820.0, "restitution": 1.0, "friction": 0.0,
 		"air_force": 2950.0, "air_height": 180.0, "air_width": 96.0, "air_exponent": 2.8,
 		"growth_target": 1000000.0, "growth_duration": 1200.0, "growth_curve_time": 1200.0,
@@ -134,11 +135,12 @@ static func validate(config: Dictionary) -> Dictionary:
 				disabled_preset_pegs.append(entry)
 	disabled_preset_pegs.sort()
 	result["disabled_preset_pegs"] = disabled_preset_pegs
-	for key: String in ["particle_capacity", "grid_size", "render_size", "fps_limit", "seed"]:
+	for key: String in ["team_count", "particle_capacity", "grid_size", "render_size", "fps_limit", "seed"]:
 		var value: Variant = config.get(key, result[key])
 		if value is int or value is float:
 			if is_finite(float(value)):
 				result[key] = int(value)
+	result["team_count"] = clampi(int(result["team_count"]), 1, 4)
 	if not result["particle_capacity"] in CAPACITIES:
 		result["particle_capacity"] = 10000
 	if not result["grid_size"] in [256, 512, 768, 1024]:

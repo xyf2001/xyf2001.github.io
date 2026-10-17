@@ -1,0 +1,21 @@
+{
+  "files": {
+    "ChromaticWars-Windows-x64-Active-Cells-Rescue.zip": {
+      "bytes": 49973240,
+      "sha256": "1a615f33222b55289ea1056baa6cc56351588cbabc482806beaa0f0240977c52"
+    },
+    "ChromaticWars-Godot-Source-Active-Cells-Rescue.zip": {
+      "bytes": 13855551,
+      "sha256": "668cba19ec688894cce4f0a2e90124b7747e4278148bba19c1d20239be31c500"
+    }
+  },
+  "executable": {
+    "filename": "颜色大战.exe",
+    "bytes": 105592880,
+    "sha256": "70ec88da55dd1db7f25c227c9d2426b670ad02a43c05c2ab6cb0f770f1288dcf"
+  },
+  "zip_integrity": "PASS",
+  "release_label": "1.5.4-active-cells-rescue",
+  "release_validation_status": "NOT TESTED",
+  "build_metadata": "../../chromatic-wars/artifacts/build-1.5.4-no-tests/build_metadata.json"
+}

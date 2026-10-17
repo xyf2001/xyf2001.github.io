@@ -20,30 +20,51 @@ layout(set=0,binding=6,std430) restrict buffer Metrics { uint stat[]; };
 layout(rgba8,set=0,binding=7) uniform restrict writeonly image2D output_image;
 layout(set=0,binding=8,std430) restrict buffer ParticlePixels { uint pixels[]; };
 layout(set=0,binding=9,std430) readonly restrict buffer Parameters { vec4 par[]; };
-// 每队160B，和host binding10一致；原128B字段offset保持不变。
+// 每队176B，和host binding10一致；既有字段offset保持不变。
 // gun.xy=u64计划商；gun_plan=N/下一时间槽/余数/carry；gun_clock=起点/名义截止/锁定射频/时长。
 struct WeaponState { uvec4 gun; vec4 aim; uvec4 storm; uvec4 storm_energy;
                      vec4 storm_clock; vec4 shield; uvec4 shield_cursor; uvec4 reserved;
-                     uvec4 gun_plan; vec4 gun_clock; };
+                     uvec4 gun_plan; vec4 gun_clock; uvec4 rescue_reserve; };
 layout(set=0,binding=10,std430) restrict buffer Weapons { WeaponState weapon[]; };
 // GPU-resident live IDs and free stacks. Physical IDs never move when compacting.
 layout(set=0,binding=11,std430) restrict buffer ParticlePool { uint pool[]; };
-// First two uvec3 are VkDispatchIndirectCommand records. The remaining words are
-// optional diagnostics; they are never used as authoritative game state.
+// First two uvec3 are live-ID indirect commands; words32..58 hold nine collision
+// phase indirect commands. Other words contain optional diagnostic counters.
 layout(set=0,binding=12,std430) restrict buffer DispatchDiagnostics { uint dispatch_data[]; };
 // 每槽8B：x为模拟秒float位，y为限制前缀的粒子ID；末尾两记录存大球mask/宽弹标志。
 layout(set=0,binding=13,std430) restrict buffer TerrainPrefixes { uvec2 terrain_prefix[]; };
-// 宽狙击弹使用独立32单位粗格；不扩大普通粒子的九色并行邻域。
+// 宽狙击32单位粗格/next链之后，追加普通非空格标记、九色计数与ID列表。
 layout(set=0,binding=14,std430) restrict buffer WideProjectileSpace { uint wide_space[]; };
 layout(push_constant,std430) uniform Push { uvec4 control; vec4 clock; } pc;
 // 领土计数随唯一的归属变更出口增量维护，避免周期性整图扫描。
 const float TAU=6.28318530718;
 const uint WIDE_COLUMNS=32u,WIDE_HEADS=4096u;
+const uint COLLISION_PHASES=9u,COLLISION_PHASE_STRIDE=1849u;
+const uint PAINT_COMMAND_BASE=1036u,PAINT_BATCH_CAPACITY=64u;
 const float SNIPER_MAX_RADIUS=10.0;
 uint cap() { return uint(par[0].x); }
 uint balls() { return uint(par[1].w); }
 uint total() { return cap()+balls(); }
 uint terrain_size() { return uint(par[0].y); }
+uint active_team_count() { return uint(clamp(par[13].x,1.0,4.0)); }
+// 初始化使用解析面积；三队分配整格商余，面积最多差1格，边界最多一行阶梯。
+uint initial_territory_area(uint t) {
+ uint n=terrain_size(),count=active_team_count();if(t>=count)return 0u;
+ if(count==1u)return n*n;
+ if(count==3u)return (n*n)/3u+uint(t<(n*n)%3u);
+ uint width=(t&1u)==0u?n/2u:n-n/2u;
+ return width*(count==2u?n:((t&2u)==0u?n/2u:n-n/2u));
+}
+uint initial_territory_owner(uint x,uint y) {
+ uint n=terrain_size(),count=active_team_count();if(count==1u)return 0u;
+ uint half_n=n/2u;if(count==2u)return x>=half_n?1u:0u;
+ if(count==3u){uint t=x<half_n?0u:1u;uint width=t==0u?half_n:n-half_n;
+  uint area=initial_territory_area(t),full_rows=area/width,remainder=area%width;
+  uint column=t==0u?x:n-1u-x;
+  return y<full_rows||(y==full_rows&&column<remainder)?t:2u;
+ }
+ return (x>=half_n?1u:0u)+(y>=half_n?2u:0u);
+}
 uint render_size() { return uint(par[0].z); }
 uint cols() { return uint(par[1].z); }
 float world() { return par[1].x; }
@@ -136,12 +157,16 @@ void compact_pool() {
 vec2 fixed_particle_velocity(uint i,vec2 candidate,vec2 fallback) {
  float launch_speed=p[i].geom.y;
  if(launch_speed<=0.0||isnan(launch_speed)||isinf(launch_speed))launch_speed=p[i].info.w==2u?par[3].z:par[3].y;
- vec2 heading=normal_or(candidate,normal_or(fallback,direction(float(hash32(i)&65535u)*TAU/65536.0)));
- return heading*max(launch_speed,1.0);
+ float speed=max(launch_speed,1.0),squared=dot(candidate,candidate);
+ // 正常非零速度不计算备用航向的sin/cos，也不归一化一个完全用不到的fallback。
+ if(squared>0.0000000001&&!isnan(squared)&&!isinf(squared))return candidate*(speed*inversesqrt(squared));
+ squared=dot(fallback,fallback);
+ if(squared>0.0000000001&&!isnan(squared)&&!isinf(squared))return fallback*(speed*inversesqrt(squared));
+ return direction(float(hash32(i)&65535u)*TAU/65536.0)*speed;
 }
 void maintain_motion(uint i) {
  if(p[i].info.w==0u)return;
- if(p[i].info.w!=3u){p[i].pv.zw=fixed_particle_velocity(i,p[i].pv.zw,direction(float(hash32(i)&65535u)*TAU/65536.0));return;}
+ if(p[i].info.w!=3u){p[i].pv.zw=fixed_particle_velocity(i,p[i].pv.zw,vec2(0.0));return;}
  // 大球碰撞后的实际速度保持不变；这里只记住航向。
  // 基础移速由移动前独立的有限加速度驱动补充，不将能量损耗换成瞬时速度。
  float speed=length(p[i].pv.zw);
@@ -183,7 +208,7 @@ void initialize_weapons(uint t) {
  weapon[t].gun=uvec4(0u,0u,0xffffffffu,0u);weapon[t].aim=vec4(0.0);
  weapon[t].storm=uvec4(0u);weapon[t].storm_energy=uvec4(0u);weapon[t].storm_clock=vec4(0.0);
  weapon[t].shield=vec4(max(par[8].w,1.0),0.0,0.0,0.0);weapon[t].shield_cursor=uvec4(0u);
- weapon[t].reserved=uvec4(0u);weapon[t].gun_plan=uvec4(0u);weapon[t].gun_clock=vec4(0.0);
+ weapon[t].reserved=uvec4(0u);weapon[t].gun_plan=uvec4(0u);weapon[t].gun_clock=vec4(0.0);weapon[t].rescue_reserve=uvec4(0u);
 }
 // 只有真实补弹（或初始库存）重建计划；E全来自权威剩余库存，不凭空定价。
 // 正射频和时长锁到下次补弹；人工rate=0可暂停，恢复后继续原计划，名义截止允许延后。
@@ -209,6 +234,8 @@ void expand_shield_territory(uint t) {
  ivec2 center_cell=ivec2(floor(center/unit));uvec4 cursor=weapon[t].shield_cursor;
  for(uint work=0u;work<256u;work++) {
   if(zero64(team[t].shield_gun.xy)){cursor.w=0u;break;}
+  // 救援余额只挡真实伤害；正常补盾不能重新启动染地后把这笔余额花光。
+  if(!less64(weapon[t].rescue_reserve.xy,team[t].shield_gun.xy))break;
   float target=min(weapon[t].shield.y,shield_radius(t));uint shell=cursor.x;
   if(float(shell)*unit>target+unit){cursor.w=0u;weapon[t].shield.y=0.0;break;}
   int extent=int(shell)+1;int side=extent*2+1;
@@ -238,10 +265,12 @@ void begin_storm_event(uint t,uvec2 event_energy,uint seed) {
  weapon[t].storm=uvec4(count,0u,(count+359u)/360u,0u);weapon[t].storm_energy=uvec4(base,remainder,0u);
  weapon[t].storm_clock=vec4(pc.clock.y,random01(seed+stat[7]+t*173u)*TAU,0.0,0.0);
 }
-void eliminate(uint t) {team[t].life.x=2u;team[t].life.z++;team[t].storm_sniper.xy=add64(team[t].storm_sniper.xy,team[t].shield_gun.zw);team[t].shield_gun.zw=uvec2(0u);team[t].shield_gun.xy=uvec2(0u);}
+void eliminate(uint t) {team[t].life.x=2u;team[t].life.z++;team[t].storm_sniper.xy=add64(team[t].storm_sniper.xy,team[t].shield_gun.zw);team[t].shield_gun.zw=uvec2(0u);team[t].shield_gun.xy=uvec2(0u);weapon[t].rescue_reserve=uvec4(0u);}
 void resolve_rescue(Command c) {uint t=c.a.y;if(t>=4u||team[t].life.x!=1u||team[t].life.y!=c.b.y)return;
  if(!zero64(c.a.zw)){
+  if(!can_add64(team[t].shield_gun.xy,c.a.zw)){atomicOr(stat[15],1u);return;}
   team[t].shield_gun.xy=add64(team[t].shield_gun.xy,c.a.zw);
+  weapon[t].rescue_reserve.xy=add64(weapon[t].rescue_reserve.xy,c.a.zw);
   // 救援能量先成为可挡伤护盾。不能在同一prepare先把它全部花在夺回核心格子，
   // 然后以“已用过保命、冷却中”立即淘汰；旧扩张也必须在此停止。
   weapon[t].shield.y=0.0;weapon[t].shield_cursor=uvec4(0u);
@@ -403,6 +432,8 @@ float gun_shot_sweep(uint t,float at_time) {
  return (TAU/180.0)*sin(phase);
 }
 void prepare() {
+ // 紧急回复不推进模拟，也不重试/重放普通优先槽、命令环或武器发射。
+ if((pc.control.w&4u)!=0u){for(uint t=0u;t<4u;t++){Command c=command[1024u+t];if(c.a.x==6u)resolve_rescue(c);command[1024u+t].a.x=0u;}update_shields();return;}
  for(uint n=1028u;n<1036u;n++){Command c=command[n];if(c.a.x!=0u&&execute_command(c))command[n].a.x=0u;}
  for(uint t=0u;t<4u;t++){Command c=command[1024u+t];if(c.a.x==6u)resolve_rescue(c);command[1024u+t].a.x=0u;}
  uint command_head=stat[4];uint queued=pc.control.z-command_head;uint pending_count=0u;uvec2 pending_energy=uvec2(0u);
@@ -478,13 +509,13 @@ void initialize(uint i) {
  if(i<4u)initialize_weapons(i);
  if(i<cap()){pool[16u+i]=0u;pool[16u+cap()+i]=i<cap()-8u?cap()-9u-i:i;}
  if(i<16u)pool[i]=i==1u?cap()-8u:(i==2u?8u:0u);
- if(i<32u)dispatch_data[i]=0u;
+ if(i<64u)dispatch_data[i]=0u;
  if(i<total()){p[i].pv=vec4(0.0);p[i].info=uvec4(0u);p[i].geom=vec4(0.0);p[i].aux=uvec4(0u);}
  if(i<cols()*cols()*4u)head[i]=-1;if(i<total())next_id[i]=i<cap()?-1:floatBitsToInt(0.0);
- if(i<terrain_size()*terrain_size()){uint x=i%terrain_size(),y=i/terrain_size();owner[i]=(x>=terrain_size()/2u?1u:0u)+(y>=terrain_size()/2u?2u:0u);}
- if(i<render_size()*render_size())pixels[i]=0u;if(i<64u){stat[i]=i==30u?0xffffffffu:0u;if(i>=8u&&i<12u){uint t=i-8u;uint half_n=terrain_size()/2u;uint width=(t&1u)!=0u?terrain_size()-half_n:half_n;uint height=(t&2u)!=0u?terrain_size()-half_n:half_n;stat[i]=width*height;}}
- if(i<1036u){command[i].a=uvec4(0u);command[i].b=uvec4(0u);}
- if(i<4u){team[i].shield_gun=floatBitsToUint(par[9]);team[i].storm_sniper=uvec4(0u);team[i].life=uvec4(0u,0u,0u,0xffffffffu);team[i].clocks=vec4(0.0,0.0,float(i)*TAU/4.0,0.0);team[i].accounting=uvec4(0xffffffffu,0u,0u,0u);team[i].core=vec4((i==0u?par[10].xy:(i==1u?par[10].zw:(i==2u?par[11].xy:par[11].zw))),par[5].w,par[8].y*par[4].z);team[i].core.w=shield_radius(i);team[i].misc=uvec4(0u);team[i].visual=vec4(0u);plan_gun_inventory(i,0.0);}
+ if(i<terrain_size()*terrain_size()){uint x=i%terrain_size(),y=i/terrain_size();owner[i]=initial_territory_owner(x,y);}
+ if(i<render_size()*render_size())pixels[i]=0u;if(i<64u){stat[i]=i==30u?0xffffffffu:0u;if(i>=8u&&i<12u)stat[i]=initial_territory_area(i-8u);}
+ if(i<PAINT_COMMAND_BASE+PAINT_BATCH_CAPACITY+1u){command[i].a=uvec4(0u);command[i].b=uvec4(0u);}
+ if(i<4u){bool enabled=i<active_team_count();team[i].shield_gun=enabled?floatBitsToUint(par[9]):uvec4(0u);team[i].storm_sniper=uvec4(0u);team[i].life=uvec4(enabled?0u:2u,0u,0u,0xffffffffu);team[i].clocks=vec4(0.0,0.0,float(i)*TAU/4.0,0.0);team[i].accounting=uvec4(0xffffffffu,0u,0u,0u);team[i].core=vec4((i==0u?par[10].xy:(i==1u?par[10].zw:(i==2u?par[11].xy:par[11].zw))),par[5].w,0.0);team[i].core.w=shield_radius(i);team[i].misc=uvec4(0u);team[i].visual=vec4(0u);if(enabled)plan_gun_inventory(i,0.0);}
 }
 void move_particle(uint i) {if(i>=total()||p[i].info.w==0u)return;maintain_motion(i);drive_big_ball(i,pc.clock.x);float r=p[i].info.w==3u?ball_radius(i):(p[i].info.w==2u?sniper_radius_for_energy(energy(i)):par[4].x);p[i].geom.x=r;p[i].geom.zw=p[i].pv.xy;
  float move_dt=pc.clock.x;
@@ -496,9 +527,14 @@ void move_particle(uint i) {if(i>=total()||p[i].info.w==0u)return;maintain_motio
   for(int axis=0;axis<2;axis++){if(pos[axis]<r){pos[axis]=2.0*r-pos[axis];vel[axis]=abs(vel[axis])*wall_e;}if(pos[axis]>world()-r){pos[axis]=2.0*(world()-r)-pos[axis];vel[axis]=-abs(vel[axis])*wall_e;}}
   p[i].pv=vec4(clamp(pos,vec2(r),vec2(world()-r)),vel);maintain_motion(i);
  }else p[i].pv=vec4(pos,vel);
- for(uint t=0u;t<4u;t++){float distance_core=distance(p[i].pv.xy,team[t].core.xy);if(distance_core>team[t].core.w+r+2.0)p[i].aux.x&=~(1u<<t);
+ // 没有接触标记的普通弹无需为四个核心各算一次距离；只清理真正存在的低4位。
+ uint contact_bits=(p[i].aux.x|p[i].aux.z)&15u;
+ while(contact_bits!=0u){uint t=uint(findLSB(contact_bits)),bit=1u<<t;contact_bits&=contact_bits-1u;
+  vec2 delta=p[i].pv.xy-team[t].core.xy;float clearance=team[t].core.w+r+2.0;bool outside=dot(delta,delta)>clearance*clearance;
+  if(outside)p[i].aux.x&=~bit;
   // 保命请求对应的攻击在握手期间保持接触保护，补盾后须先离开新护盾才可重新结算。
-  if(team[t].life.x==2u||(team[t].life.x==0u&&distance_core>team[t].core.w+r+2.0))p[i].aux.z&=~(1u<<t);}
+  if(team[t].life.x==2u||(team[t].life.x==0u&&outside))p[i].aux.z&=~bit;
+ }
 }
 // 小弹丸保留未折返坐标直到串行实体事件；邻域与粒子对使用同一真实镜像墙轨迹。
 vec2 folded_position(vec2 raw,float radius) {
@@ -520,6 +556,17 @@ vec2 folded_sign(vec2 raw,vec2 ray,float radius) {
 }
 vec2 pair_endpoint(uint i) {return wall_motion(i)?folded_position(p[i].pv.xy,p[i].geom.x):p[i].pv.xy;}
 uint wide_cell(vec2 point) {ivec2 c=clamp(ivec2(floor(point/32.0)),ivec2(0),ivec2(int(WIDE_COLUMNS)-1));return uint(c.y)*WIDE_COLUMNS+uint(c.x);}
+// 非空普通空间格按九色入表；独立标记保证同一格的四阵营合计只入表一次。
+uint collision_flags_base() {return WIDE_HEADS+total();}
+uint collision_counts_base() {return collision_flags_base()+cols()*cols();}
+uint collision_lists_base() {return collision_counts_base()+COLLISION_PHASES;}
+void index_collision_cell(uint cell) {
+ if(atomicOr(wide_space[collision_flags_base()+cell],1u)!=0u)return;
+ uint phase=(cell%cols())%3u+((cell/cols())%3u)*3u;
+ uint ordinal=atomicAdd(wide_space[collision_counts_base()+phase],1u);
+ wide_space[collision_lists_base()+phase*COLLISION_PHASE_STRIDE+ordinal]=cell;
+ if((ordinal&63u)==0u)atomicAdd(dispatch_data[32u+phase*3u],1u);
+}
 ivec4 projectile_query_bounds(uint i,float other_radius,float unit,uint columns) {
  // 非fast弹单步位移<=4；补足另一弹的端点到接触点距离，以及本弹墙折返的外沿。
  vec2 finish=pair_endpoint(i);float margin=p[i].geom.x+other_radius+8.0;
@@ -540,7 +587,7 @@ void build_space(uint i) {if(i>=cap()||p[i].info.w==0u)return;
  summarize_gun_projectile(i);
  if(fast_particle(i)){p[i].aux.w=1u;next_id[i]=int(atomicExchange(stat[30],i));return;}
  if(p[i].info.w==2u){p[i].aux.w=2u;uint c=p[i].info.z*WIDE_COLUMNS*WIDE_COLUMNS+wide_cell(pair_endpoint(i));wide_space[WIDE_HEADS+i]=atomicExchange(wide_space[c],i);atomicOr(terrain_prefix[total()+1u].x,1u);return;}
- p[i].aux.w=0u;uint c=p[i].info.z*cols()*cols()+cell_index(pair_endpoint(i));next_id[i]=atomicExchange(head[c],int(i));}
+ p[i].aux.w=0u;uint cell=cell_index(pair_endpoint(i));uint c=p[i].info.z*cols()*cols()+cell;next_id[i]=atomicExchange(head[c],int(i));index_collision_cell(cell);}
 // 9色中心格的3×3邻域互不相交，单线程负责一个中心格，故没有两个线程修改同一粒子。
 // 链表遍历直到-1，不存在32/64粒子截断。pair按索引排序只结算一次。
 // 机械质量与弹药账本分离：几何面积及对数能量只提供有界的机械修正。
@@ -625,6 +672,7 @@ uvec2 impact_wear(uvec2 available,float fraction) {
  uvec2 portion=bounded_energy_fraction(available,fraction);
  return zero64(portion)?uvec2(1u,0u):min64(available,portion);
 }
+uint invocation_collision_count=0u;
 void resolve_pair(uint a,uint b) {
  if(p[a].info.w==0u||p[b].info.w==0u)return;
  // 狙击不参与粒子的实体碰撞：己方直接穿过，敌方仅结算能量。
@@ -650,7 +698,7 @@ void resolve_pair(uint a,uint b) {
    d=dot(near,near)>0.000001?near:normal_or(old,normal_or(-relative,vec2(1,0)))*0.0001;
   }
  }
- atomicAdd(stat[2],1u);record_contact();
+ if(KERNEL_MODE==5u)invocation_collision_count++;else stat[2]++;record_contact();
  if(p[a].info.z==p[b].info.z){
   vec2 n=normal_or(d,direction(float((a*31u+b*17u)%628u)*0.01));
   vec2 sign_a=wall_a?folded_sign(p[a].pv.xy,p[a].pv.xy-p[a].geom.zw,p[a].geom.x):vec2(1.0);
@@ -690,14 +738,14 @@ void resolve_pair(uint a,uint b) {
  // consumed_atomic累计双方各自的损耗，九色格内多线程只在该账本使用原子加法。
  uvec2 cancel=min64(energy(a),energy(b));spend(a,cancel);spend(b,cancel);consumed_atomic(cancel);consumed_atomic(cancel);
 }
-void collision_cell(uint index) {uvec2 offset=uvec2(pc.control.y%3u,pc.control.y/3u);uint phase_width=(cols()-offset.x+2u)/3u;
- uint cx=(index%phase_width)*3u+offset.x,cy=(index/phase_width)*3u+offset.y;if(cx>=cols()||cy>=cols())return;uint c=cy*cols()+cx;uint occupancy=0u;
+void collision_cell(uint index) {uint phase=pc.control.y;if(phase>=COLLISION_PHASES||index>=wide_space[collision_counts_base()+phase])return;
+ uint c=wide_space[collision_lists_base()+phase*COLLISION_PHASE_STRIDE+index],cx=c%cols(),cy=c/cols();uint occupancy=0u;invocation_collision_count=0u;
  // 四条阵营链均参与，己方做真实弹性碰撞；索引排序使同一对子步内只处理一次。
  for(uint own=0u;own<4u;own++){int a=head[own*cols()*cols()+c];while(a>=0){occupancy++;uint ai=uint(a);if(p[ai].info.w==0u){a=next_id[ai];continue;}
   for(int dy=-1;dy<=1&&p[ai].info.w!=0u;dy++)for(int dx=-1;dx<=1&&p[ai].info.w!=0u;dx++){ivec2 q=ivec2(cx,cy)+ivec2(dx,dy);if(any(lessThan(q,ivec2(0)))||any(greaterThanEqual(q,ivec2(cols()))))continue;
    uint cell=uint(q.y)*cols()+uint(q.x);for(uint faction=0u;faction<4u&&p[ai].info.w!=0u;faction++){if(faction==own&&par[12].w<0.5)continue;int b=head[faction*cols()*cols()+cell];while(b>=0&&p[ai].info.w!=0u){if(uint(b)>ai)resolve_pair(ai,uint(b));b=next_id[uint(b)];}}
   }a=next_id[ai];
- }}atomicMax(stat[6],occupancy);
+ }}if(occupancy>0u)atomicMax(stat[6],occupancy);if(invocation_collision_count>0u)atomicAdd(stat[2],invocation_collision_count);
 }
 // 以下事件由单GPU invocation顺序处理。它是显式性能取舍，不是CPU物理；避免领土/护盾多写竞态。
 bool swept_hit(vec2 from,vec2 to,vec2 center,float radius,out float hit_t,out vec2 hit_normal) {vec2 d=to-from;vec2 m=from-center;float c=dot(m,m)-radius*radius;
@@ -716,7 +764,7 @@ void apply_core_contact(uint i,uint t,vec2 normal,float target_radius,bool targe
     float impact=clamp(approaching/max(par[3].w,40.0),0.0,1.0);
     cancel=approaching>1.0?impact_wear(available,0.16+0.50*impact+0.12*(1.0-contact_hardness(i))):uvec2(0u);
    }
-   team[t].shield_gun.xy=sub64(team[t].shield_gun.xy,cancel);spend(i,cancel);consumed(cancel);consumed(cancel);p[i].aux.x|=1u<<t;
+   team[t].shield_gun.xy=sub64(team[t].shield_gun.xy,cancel);weapon[t].rescue_reserve.xy=sub64(weapon[t].rescue_reserve.xy,min64(weapon[t].rescue_reserve.xy,cancel));spend(i,cancel);consumed(cancel);consumed(cancel);p[i].aux.x|=1u<<t;
    if(p[i].info.w==2u&&approaching>0.0)p[i].aux.z|=0x40000000u;
   }return;}
  // 同一接触只走盾或核心中的一条出口；PENDING_RESCUE提供事件保护。
@@ -848,6 +896,23 @@ bool terrain_open_circle_entry(vec2 a,vec2 ray,vec2 center,float radius,out floa
  float denominator=-bb+sqrt(discriminant);float first=c/denominator,last=denominator/aa;
  entry=max(first,0.0);return entry<min(last,1.0);
 }
+bool terrain_circle_overlaps_cell(vec2 center,float radius,vec2 low,vec2 high) {
+ vec2 separation=max(max(low-center,center-high),vec2(0.0));return dot(separation,separation)<radius*radius;
+}
+// 只需确认能否覆盖、无需决定耗尽位置时，不求四角入射根或TOI。
+// 与terrain_cell_entry使用相同的开圆角矩形，严格排除仅相切的接触。
+bool terrain_capsule_overlaps_cell(vec2 a,vec2 ray,float inverse_ray_squared,float radius,vec2 low,vec2 high) {
+ if(terrain_circle_overlaps_cell(a,radius,low,high))return true;
+ float unused;
+ if(terrain_open_box_entry(a,ray,low-vec2(radius,0.0),high+vec2(radius,0.0),unused))return true;
+ if(terrain_open_box_entry(a,ray,low-vec2(0.0,radius),high+vec2(0.0,radius),unused))return true;
+ for(int corner=0;corner<4;corner++){
+  vec2 center=vec2((corner&1)==0?low.x:high.x,(corner&2)==0?low.y:high.y);
+  float time=clamp(dot(center-a,ray)*inverse_ray_squared,0.0,1.0);vec2 separation=a+ray*time-center;
+  if(dot(separation,separation)<radius*radius)return true;
+ }
+ return false;
+}
 bool terrain_cell_entry(vec2 a,vec2 ray,float radius,vec2 low,vec2 high,out float entry) {
  vec2 separation=max(max(low-a,a-high),vec2(0.0));entry=2.0;
  if(dot(separation,separation)<radius*radius){entry=0.0;return true;}
@@ -888,6 +953,7 @@ void terrain_events(uint i) {if(p[i].info.w==0u)return;uint n=terrain_size(),own
  if(own<4u&&stat[8u+own]==n*n){if(p[i].info.w==3u)p[i].geom.x=ball_radius(i);return;}
  float unit=world()/float(n),radius=p[i].geom.x;vec2 a=p[i].geom.zw,b=p[i].pv.xy,ray=b-a;
  if(radius<=0.0)return;
+ float ray_squared=dot(ray,ray),inverse_ray_squared=ray_squared>0.0?1.0/ray_squared:0.0;
  ivec4 bounds=terrain_clamped_bounds(a,b,radius,n);int low_y=bounds.y,high_y=bounds.w;
  uvec2 extent=uvec2(bounds.zw-bounds.xy+ivec2(1));uint maximum_claims=extent.x*extent.y;
  // 能量严格大于整个AABB的格数上界时，本段无论排序都不可能耗尽。
@@ -908,9 +974,9 @@ void terrain_events(uint i) {if(p[i].info.w==0u)return;uint n=terrain_size(),own
    for(int x=low_x;x<=high_x;x++){uint index=uint(y)*n+uint(x);if(owner[index]==own)continue;
     float hit;vec2 low=vec2(float(x)*unit,row_low);
     // 前缀已结算过起始圆帽；仅跳过严格重叠，边界相切后新进入的格仍须扣账。
-    if(terrain_skip_start_overlap&&terrain_cell_entry(a,vec2(0.0),radius,low,low+vec2(unit),hit))continue;
+    if(terrain_skip_start_overlap&&terrain_circle_overlaps_cell(a,radius,low,low+vec2(unit)))continue;
+    if(cannot_exhaust){if(terrain_capsule_overlaps_cell(a,ray,inverse_ray_squared,radius,low,low+vec2(unit)))claim(i,index);continue;}
     if(!terrain_cell_entry(a,ray,radius,low,low+vec2(unit),hit))continue;
-    if(cannot_exhaust){claim(i,index);continue;}
     // t=0的所有格都最早，直接结算以免大球的初始足迹被重复排序扫描。
     if(hit==0.0){claim(i,index);if(p[i].info.w==0u){p[i].pv.xy=a;return;}continue;}
     TerrainCandidate candidate=TerrainCandidate(hit,index);
@@ -949,6 +1015,9 @@ void prefix_consider_pair(uint a,uint b,inout float stop,inout uint limiter) {
  float candidate=prefix_pair_time(a,b,stop);if(candidate<stop){stop=candidate;limiter=b;}
 }
 // 仅查询只读几何，所有线程都在任何染地/抵消之前完成；不改owner/p/pool/stat。
+bool segment_circle_bounds_disjoint(vec2 from,vec2 to,vec2 center,float radius) {
+ return any(lessThan(max(from,to),center-vec2(radius)))||any(greaterThan(min(from,to),center+vec2(radius)));
+}
 uvec2 query_contact_prefix(uint a) {
  uint count=active_count();float duration=max(pc.clock.x,0.0);
  float start=clamp(motion_start(a),0.0,duration),stop=duration,travel=duration-start;
@@ -959,12 +1028,14 @@ uvec2 query_contact_prefix(uint a) {
  }
  for(uint t=0u;t<4u;t++)if(t!=p[a].info.z&&team[t].life.x!=2u){
   float r=zero64(team[t].shield_gun.xy)?team[t].core.z:shield_radius(t);float hit;vec2 normal;
+  if(segment_circle_bounds_disjoint(from,to,team[t].core.xy,max(r,team[t].core.z)+radius))continue;
   if(swept_hit(from,to,team[t].core.xy,r+radius,hit,normal))stop=min(stop,start+travel*hit);
  }
  uvec2 prefix_balls=terrain_prefix[total()];
  for(uint word=0u;word<2u;word++){uint bits=prefix_balls[word];while(bits!=0u){uint b=cap()+word*32u+uint(findLSB(bits));bits&=bits-1u;
-   vec2 ball_from=mix(p[b].geom.zw,p[b].pv.xy,duration>0.0?start/duration:0.0);float hit;vec2 normal;
-   if(swept_hit(from-ball_from,to-p[b].pv.xy,vec2(0),radius+p[b].geom.x,hit,normal))stop=min(stop,start+travel*hit);
+   vec2 ball_from=mix(p[b].geom.zw,p[b].pv.xy,duration>0.0?start/duration:0.0),relative_from=from-ball_from,relative_to=to-p[b].pv.xy;float hit;vec2 normal;
+   if(segment_circle_bounds_disjoint(relative_from,relative_to,vec2(0.0),radius+p[b].geom.x))continue;
+   if(swept_hit(relative_from,relative_to,vec2(0),radius+p[b].geom.x,hit,normal))stop=min(stop,start+travel*hit);
  }}
  if(p[a].aux.w==1u){
   for(uint k=0u;k<count&&stop>start;k++)prefix_consider_pair(a,active_id(k),stop,limiter);
@@ -1041,9 +1112,24 @@ void resolve_wide_projectiles(uint count) {
 // 此函数在事件末调用，入口活跃ID快照之外的新子弹从下一子步才参加物理。
 // 普通高能弹与狙击均先逐段每格扣1能，再处理该段最早实体；余能和反射余时继续移动。
 // 大球位置按本子步已过去的比例插值；机枪新生弹从真实出生时刻开始，不能倒流碰撞。
+bool ordinary_entity_bounds_clear(uint i,bool has_balls) {
+ float radius=p[i].geom.x;vec2 from=p[i].geom.zw,to=p[i].pv.xy;
+ // 等于墙边界也回退，保留原事件在端点恰到墙时的反射。
+ if(any(lessThanEqual(min(from,to),vec2(radius)))||any(greaterThanEqual(max(from,to),vec2(world()-radius))))return false;
+ if(has_balls&&any(notEqual(coarse_ball_candidates(i),uvec2(0u))))return false;
+ for(uint t=0u;t<4u;t++){
+  if(t==p[i].info.z||team[t].life.x==2u)continue;
+  // prepare已更新缓存；本events阶段护盾只消耗。核心可能比低能盾更大，取两者上界。
+  float bound_radius=max(team[t].core.z,team[t].core.w)+radius;
+  if(!segment_circle_bounds_disjoint(from,to,team[t].core.xy,bound_radius))return false;
+ }
+ return true;
+}
 void projectile_entity_events(uint i,bool has_balls) {
  float duration=max(pc.clock.x,0.0),start=clamp(motion_start(i),0.0,duration);
  float remaining_time=duration-start,elapsed_fraction=duration>0.0000001?start/duration:0.0;
+ // 保守排除全部实体后，仍执行相同的前缀余程染地；外层照常维护速度、边界及出生标志。
+ if(p[i].info.w==1u&&ordinary_entity_bounds_clear(i,has_balls)){terrain_events_after_prefix(i,elapsed_fraction*duration,duration);return;}
  uint contacts=0u;bool first_segment=true;
  // 零时长也处理当前点；墙段不占实体重叠预算，实际高速折返次数不截断。
  while((p[i].info.w==1u||p[i].info.w==2u)&&(remaining_time>0.0000001||first_segment)&&contacts<72u){
@@ -1110,23 +1196,22 @@ void resolve_sniper_splits(uint event_count) {
 void events() {
  bool pending_sniper_split=false;
  coarse_balls_ready=false;
- for(uint b=0u;b<64u;b++){pending_ball_push[b]=vec2(0.0);uint i=cap()+b;pending_ball_mass[b]=b<balls()&&p[i].info.w==3u?contact_mass(i):1.0;}
+ uvec2 active_balls=terrain_prefix[total()];
+ for(uint word=0u;word<2u;word++){uint bits=active_balls[word];while(bits!=0u){uint b=word*32u+uint(findLSB(bits));bits&=bits-1u;pending_ball_push[b]=vec2(0.0);pending_ball_mass[b]=contact_mass(cap()+b);}}
  // 超出九色网格安全位移的少量粒子单独串行回退，不限速、不丢步、不截断候选。
  // aux.w由build_space锁定本子步分类；不能在碰撞位置修正后重新推断分类。
  uint event_count=active_count();
  uint fast=stat[30];while(fast!=0xffffffffu){uint following=uint(next_id[fast]);if(p[fast].info.w!=0u){for(uint k=0u;k<event_count&&p[fast].info.w!=0u;k++){uint b=active_id(k);if(b!=fast&&p[b].info.w!=0u&&p[b].aux.w!=2u&&(p[b].aux.w==0u||b>fast))resolve_pair(fast,b);}}fast=following;}
  resolve_wide_projectiles(event_count);
  // ID升序快照保留原结算顺序。这里不会新生大球；被前一接触消灭的球仍由pair检查跳过。
- uvec2 active_balls=uvec2(0u);
- for(uint b=0u;b<balls();b++)if(p[cap()+b].info.w==3u)active_balls[b/32u]|=1u<<(b%32u);
  for(uint aw=0u;aw<2u;aw++){uint remaining_a=active_balls[aw];while(remaining_a!=0u){uint a=cap()+aw*32u+uint(findLSB(remaining_a));remaining_a&=remaining_a-1u;
   if(p[a].info.w==3u)for(uint bw=aw;bw<2u;bw++){uint remaining_b=bw==aw?remaining_a:active_balls[bw];while(remaining_b!=0u){uint b=cap()+bw*32u+uint(findLSB(remaining_b));remaining_b&=remaining_b-1u;if(p[b].info.w==3u)particle_ball_pair(a,b);}}
  }}
  // 大球相互位置修正完成后才建粗网格；用整个扫掠范围覆盖高速与投影修正。
- for(uint word=32u;word<64u;word++)stat[word]=0u;
- coarse_balls_ready=true;
- for(uint b=0u;b<balls();b++)if(p[cap()+b].info.w==3u)index_coarse_ball(cap()+b);
  bool has_balls=any(notEqual(active_balls,uvec2(0u)));
+ if(has_balls){for(uint word=32u;word<64u;word++)stat[word]=0u;coarse_balls_ready=true;
+  for(uint word=0u;word<2u;word++){uint bits=active_balls[word];while(bits!=0u){uint b=word*32u+uint(findLSB(bits));bits&=bits-1u;if(p[cap()+b].info.w==3u)index_coarse_ball(cap()+b);}}
+ }
  for(uint ordinal=0u;ordinal<event_count;ordinal++){uint a=active_id(ordinal);
   if(p[a].info.w==1u||p[a].info.w==2u){
    uint type=p[a].info.w;
@@ -1188,6 +1273,8 @@ void render(uint i) {uint n=render_size();if(i>=n*n)return;uint x=i%n,y=i/n;vec2
 void clear_space(uint i) {
  if(i<WIDE_HEADS)wide_space[i]=0xffffffffu;
  if(i<cols()*cols()*4u)head[i]=-1;
+ if(i<cols()*cols())wide_space[collision_flags_base()+i]=0u;
+ if(i<COLLISION_PHASES){wide_space[collision_counts_base()+i]=0u;dispatch_data[32u+i*3u]=0u;dispatch_data[33u+i*3u]=1u;dispatch_data[34u+i*3u]=1u;}
  if(i==0u){
   stat[30]=0xffffffffu;uvec2 mask=uvec2(0u);
   for(uint k=0u;k<balls();k++)if(p[cap()+k].info.w==3u)mask[k/32u]|=1u<<(k%32u);
@@ -1195,6 +1282,20 @@ void clear_space(uint i) {
  }
  if(i<4u){team[i].accounting.x=0xffffffffu;team[i].life.w=0xffffffffu;}
 }
+// 人工画笔每格一个写者；一批内按输入顺序选最后覆盖的颜色，面积统计使用原子加减。
+// 只修改显式调试的领土，不推进模拟、发射武器或消费实体能量。
+void paint_manual_cell(uint i) {
+ Command header=command[PAINT_COMMAND_BASE+PAINT_BATCH_CAPACITY];uint width=header.a.w,height=header.b.x;
+ if(width==0u||height==0u||i>=width*height)return;
+ uvec2 cell=header.a.yz+uvec2(i%width,i/width);uint n=terrain_size();if(any(greaterThanEqual(cell,uvec2(n))))return;
+ uint index=cell.y*n+cell.x,previous=owner[index],painted=previous,count=min(header.a.x,PAINT_BATCH_CAPACITY);
+ float unit=world()/float(n);vec2 low=vec2(cell)*unit;
+ for(uint k=0u;k<count;k++){Command brush=command[PAINT_COMMAND_BASE+k];if(brush.a.x!=18u||brush.a.y>=active_team_count())continue;
+  vec2 center=uintBitsToFloat(brush.b.xy);float radius=uintBitsToFloat(brush.b.z);
+  if(terrain_circle_overlaps_cell(center,radius,low,low+vec2(unit)))painted=brush.a.y;
+ }
+ if(painted!=previous){owner[index]=painted;if(previous<4u)atomicAdd(stat[8u+previous],0xffffffffu);if(painted<4u)atomicAdd(stat[8u+painted],1u);}
+}
 void main(){uint i=gl_GlobalInvocationID.x;uint mode=KERNEL_MODE;
- if(mode==0u)initialize(i);else if(mode==1u){if(i==0u)prepare();}else if(mode==2u){if(i<active_count()+balls())move_particle(i<active_count()?active_id(i):cap()+i-active_count());}else if(mode==3u)clear_space(i);else if(mode==4u){if(i<active_count())build_space(active_id(i));}else if(mode==5u)collision_cell(i);else if(mode==6u){if(i==0u)events();}else if(mode==7u){if(i==0u)statistics();}else if(mode==8u){if(i<render_size()*render_size())pixels[i]=0u;}else if(mode==9u){if(i<active_count()+balls())splat(i<active_count()?active_id(i):cap()+i-active_count());}else if(mode==10u)render(i);else if(mode==11u){if(i==0u)refresh_indirect();}else if(mode==12u){if(i==0u)compact_pool();}else if(mode==13u)compute_contact_prefix(i);else if(mode==14u){if(i==0u)apply_contact_prefixes();}
+ if(mode==0u)initialize(i);else if(mode==1u){if(i==0u)prepare();}else if(mode==2u){if(i<active_count()+balls())move_particle(i<active_count()?active_id(i):cap()+i-active_count());}else if(mode==3u)clear_space(i);else if(mode==4u){if(i<active_count())build_space(active_id(i));}else if(mode==5u)collision_cell(i);else if(mode==6u){if(i==0u)events();}else if(mode==7u){if(i==0u)statistics();}else if(mode==8u){if(i<render_size()*render_size())pixels[i]=0u;}else if(mode==9u){if(i<active_count()+balls())splat(i<active_count()?active_id(i):cap()+i-active_count());}else if(mode==10u)render(i);else if(mode==11u){if(i==0u)refresh_indirect();}else if(mode==12u){if(i==0u)compact_pool();}else if(mode==13u)compute_contact_prefix(i);else if(mode==14u){if(i==0u)apply_contact_prefixes();}else if(mode==15u)paint_manual_cell(i);
 }

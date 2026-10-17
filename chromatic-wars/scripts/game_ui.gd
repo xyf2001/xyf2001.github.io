@@ -13,6 +13,9 @@ signal performance_preset_requested
 signal clear_custom_pegs_requested
 signal restore_preset_pegs_requested
 signal clear_all_pegs_requested
+signal stage_profile_requested
+signal manual_weapon_requested(team: int, kind: int, energy: int)
+signal territory_brush_changed(enabled: bool, team: int, radius: float)
 
 const Settings = preload("res://scripts/game_settings.gd")
 const TEAM_NAMES := ["红方", "绿方", "蓝方", "黄方"]
@@ -50,6 +53,16 @@ var _logged_device := ""
 var _editor_toggle: CheckButton
 var _peg_count: Label
 var _rescue_feedback: Array[String] = ["", "", "", ""]
+var _stage_profile_button: Button
+var _active_team_count := 4
+var _manual_team: OptionButton
+var _manual_weapon: OptionButton
+var _manual_energy: LineEdit
+var _manual_status: Label
+var _brush_toggle: CheckButton
+var _brush_team: OptionButton
+var _brush_radius: SpinBox
+const MAX_MANUAL_ENERGY_TEXT := "9223372036854775807"
 
 func setup(config: Dictionary) -> void:
 	_config = Settings.validate(config)
@@ -58,6 +71,7 @@ func setup(config: Dictionary) -> void:
 		_build()
 		_built = true
 	_sync_inputs()
+	set_active_team_count(_active_team_count)
 
 func _build() -> void:
 	_root = Control.new()
@@ -143,16 +157,24 @@ func _build() -> void:
 	copy_diagnostics.add_theme_font_size_override("font_size", 11)
 	copy_diagnostics.pressed.connect(_copy_complete_diagnostics)
 	detail_box.add_child(copy_diagnostics)
+	_stage_profile_button = Button.new()
+	_stage_profile_button.text = "采集GPU阶段耗时"
+	_stage_profile_button.add_theme_font_size_override("font_size", 11)
+	_stage_profile_button.tooltip_text = "手动采样当前对局下一个模拟批次的一个微子步及最终绘制，不是整批耗时。不启动测试、不读取粒子表、不上传。暂停时需继续或单步。"
+	_stage_profile_button.pressed.connect(func():
+		stage_profile_requested.emit()
+	)
+	detail_box.add_child(_stage_profile_button)
 	_ball_details = RichTextLabel.new()
 	_ball_details.bbcode_enabled = false
-	_ball_details.custom_minimum_size = Vector2(160, 72)
+	_ball_details.custom_minimum_size = Vector2(160, 36)
 	_ball_details.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_ball_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_ball_details.scroll_active = true
 	_ball_details.selection_enabled = true
 	_ball_details.add_theme_color_override("default_color", MUTED)
 	_ball_details.add_theme_font_size_override("normal_font_size", 12)
-	_ball_details.text = "左侧 16 颗真实物理球\n右侧 GPU 驻留模拟\n\n暂停后可逐步观察。"
+	_ball_details.text = "左侧每个参战阵营4颗真实球\n右侧 GPU 驻留模拟\n\n暂停后可逐步观察。"
 	_ball_details.mouse_filter = Control.MOUSE_FILTER_PASS
 	detail_box.add_child(_ball_details)
 	_footer = _label("粒子 0  |  大球 0  |  积压 0  |  溢出 0", Vector2(22, 974), 12, MUTED, Vector2(1080, 22))
@@ -274,6 +296,7 @@ func _build_settings() -> void:
 	_number(items, "radius_max", "弹药球最大半径", 12, 40, 0.5, "游戏单位")
 	_number(items, "radius_k", "半径增长系数", 0.1, 30, 0.5, "游戏单位")
 	_section(items, "03  武器、护盾与紧急保命")
+	_choice(items, "team_count", "参战阵营数量（新开局）", [["1 队 · 红方", 1], ["2 队 · 红绿", 2], ["3 队 · 红绿蓝", 3], ["4 队 · 全部", 4]])
 	_number(items, "intro_shield", "初始唯一护盾", 0, 1000000000, 1000, "能量")
 	_number(items, "intro_gun", "初始机枪库存", 0, 1000000000, 1000, "能量")
 	_number(items, "gun_rate", "机枪固定射速（0调试停火）", 0, 10000, 10, "粒子/模拟秒")
@@ -365,16 +388,68 @@ func _build_settings() -> void:
 	for team: int in range(4):
 		_number(items, "core_%d_x" % team, TEAM_NAMES[team] + "大本营 X", 32, 992, 1, "游戏单位")
 		_number(items, "core_%d_y" % team, TEAM_NAMES[team] + "大本营 Y", 32, 992, 1, "游戏单位")
-	_section(items, "06  调试发射与状态快照")
-	var debug_row := HBoxContainer.new()
-	items.add_child(debug_row)
-	for pair: Array in [["单次大球", "big_ball"], ["风暴", "storm"], ["狙击", "sniper"], ["保命快照", "rescue"]]:
-		var button := Button.new()
-		button.text = pair[0]
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var kind: String = pair[1]
-		button.pressed.connect(func(): debug_requested.emit(kind))
-		debug_row.add_child(button)
+	_section(items, "06  人工调试 · 单次武器与领土画笔")
+	var manual_note := Label.new()
+	manual_note.text = "只可选择本局参战阵营；更改阵营数量后需新开局。\n武器每次点击或Enter只输入一次；暂停也可入账，已到时发射仍可执行，后续计时需继续或单步。\n能量上限9223372036854775807；库存相加越界仍按原GPU保护暂停，不截断。"
+	manual_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	manual_note.add_theme_font_size_override("font_size", 12)
+	items.add_child(manual_note)
+	var weapon_row := _parameter_row(items, "manual_weapon", "人工输入阵营 / 武器")
+	weapon_row.get_child(0).tooltip_text = "仅本局参战阵营；选择本身不发送武器"
+	_manual_team = OptionButton.new()
+	_manual_team.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	weapon_row.add_child(_manual_team)
+	_manual_weapon = OptionButton.new()
+	for weapon_title: String in ["护盾", "大球", "狙击", "风暴", "机枪补弹"]:
+		_manual_weapon.add_item(weapon_title)
+	_manual_weapon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	weapon_row.add_child(_manual_weapon)
+	var energy_row := _parameter_row(items, "manual_energy", "单次整数能量")
+	energy_row.get_child(0).tooltip_text = "每次点击只提交一次；暂停时也可入账，武器计时随模拟推进"
+	_manual_energy = LineEdit.new()
+	_manual_energy.text = "10000"
+	_manual_energy.placeholder_text = "1～9223372036854775807"
+	_manual_energy.tooltip_text = "只接受十进制正整数；超限会拒绝，输入保留，不转浮点或截断。"
+	_manual_energy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_manual_energy.text_submitted.connect(func(_text: String): _submit_manual_weapon())
+	energy_row.add_child(_manual_energy)
+	var fire := Button.new()
+	fire.text = "提交一次人工武器输入"
+	fire.pressed.connect(_submit_manual_weapon)
+	items.add_child(fire)
+	_manual_status = Label.new()
+	_manual_status.text = "尚未提交人工输入"
+	_manual_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_manual_status.add_theme_font_size_override("font_size", 12)
+	items.add_child(_manual_status)
+	_brush_toggle = CheckButton.new()
+	_brush_toggle.text = "人工领土画笔（开启后暂停）"
+	_brush_toggle.toggled.connect(func(_enabled: bool): _emit_brush_settings())
+	items.add_child(_brush_toggle)
+	var brush_row := _parameter_row(items, "territory_brush", "画笔阵营 / 半径")
+	brush_row.get_child(0).tooltip_text = "人工调试染色，单位与显示分辨率无关"
+	_brush_team = OptionButton.new()
+	_brush_team.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_brush_team.item_selected.connect(func(_index: int): _emit_brush_settings())
+	brush_row.add_child(_brush_team)
+	_brush_radius = SpinBox.new()
+	_brush_radius.min_value = 4
+	_brush_radius.max_value = 128
+	_brush_radius.step = 1
+	_brush_radius.value = 24
+	_brush_radius.suffix = " 游戏单位"
+	_brush_radius.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_brush_radius.value_changed.connect(func(_value: float): _emit_brush_settings())
+	brush_row.add_child(_brush_radius)
+	var brush_note := Label.new()
+	brush_note.text = "人工染色不消耗武器能量。收起面板后在右侧地图左键按住拖动，右键关闭画笔。\n开启时暂停，可明确点击继续边运行边画；不会在地图外绘制，不改变左侧柱编辑。"
+	brush_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	brush_note.add_theme_font_size_override("font_size", 12)
+	items.add_child(brush_note)
+	var rescue_snapshot := Button.new()
+	rescue_snapshot.text = "保命状态快照"
+	rescue_snapshot.pressed.connect(func(): debug_requested.emit("rescue"))
+	items.add_child(rescue_snapshot)
 
 func update_state(data: Dictionary) -> void:
 	if not _built:
@@ -384,6 +459,7 @@ func update_state(data: Dictionary) -> void:
 	_clock.text = "模拟 %02d:%02d" % [int(time) / 60, int(time) % 60]
 	_pause.text = "继续" if bool(data.get("paused", false)) else "暂停"
 	var stats: Dictionary = data.get("stats", {})
+	set_active_team_count(int(data.get("active_team_count", stats.get("active_team_count", _active_team_count))))
 	var pinball: Dictionary = data.get("pinball", {})
 	var active := bool(data.get("gpu_active", false))
 	var particle_energy: Variant = stats.get("active_packet_energy", null)
@@ -412,13 +488,16 @@ func update_state(data: Dictionary) -> void:
 			if teams[team] is Dictionary:
 				_update_team(team, teams[team])
 	else:
-		for label: RichTextLabel in _team_labels:
-			label.text = "等待GPU状态验证\n护盾 —\n机枪 —\n紧急保命 —"
+		for index: int in _team_labels.size():
+			if index >= _active_team_count:
+				_show_disabled_team(index)
+			else:
+				_team_labels[index].text = "等待GPU状态验证\n护盾 —\n机枪 —\n紧急保命 —"
 	var error_text := str(data.get("error", ""))
 	_error.visible = not error_text.is_empty()
 	_error.text = "模拟已停止\n" + error_text + "\n\n请修正参数或新开局。图形错误需要 Godot 4.3+、Forward+、Vulkan显卡与驱动。" if not error_text.is_empty() else ""
 	var balls: Variant = pinball.get("balls", [])
-	var diag := "GPU: %s\n活跃弹药球 %d / 16\n在场粒子实际能量 %s\n高能权重 · 整数能量结算\n固定步长 %.3f 模拟毫秒\n" % [device, int(pinball.get("active_count", pinball.get("active_balls", 16))), energy_text, float(data.get("fixed_dt", _config["fixed_dt"])) * 1000]
+	var diag := "GPU: %s\n本局参战 %d 队 · 弹药球 %d / %d\n在场粒子实际能量 %s\n高能权重 · 整数能量结算\n固定步长 %.3f 模拟毫秒\n" % [device, _active_team_count, int(pinball.get("active_count", pinball.get("active_balls", _active_team_count * 4))), _active_team_count * 4, energy_text, float(data.get("fixed_dt", _config["fixed_dt"])) * 1000]
 	if balls is Array and not balls.is_empty():
 		if _details_panel.visible:
 			_update_ball_table(balls)
@@ -428,7 +507,10 @@ func update_state(data: Dictionary) -> void:
 				largest = ball
 		if not largest.is_empty():
 			diag += "最大球 #%s · %s\n数值 %s / 半径 %.1f 游戏单位" % [str(largest.get("id", "—")), TEAM_NAMES[clampi(int(largest.get("team", 0)), 0, 3)], _compact(float(largest.get("value", largest.get("ammo", 0)))), float(largest.get("radius", 0))]
-	_ball_details.text = diag
+	var stage_profile: Dictionary = data.get("last_stage_profile", {})
+	var stage_text := _stage_profile_text(stage_profile)
+	_ball_details.text = stage_text + "\n\n" + diag
+	_stage_profile_button.tooltip_text = "分阶段仅采样1个微子步+最终绘制，不代表整批阶段累计；整批总计另列。采集本身增加时间戳/列表开销，不新增粒子读回或自动上传；暂停时需继续或单步。\n\n" + stage_text
 	# 保留旧顶层字段的小摘要。全量配置仅在点击复制时生成和序列化。
 	_diagnostic_payload = {"version": ProjectSettings.get_setting("application/config/version", "initial"), "device": device, "fps": float(data.get("fps", 0.0)),
 		"gpu_ms": gpu_ms, "sim_time": time, "paused": bool(data.get("paused", false)),
@@ -440,7 +522,56 @@ func update_state(data: Dictionary) -> void:
 		"render_size": _config["render_size"], "overflow_count": overflow}
 	_diagnostic_text = JSON.stringify(_diagnostic_payload)
 	if Time.get_ticks_msec() > _notice_until:
-		_notice.text = "放柱模式：左键放置 / 右键删除  ·  参数内可关闭" if _editor_toggle.button_pressed else "空格 暂停  ·  N 单步  ·  R 重开  ·  Tab 参数"
+		_notice.text = "领土画笔：右图左键拖动 / 右键关闭  ·  可显式继续" if _brush_toggle.button_pressed else ("放柱模式：左键放置 / 右键删除  ·  参数内可关闭" if _editor_toggle.button_pressed else "空格 暂停  ·  N 单步  ·  R 重开  ·  Tab 参数")
+
+func _stage_profile_text(profile: Dictionary) -> String:
+	if profile.is_empty():
+		return "阶段计时：未采集\n范围：1微子步+最终绘制，非整批"
+	var status := str(profile.get("status", "unknown")).to_lower()
+	var states := {"not_requested":"未采集", "not_collected":"未采集", "requested":"等待下个批次", "waiting_for_timestamps":"等待时间戳", "pending":"等待采集", "complete":"采集完成", "completed":"采集完成", "ready":"采集完成", "partial":"部分数据", "unavailable":"不可用", "error":"采集失败"}
+	var text := "阶段计时：" + str(states.get(status, status))
+	text += "\n分阶段：1微子步+最终绘制，非整批"
+	if status in ["pending", "requested"]:
+		text += "\n等待下个模拟批次；暂停时需继续或单步"
+	if profile.has("batch_id"):
+		text += "\n批次 " + str(profile.batch_id)
+	if profile.has("batch_substeps"):
+		text += " · 全批 " + str(profile.batch_substeps) + " 微子步"
+	if profile.has("sampled_substep_index"):
+		text += "\n采样微子步索引 " + str(profile.sampled_substep_index)
+	if profile.has("sim_start") and profile.has("sim_end"):
+		text += "\n批次模拟 %.3f→%.3f 秒" % [float(profile.sim_start), float(profile.sim_end)]
+	if profile.has("sampled_substep_dt"):
+		text += "\n采样步长 %.3f 模拟毫秒" % (float(profile.sampled_substep_dt) * 1000.0)
+	var batch_ms: Variant = profile.get("batch_gpu_ms")
+	if (batch_ms is int or batch_ms is float) and is_finite(float(batch_ms)):
+		text += "\n整批GPU总计 %.3f ms" % float(batch_ms)
+	elif status in ["complete", "completed", "ready", "partial"]:
+		text += "\n整批GPU总计：缺测"
+	var stages: Variant = profile.get("gpu_ms_by_mode", profile.get("stages_ms", {}))
+	var stage_names := {"1":"发射/武器", "2":"运动", "3":"清空间索引", "4":"构建空间索引", "5":"九色碰撞", "6":"实体事件", "7":"统计", "8":"清画布", "9":"粒子绘制", "10":"画面合成", "11":"间接调度", "12":"池回收", "13":"首碰前缀", "14":"领土事件"}
+	if stages is Dictionary:
+		for stage: Variant in stages:
+			var duration: Variant = stages[stage]
+			var completeness := ""
+			if duration is Dictionary:
+				completeness = " (%s/%s)" % [str(duration.get("measured_dispatches", "?")), str(duration.get("expected_dispatches", "?"))]
+				duration = duration.get("gpu_ms")
+			var title := str(stage_names.get(str(stage), "阶段" + str(stage)))
+			if (duration is int or duration is float) and is_finite(float(duration)):
+				text += "\n%s %.3f ms%s" % [title, float(duration), completeness]
+			else:
+				text += "\n%s：缺测%s" % [title, completeness]
+	if profile.has("missing_stage_pairs"):
+		text += "\n缺测阶段对 " + str(profile.missing_stage_pairs)
+	if int(profile.get("skipped_substeps", 0)) > 0:
+		text += "\n另有 %d 微子步未分阶段采样" % int(profile.skipped_substeps)
+	if profile.has("reason"):
+		text += "\n" + str(profile.reason)
+	return text
+
+func show_stage_profile_request(accepted: bool) -> void:
+	_notify("已请求阶段采集；等待下个模拟批次，暂停时请继续或单步" if accepted else "采集未提交：GPU未就绪或已有请求等待完成")
 
 func _copy_complete_diagnostics() -> void:
 	if diagnostic_provider.is_valid():
@@ -464,6 +595,10 @@ func _copy_complete_diagnostics() -> void:
 	payload["engine"] = {"godot":Engine.get_version_info(), "os":OS.get_name(), "rendering_method":RenderingServer.get_current_rendering_method(), "rendering_driver":RenderingServer.get_current_rendering_driver_name()}
 	payload["settings"] = configuration
 	payload["runtime"] = _diagnostic_state.get("diagnostic_runtime", {})
+	payload["last_stage_profile"] = _diagnostic_state.get("last_stage_profile", {})
+	payload["active_team_count"] = _active_team_count
+	payload["manual_controls"] = manual_controls_snapshot()
+	payload["territory_brush"] = _diagnostic_state.get("territory_brush", {})
 	payload["telemetry"] = _diagnostic_state.get("stats", {})
 	payload["pinball"] = _diagnostic_state.get("pinball", {})
 	payload["error"] = _diagnostic_state.get("error", "")
@@ -536,6 +671,10 @@ func _update_ball_table(balls: Array) -> void:
 	_detail_table.text = text
 
 func _update_team(index: int, team: Dictionary) -> void:
+	if index >= _active_team_count or not bool(team.get("enabled", true)):
+		_show_disabled_team(index)
+		return
+	_team_labels[index].modulate = Color.WHITE
 	var alive := bool(team.get("alive", int(team.get("state", 0)) != 2))
 	var pending := bool(team.get("pending", team.get("pending_rescue", false)))
 	var state := "保命处理中" if pending else ("存活" if alive else "已淘汰")
@@ -560,6 +699,100 @@ func show_rescue_feedback(team: int, message: String) -> void:
 		return
 	_rescue_feedback[team] = message
 	_notify(TEAM_NAMES[team] + " · " + message)
+
+func set_active_team_count(value: int) -> void:
+	var count := clampi(value, 1, 4)
+	if count == _active_team_count and _manual_team != null and _manual_team.item_count == count and _brush_team != null and _brush_team.item_count == count:
+		return
+	_active_team_count = count
+	for selector: OptionButton in [_manual_team, _brush_team]:
+		if selector == null:
+			continue
+		var previous := int(selector.get_selected_metadata()) if selector.selected >= 0 else 0
+		selector.clear()
+		for team: int in count:
+			selector.add_item(TEAM_NAMES[team])
+			selector.set_item_metadata(team, team)
+		selector.select(clampi(previous, 0, count - 1))
+	for team: int in _team_labels.size():
+		if team >= count:
+			_show_disabled_team(team)
+		else:
+			_team_labels[team].modulate = Color.WHITE
+
+func _show_disabled_team(team: int) -> void:
+	_team_labels[team].text = "未参战\n本局不生成核心/武器/弹药球\n阵营数量需新开局生效"
+	_team_labels[team].tooltip_text = "本局只启用前%d个阵营" % _active_team_count
+	_team_labels[team].modulate = Color(0.55, 0.55, 0.55)
+
+func _parse_manual_energy(raw: String) -> Dictionary:
+	var text := raw.strip_edges()
+	if text.is_empty():
+		return {"ok":false, "error":"请输入十进制正整数能量"}
+	for index: int in text.length():
+		var digit := text.unicode_at(index)
+		if digit < 48 or digit > 57:
+			return {"ok":false, "error":"能量只接受十进制数字，不接受负号、小数或指数"}
+	var first := 0
+	while first < text.length() and text.unicode_at(first) == 48:
+		first += 1
+	text = text.substr(first)
+	if text.is_empty():
+		return {"ok":false, "error":"能量必须至少为1，未提交"}
+	if text.length() > MAX_MANUAL_ENERGY_TEXT.length():
+		return {"ok":false, "error":"能量超过9223372036854775807，未提交；输入未截断"}
+	if text.length() == MAX_MANUAL_ENERGY_TEXT.length():
+		for index: int in text.length():
+			if text.unicode_at(index) > MAX_MANUAL_ENERGY_TEXT.unicode_at(index):
+				return {"ok":false, "error":"能量超过9223372036854775807，未提交；输入未截断"}
+			if text.unicode_at(index) < MAX_MANUAL_ENERGY_TEXT.unicode_at(index):
+				break
+	# 长度和逐字符上界已检查，只有这里才转换，绝不先经过float或有溢出风险的int。
+	return {"ok":true, "energy":text.to_int()}
+
+func _submit_manual_weapon() -> void:
+	var parsed := _parse_manual_energy(_manual_energy.text)
+	if not bool(parsed.ok):
+		show_manual_feedback(str(parsed.error))
+		return
+	var team := int(_manual_team.get_selected_metadata()) if _manual_team.selected >= 0 else -1
+	if team < 0 or team >= _active_team_count:
+		show_manual_feedback("未选择本局参战阵营，未提交")
+		return
+	manual_weapon_requested.emit(team, _manual_weapon.selected, int(parsed.energy))
+
+func show_manual_feedback(message: String) -> void:
+	if _manual_status != null:
+		_manual_status.text = message
+	_notify(message)
+
+func _emit_brush_settings() -> void:
+	if _brush_toggle == null or _brush_team == null or _brush_radius == null:
+		return
+	var team := int(_brush_team.get_selected_metadata()) if _brush_team.selected >= 0 else 0
+	territory_brush_changed.emit(_brush_toggle.button_pressed, team, _brush_radius.value)
+
+func set_territory_brush_enabled(enabled: bool) -> void:
+	if _brush_toggle != null:
+		_brush_toggle.set_pressed_no_signal(enabled)
+
+func territory_pointer_blocked(screen_position: Vector2) -> bool:
+	# 全屏根与战场TextureRect都设置为IGNORE，不把它们误认为挡笔控件。
+	for panel: Control in [_panel, _details_panel]:
+		if panel != null and panel.is_visible_in_tree() and panel.get_global_rect().has_point(screen_position):
+			return true
+	var hovered := _root.get_viewport().gui_get_hovered_control()
+	return hovered != null and hovered != _root and hovered.mouse_filter != Control.MOUSE_FILTER_IGNORE
+
+func manual_controls_snapshot() -> Dictionary:
+	return {"active_team_count":_active_team_count,
+		"maximum_manual_energy":MAX_MANUAL_ENERGY_TEXT, "manual_energy_encoding":"exact int64; normal pinball float output remains separate",
+		"weapon_team":int(_manual_team.get_selected_metadata()) if _manual_team != null and _manual_team.selected >= 0 else -1,
+		"weapon_kind":_manual_weapon.selected if _manual_weapon != null else -1,
+		"weapon_energy_input":_manual_energy.text if _manual_energy != null else "",
+		"territory_brush_enabled":_brush_toggle != null and _brush_toggle.button_pressed,
+		"territory_brush_team":int(_brush_team.get_selected_metadata()) if _brush_team != null and _brush_team.selected >= 0 else -1,
+		"territory_brush_radius":_brush_radius.value if _brush_radius != null else 0.0}
 
 func _input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:

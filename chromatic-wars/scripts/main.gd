@@ -1,5 +1,5 @@
 extends Node2D
-## 主控只推进固定时间、16颗弹药球和UI。右侧实体没有CPU逐粒子循环。
+## 主控只推进固定时间、每参战队4颗弹药球和UI。右侧实体没有CPU逐粒子循环。
 
 const BATTLE_RECT := Rect2(530, 112, 850, 850)
 var settings: Dictionary = {}
@@ -24,6 +24,19 @@ var editor_mode := false
 var editor_preview: Node2D
 var quitting := false
 var rescue_attempts: Dictionary = {}
+var start_team_count := 4
+var territory_brush_enabled := false
+var territory_brush_team := 0
+var territory_brush_radius := 24.0
+var _brush_dragging := false
+var _brush_inside := false
+var _brush_targets: Array[Dictionary] = []
+var _brush_last_sent := Vector2.ZERO
+var _brush_has_last := false
+var _brush_submitted_points := 0
+var _brush_coalesced_points := 0
+const BRUSH_POINTS_PER_FRAME := 16
+const BRUSH_MAX_WAYPOINTS := 128
 
 func _ready() -> void:
 	font = ThemeDB.fallback_font
@@ -65,17 +78,24 @@ func _ready() -> void:
 	ui.speed_changed.connect(func(value: float): settings["time_scale"] = value)
 	ui.settings_changed.connect(_settings_changed)
 	ui.debug_requested.connect(_debug_requested)
+	ui.manual_weapon_requested.connect(_manual_weapon_requested)
+	ui.territory_brush_changed.connect(_set_territory_brush)
 	ui.editor_mode_changed.connect(_set_editor_mode)
 	ui.clear_custom_pegs_requested.connect(_clear_custom_pegs)
 	ui.restore_preset_pegs_requested.connect(_restore_preset_pegs)
 	ui.clear_all_pegs_requested.connect(_clear_all_pegs)
 	ui.performance_preset_requested.connect(_performance_preset)
+	ui.stage_profile_requested.connect(func():
+		var accepted: bool = world != null and world.request_stage_profile()
+		ui.show_stage_profile_request(accepted)
+	)
 	get_tree().auto_accept_quit = false
 	_restart()
 
 func _restart() -> void:
 	if quitting: return
 	_set_editor_mode(false)
+	_set_territory_brush(false, territory_brush_team, territory_brush_radius)
 	generation += 1
 	var old_world: GPUWorld = world
 	if old_world != null:
@@ -91,6 +111,11 @@ func _restart() -> void:
 	world.configure(settings)
 	# 仅记录这代真正提交给configure的归一化开局配置；后续UI待重开值不能覆盖它。
 	gpu_start_settings = world.settings.duplicate(true)
+	start_team_count = clampi(int(gpu_start_settings.get("team_count", 4)), 1, 4)
+	territory_brush_team = mini(territory_brush_team, start_team_count - 1)
+	_brush_submitted_points = 0
+	_brush_coalesced_points = 0
+	ui.set_active_team_count(start_team_count)
 	var current_generation := generation
 	world.initialized.connect(func():
 		if current_generation == generation:
@@ -106,11 +131,10 @@ func _restart() -> void:
 	)
 	world.rescue_requested.connect(func(team: int):
 		if current_generation != generation: return
+		var nonce := world.rescue_request_nonce(team)
 		var energy := pinball.rescue(team)
-		var teams: Array = world.stats.get("teams", [])
-		var nonce := int(teams[team].get("request_nonce", 0)) if team < teams.size() else 0
 		rescue_attempts[team] = {"nonce": nonce, "energy": energy, "reported": false}
-		world.resolve_rescue(team, energy)
+		world.resolve_rescue(team, energy, nonce)
 		ui.show_rescue_feedback(team, "保命触发，正在补盾 +%.0f" % energy if energy > 0.0 else "保命失败：没有可用弹药球")
 		print("紧急保命：阵营%d，球能量 %.0f，模拟时间 %.3f" % [team, energy, elapsed])
 	)
@@ -181,6 +205,11 @@ func _process(delta: float) -> void:
 	if editor_preview != null and editor_mode and paused:
 		editor_preview.queue_redraw()
 	if world == null: return
+	if _brush_dragging and (not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or ui.territory_pointer_blocked(battle_view.get_global_mouse_position())):
+		_brush_inside = false
+		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			_brush_dragging = false
+	_flush_territory_brush()
 	if not pinball.error.is_empty():
 		paused = true
 		one_step = false
@@ -213,19 +242,101 @@ func _process(delta: float) -> void:
 		ui.update_state({"sim_time": elapsed, "paused": paused,
 			"fixed_dt": active_dt, "fps": Engine.get_frames_per_second(), "gpu_active": world.active,
 			"error": pinball.error if not pinball.error.is_empty() else world.error_message, "stats": world.stats,
-			"pinball": pinball.snapshot(), "time_backlog": accumulator,
-			"settings": settings})
+			"pinball": pinball.snapshot(), "time_backlog": accumulator, "last_stage_profile":world.last_stage_profile,
+			"settings": settings, "active_team_count":start_team_count, "territory_brush":_territory_brush_snapshot()})
 	if not first_texture:
 		queue_redraw()
 
 func _weapon_output(team: int, kind: int, energy: float) -> void:
 	if world != null: world.output(team, kind, energy, elapsed)
 
+func _manual_weapon_requested(team: int, kind: int, energy: int) -> void:
+	if team < 0 or team >= start_team_count or kind < 0 or kind > 4 or energy <= 0:
+		ui.show_manual_feedback("人工输入无效或阵营未参战，未提交")
+		return
+	if world == null or not world.active or not world.manual_output(team, kind, energy, elapsed):
+		ui.show_manual_feedback("人工输入未提交：战场未就绪或阵营已淘汰；数值仍保留")
+		return
+	var record := {"type":"manual_weapon", "source":"explicit_manual_debug", "team":team, "kind":kind, "energy":energy, "time":elapsed}
+	_trigger_log(record)
+	print("CHROMATIC_MANUAL_DEBUG " + JSON.stringify(record))
+	ui.show_manual_feedback("人工武器输入已提交一次" + ("；暂停中可入账，发射及计时按武器原规则执行" if paused else ""))
+
+func _set_territory_brush(enabled: bool, team: int, radius: float) -> void:
+	var was_enabled := territory_brush_enabled
+	territory_brush_enabled = enabled and team >= 0 and team < start_team_count and is_finite(radius)
+	territory_brush_team = clampi(team, 0, start_team_count - 1)
+	territory_brush_radius = clampf(radius, 4.0, 128.0) if is_finite(radius) else 24.0
+	_brush_dragging = false
+	_brush_inside = false
+	_brush_has_last = false
+	_brush_targets.clear()
+	if territory_brush_enabled and not was_enabled:
+		paused = true
+		one_step = false
+	ui.set_territory_brush_enabled(territory_brush_enabled)
+	if territory_brush_enabled or was_enabled:
+		_trigger_log({"type":"manual_territory_brush", "source":"explicit_manual_debug", "enabled":territory_brush_enabled, "team":territory_brush_team, "radius":territory_brush_radius, "time":elapsed})
+		ui.show_manual_feedback("人工领土画笔已开启并暂停；收起参数在右侧地图拖动，可显式继续" if territory_brush_enabled and not was_enabled else ("人工领土画笔参数已更新" if territory_brush_enabled else "人工领土画笔已关闭"))
+
+func _battle_world_position(screen_position: Vector2) -> Variant:
+	var rect := battle_view.get_global_rect()
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0 or not rect.has_point(screen_position):
+		return null
+	return (screen_position - rect.position) / rect.size * 1024.0
+
+func _queue_brush_point(world_point: Vector2, new_stroke: bool) -> void:
+	if not _brush_targets.is_empty():
+		var last_index := _brush_targets.size() - 1
+		var last: Dictionary = _brush_targets[last_index]
+		if not new_stroke and not bool(last.start) and world_point.distance_to(last.position) < territory_brush_radius * 0.25:
+			_brush_targets[last_index]["position"] = world_point
+			_brush_coalesced_points += 1
+			return
+		if _brush_targets.size() >= BRUSH_MAX_WAYPOINTS:
+			# 有界输入折线只合并尾点；实际提交仍逐点插值，不会用大跨度点留下断缝。
+			_brush_targets[last_index] = {"position":world_point, "start":new_stroke or bool(last.start)}
+			_brush_coalesced_points += 1
+			return
+	_brush_targets.append({"position":world_point, "start":new_stroke})
+
+func _flush_territory_brush() -> void:
+	if not territory_brush_enabled or world == null or not world.active:
+		return
+	var budget := BRUSH_POINTS_PER_FRAME
+	while budget > 0 and not _brush_targets.is_empty():
+		var target: Dictionary = _brush_targets.front()
+		var point: Vector2 = target.position
+		var next_point := point
+		if _brush_has_last and not bool(target.start):
+			var distance := _brush_last_sent.distance_to(point)
+			if distance < 0.001:
+				_brush_targets.pop_front()
+				continue
+			next_point = _brush_last_sent.move_toward(point, territory_brush_radius * 0.5)
+		# 队列满时不能推进游标；下帧从完全相同的待发点重试。
+		if not world.paint_territory(territory_brush_team, next_point, territory_brush_radius):
+			break
+		_brush_last_sent = next_point
+		_brush_has_last = true
+		_brush_submitted_points += 1
+		budget -= 1
+		if next_point.distance_to(point) < 0.001:
+			_brush_targets.pop_front()
+		else:
+			_brush_targets[0]["start"] = false
+
+func _territory_brush_snapshot() -> Dictionary:
+	return {"enabled":territory_brush_enabled, "team":territory_brush_team, "radius_game_units":territory_brush_radius,
+		"dragging":_brush_dragging, "pending_waypoints":_brush_targets.size(), "max_points_per_frame":BRUSH_POINTS_PER_FRAME,
+		"submitted_points":_brush_submitted_points, "coalesced_inputs":_brush_coalesced_points,
+		"energy_rule":"explicit manual territory edits do not consume weapon energy"}
+
 func _collect_diagnostic_state() -> Dictionary:
 	# 只在用户点击复制时汇总小表和配置，不读_rt_settings、不请求任何GPU读回。
 	var submitted: Dictionary = world.settings.duplicate(true) if world != null else {}
 	var pending_restart: Dictionary = {}
-	var restart_keys: Array[String] = ["particle_capacity", "grid_size", "render_size", "seed", "intro_shield", "intro_gun", "fixed_dt"]
+	var restart_keys: Array[String] = ["team_count", "particle_capacity", "grid_size", "render_size", "seed", "intro_shield", "intro_gun", "fixed_dt"]
 	for team_index: int in 4:
 		restart_keys.append("core_%d_x" % team_index)
 		restart_keys.append("core_%d_y" % team_index)
@@ -250,11 +361,12 @@ func _collect_diagnostic_state() -> Dictionary:
 		"gpu_submitted_scope":"GPU parameter fields only; CPU-only entries may retain start values, use pinball_effective for current left physics",
 		"weapon_plan_scope":"gun_rate and gun_discharge_duration are submitted settings; a current magazine keeps its refill-locked plan, which is not additionally read back",
 		"pending_restart":pending_restart, "pinball_effective":pinball_configuration,
-		"runtime_effective":{"fixed_dt":active_dt, "target_time_scale":settings.get("time_scale", 1.0), "fps_limit":Engine.max_fps}}
+		"runtime_effective":{"fixed_dt":active_dt, "target_time_scale":settings.get("time_scale", 1.0), "fps_limit":Engine.max_fps, "active_team_count":start_team_count}}
 	return {"sim_time":elapsed, "paused":paused, "fixed_dt":active_dt, "fps":Engine.get_frames_per_second(),
 		"gpu_active":world != null and world.active, "error":pinball.error if not pinball.error.is_empty() else (world.error_message if world != null else "GPU未创建"),
 		"stats":world.stats.duplicate(true) if world != null else {}, "pinball":pinball.snapshot(), "time_backlog":accumulator,
-		"settings":settings, "configuration":configuration,
+		"settings":settings, "configuration":configuration, "last_stage_profile":world.last_stage_profile.duplicate(true) if world != null else {},
+		"active_team_count":start_team_count, "territory_brush":_territory_brush_snapshot(),
 		"diagnostic_runtime":{"generation":generation, "world_instance_id":world.get_instance_id() if world != null else 0,
 			"retired_world_count":retired.size(), "editor_mode":editor_mode, "quitting":quitting,
 			"recent_trigger_history":trigger_history.duplicate(true), "rescue_attempts":rescue_attempts.duplicate(true)}}
@@ -325,7 +437,23 @@ func _performance_preset() -> void:
 	ui.sync_editor_config(settings)
 	_restart()
 
+func _input(event: InputEvent) -> void:
+	# 即使松键被参数面板消费，也必须结束拖动，避免返回地图时继续涂色。
+	if territory_brush_enabled and _brush_dragging and event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var point: Variant = _battle_world_position(event.position)
+		if point != null and not ui.territory_pointer_blocked(event.position):
+			_queue_brush_point(point, not _brush_inside)
+		_brush_dragging = false
+		_brush_inside = false
+	# 右键退出须在GUI消费之前处理；只拦右侧地图，不影响左侧右键删柱。
+	if territory_brush_enabled and event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT and _battle_world_position(event.position) != null:
+		_set_territory_brush(false, territory_brush_team, territory_brush_radius)
+		get_viewport().set_input_as_handled()
+
 func _unhandled_input(event: InputEvent) -> void:
+	if territory_brush_enabled and _handle_territory_brush_input(event):
+		get_viewport().set_input_as_handled()
+		return
 	if not editor_mode or not paused or not (event is InputEventMouseButton):
 		return
 	if not event.pressed or event.button_index not in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
@@ -341,6 +469,38 @@ func _unhandled_input(event: InputEvent) -> void:
 	if changed:
 		_save_editor_layout()
 	get_viewport().set_input_as_handled()
+
+func _handle_territory_brush_input(event: InputEvent) -> bool:
+	if event is InputEventMouseButton:
+		var point: Variant = _battle_world_position(event.position)
+		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed and point != null:
+			_set_territory_brush(false, territory_brush_team, territory_brush_radius)
+			return true
+		if event.button_index != MOUSE_BUTTON_LEFT:
+			return false
+		if event.pressed:
+			if point == null or ui.territory_pointer_blocked(event.position):
+				return false
+			_brush_dragging = true
+			_brush_inside = true
+			_queue_brush_point(point, true)
+			_trigger_log({"type":"manual_territory_stroke", "source":"explicit_manual_debug", "team":territory_brush_team, "radius":territory_brush_radius, "world_start":point, "time":elapsed})
+			return true
+		if _brush_dragging:
+			if point != null:
+				_queue_brush_point(point, not _brush_inside)
+			_brush_dragging = false
+			_brush_inside = false
+			return true
+	elif event is InputEventMouseMotion and _brush_dragging:
+		var motion_point: Variant = _battle_world_position(event.position)
+		if motion_point == null or ui.territory_pointer_blocked(event.position):
+			_brush_inside = false
+			return false
+		_queue_brush_point(motion_point, not _brush_inside)
+		_brush_inside = true
+		return true
+	return false
 
 func _draw_editor_preview() -> void:
 	if not editor_mode or not paused or pinball == null:

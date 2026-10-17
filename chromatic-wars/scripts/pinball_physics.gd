@@ -50,6 +50,8 @@ var font: Font
 var debug: bool = false
 var last_event: Dictionary = {}
 var active_seed: int = 1
+var active_team_count: int = 4
+var _next_team_count: int = 4
 var error: String = ""
 
 func _ready() -> void:
@@ -62,6 +64,9 @@ func _ready() -> void:
 	queue_redraw()
 
 func configure(settings: Dictionary) -> void:
+	# 面板更改只预约下一局；当前球、阵营和救援资源不得提前增删。
+	var requested_count: Variant = settings.get("team_count", _next_team_count)
+	_next_team_count = clampi(int(requested_count), 1, 4) if (requested_count is int or requested_count is float) and is_finite(float(requested_count)) else 4
 	gravity = clampf(float(settings.get("gravity", gravity)), 20.0, 2000.0)
 	restitution = clampf(float(settings.get("restitution", settings.get("elasticity", restitution))), 0.05, 1.0)
 	friction = clampf(float(settings.get("friction", friction)), 0.0, 1.0)
@@ -255,6 +260,7 @@ func remove_custom_peg(local_position: Vector2) -> bool:
 
 func reset(seed: int) -> void:
 	active_seed = seed
+	active_team_count = _next_team_count
 	rng.seed = seed
 	simulation_time = 0.0
 	generated = [0.0, 0.0, 0.0, 0.0]
@@ -269,7 +275,7 @@ func reset(seed: int) -> void:
 	conveyor.reset()
 	balls.clear()
 	_build_pegs()
-	for team in range(4):
+	for team in range(active_team_count):
 		for member in range(4):
 			var ball: Dictionary = {"id": team * 4 + member, "team": team, "value": 2.0, "threshold": threshold_at(0.0), "t_birth": threshold_at(0.0), "birth_time": 0.0, "p": Vector2.ZERO, "v": Vector2.ZERO, "r": radius_min, "mass": radius_min * radius_min, "loops": 0, "outputs": 0, "unstuck_count": 0}
 			_launch(ball, true)
@@ -663,7 +669,7 @@ func _polygon_contact(ball: Dictionary, polygon: PackedVector2Array) -> void:
 	_reflect(ball, normal)
 
 func _ball_contacts() -> void:
-	# 仅左侧16颗刚体使用 O(16²) CPU；右侧 GPU 粒子不经过此模块。
+	# 左侧每参战队4颗、最多16颗刚体；右侧GPU粒子不经过此模块。
 	for first in range(balls.size()):
 		for second in range(first + 1, balls.size()):
 			var a: Dictionary = balls[first]
@@ -721,7 +727,7 @@ func snapshot() -> Dictionary:
 			waiting_spawns += 1
 		ball["radius"] = ball["r"]
 		ball["birth_threshold"] = ball["threshold"]
-	return {"time": simulation_time, "seed": active_seed, "error": error, "active_balls": balls.size(), "waiting_spawns": waiting_spawns, "balls": copy, "threshold": threshold_at(simulation_time), "generated": generated.duplicate(), "multiplier_events": multiplier_events, "output_events": output_events, "contact_events": contact_events, "unstuck_events": unstuck_events, "channels": channels.snapshot(), "air": air.snapshot(), "conveyor": conveyor.snapshot(), "last_event": last_event.duplicate()}
+	return {"time": simulation_time, "seed": active_seed, "active_team_count": active_team_count, "next_team_count": _next_team_count, "error": error, "active_balls": balls.size(), "waiting_spawns": waiting_spawns, "balls": copy, "threshold": threshold_at(simulation_time), "generated": generated.duplicate(), "multiplier_events": multiplier_events, "output_events": output_events, "contact_events": contact_events, "unstuck_events": unstuck_events, "channels": channels.snapshot(), "air": air.snapshot(), "conveyor": conveyor.snapshot(), "last_event": last_event.duplicate()}
 
 func _number(value: float) -> String:
 	if value >= 100000000.0:
