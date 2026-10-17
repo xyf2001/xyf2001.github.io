@@ -1,0 +1,250 @@
+{
+  "started_utc": "20261017T061651716404Z",
+  "project": "/workspace/xyf2001.github.io/chromatic-wars",
+  "suites": [
+    {
+      "name": "settings",
+      "status": "PASS",
+      "reason": "实际通过 29 项断言",
+      "results": [
+        {
+          "detail": "低重力/大摩擦/最小球半径都按同一边界验证，不在物理层静默改为另一数值",
+          "metrics": {
+            "friction": 0.3,
+            "gravity": 50.0,
+            "radius_min": 9.0
+          },
+          "name": "参数UI可接受范围与实际物理一致",
+          "status": "PASS"
+        },
+        {
+          "detail": "手改存档中的非菜单数值安全回到明确默认值",
+          "name": "离散时步与速度配置不产生显示错位",
+          "status": "PASS"
+        },
+        {
+          "detail": "非法数值不会进入物理或GPU参数",
+          "name": "配置拒绝NaN和无穷",
+          "status": "PASS"
+        },
+        {
+          "detail": "存量包的混合标识由独立实际GPU测试验证",
+          "name": "精确发射模式的包能量为一",
+          "status": "PASS"
+        },
+        {
+          "detail": "旧默认射速与96颗环更新，保留用户关闭友方碰撞的选择",
+          "name": "旧配置迁移到固定射速与360颗风暴",
+          "status": "PASS"
+        },
+        {
+          "detail": "不再保留时间渐增射速；每圈360是固定规则",
+          "name": "旧自定义射速迁移为恒定值",
+          "status": "PASS"
+        },
+        {
+          "detail": "非法碰撞布尔值不会静默关物理；0射速是显式调试选项",
+          "name": "新参数有界且保留明确调试停火",
+          "status": "PASS"
+        },
+        {
+          "detail": "",
+          "name": "增长缓和与索敌冷却拒绝非有限值",
+          "status": "PASS"
+        },
+        {
+          "detail": "缺失字段使用新默认，不把合法旧0.08或自定义0静默覆盖",
+          "name": "目标切换默认0.5模拟秒并保留显式自定义",
+          "status": "PASS"
+        },
+        {
+          "detail": "无需创建RenderingDevice或运行GPU；验证真实configure与224字节参数编码，不以测试get默认值遮盖缺失字段",
+          "metrics": {
+            "effective_cd": 0.5,
+            "encoded_cd": 0.5,
+            "expected": 0.5
+          },
+          "name": "直接GPUWorld配置与实际GPU参数一致 · partial空配置",
+          "status": "PASS"
+        },
+        {
+          "detail": "无需创建RenderingDevice或运行GPU；验证真实configure与224字节参数编码，不以测试get默认值遮盖缺失字段",
+          "metrics": {
+            "effective_cd": 0.08,
+            "encoded_cd": 0.0799999982118607,
+            "expected": 0.08
+          },
+          "name": "直接GPUWorld配置与实际GPU参数一致 · 显式旧0.08",
+          "status": "PASS"
+        },
+        {
+          "detail": "无需创建RenderingDevice或运行GPU；验证真实configure与224字节参数编码，不以测试get默认值遮盖缺失字段",
+          "metrics": {
+            "effective_cd": 0.0,
+            "encoded_cd": 0.0,
+            "expected": 0.0
+          },
+          "name": "直接GPUWorld配置与实际GPU参数一致 · 显式0",
+          "status": "PASS"
+        },
+        {
+          "detail": "无需创建RenderingDevice或运行GPU；验证真实configure与224字节参数编码，不以测试get默认值遮盖缺失字段",
+          "metrics": {
+            "effective_cd": 0.35,
+            "encoded_cd": 0.349999994039536,
+            "expected": 0.35
+          },
+          "name": "直接GPUWorld配置与实际GPU参数一致 · 显式0.35",
+          "status": "PASS"
+        },
+        {
+          "detail": "无需创建RenderingDevice或运行GPU；验证真实configure与224字节参数编码，不以测试get默认值遮盖缺失字段",
+          "metrics": {
+            "effective_cd": 0.5,
+            "encoded_cd": 0.5,
+            "expected": 0.5
+          },
+          "name": "直接GPUWorld配置与实际GPU参数一致 · NaN",
+          "status": "PASS"
+        },
+        {
+          "detail": "无需创建RenderingDevice或运行GPU；验证真实configure与224字节参数编码，不以测试get默认值遮盖缺失字段",
+          "metrics": {
+            "effective_cd": 0.5,
+            "encoded_cd": 0.5,
+            "expected": 0.5
+          },
+          "name": "直接GPUWorld配置与实际GPU参数一致 · 无穷",
+          "status": "PASS"
+        },
+        {
+          "detail": "无需创建RenderingDevice或运行GPU；验证真实configure与224字节参数编码，不以测试get默认值遮盖缺失字段",
+          "metrics": {
+            "effective_cd": 2.0,
+            "encoded_cd": 2.0,
+            "expected": 2.0
+          },
+          "name": "直接GPUWorld配置与实际GPU参数一致 · 超出上限",
+          "status": "PASS"
+        },
+        {
+          "detail": "无需创建RenderingDevice或运行GPU；验证真实configure与224字节参数编码，不以测试get默认值遮盖缺失字段",
+          "metrics": {
+            "effective_cd": 0.0,
+            "encoded_cd": 0.0,
+            "expected": 0.0
+          },
+          "name": "直接GPUWorld配置与实际GPU参数一致 · 负值",
+          "status": "PASS"
+        },
+        {
+          "detail": "无需创建RenderingDevice或运行GPU；验证真实configure与224字节参数编码，不以测试get默认值遮盖缺失字段",
+          "metrics": {
+            "effective_cd": 0.5,
+            "encoded_cd": 0.5,
+            "expected": 0.5
+          },
+          "name": "直接GPUWorld配置与实际GPU参数一致 · 非法类型",
+          "status": "PASS"
+        },
+        {
+          "detail": "",
+          "name": "曲线冷却分裂角与友方碰撞开关均可即时更新",
+          "status": "PASS"
+        },
+        {
+          "detail": "迁移不降画质、不丢布局",
+          "name": "新配置保留高分辨率真实碰撞与固定柱编辑",
+          "status": "PASS"
+        },
+        {
+          "detail": "真实写入再读取用户配置，测试后恢复此前文件",
+          "name": "配置持久化包含新参数与碰撞开关",
+          "status": "PASS"
+        },
+        {
+          "detail": "gun_rate_end别名不被默认gun_end遮盖；缺失目标CD采用0.5模拟秒",
+          "name": "真实旧存档读取会迁移旧别名并补齐新字段",
+          "status": "PASS"
+        },
+        {
+          "detail": "旧默认与显式自定义无法可靠区分，因此保留所有合法存档值",
+          "name": "真实旧存档保留用户显式目标切换CD",
+          "status": "PASS"
+        },
+        {
+          "detail": "包含长期上限；不继续显示旧线性门槛",
+          "name": "UI门槛备用显示与真实弛缓指数一致",
+          "status": "PASS"
+        },
+        {
+          "detail": "目标切换CD控件默认0.5模拟秒，保持即时更新",
+          "name": "设置面板暴露有效新参数且不显示废弃风暴数量开关",
+          "status": "PASS"
+        },
+        {
+          "detail": "",
+          "name": "友方碰撞关闭同步到UI与配置",
+          "status": "PASS"
+        },
+        {
+          "detail": "",
+          "name": "友方碰撞重新开启不会丢失开关状态",
+          "status": "PASS"
+        },
+        {
+          "detail": "直接调用实际update_state检查完整数值及悬停提示，避免先转float64造成尾数丢失",
+          "name": "真实面板展示超过2^53库存仍保留整数低位",
+          "status": "PASS"
+        },
+        {
+          "detail": "没有新GPU遥测时明确等待验证，不能把旧状态当开局状态",
+          "name": "重开初始化不显示上局淘汰与库存",
+          "status": "PASS"
+        }
+      ],
+      "engine_errors": [],
+      "log": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5/rules-0.5-generation/settings-final/settings.log",
+      "returncode": 0,
+      "elapsed_seconds": 3.575,
+      "timed_out": false
+    }
+  ],
+  "seed": 20261016,
+  "duration_sim_seconds": 1200,
+  "requested_speed": 1.0,
+  "wall_budget_seconds": 3600,
+  "particle_capacity": 10000,
+  "host": {
+    "platform": "linux"
+  },
+  "godot": "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+  "source_sha256_before": {
+    "project.godot": "50dd33506a714514953a0a2c15519c3e2224e2cf957b8bd8763f9a6aa1a29688",
+    "shaders/battle.glsl": "6e7eda9ff084d4971432c838ffe8a042d0abcf5ef23d2a21f1c3688feeedc173",
+    "scripts/gpu_world.gd": "37e131f9bc9ce863aae8a6851fe263346e26ba43f06e7062aa99f6b01554bd3d",
+    "scripts/game_settings.gd": "cf9c19660d1caafc0431d5fa35dbcfb58d1eeebc0fe6ca3d03a8e747ddb1834d",
+    "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+    "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+    "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+    "tests/gpu_suite.gd": "1f1eef3b0a3b8bc4814b0f0cfd41d04ad30b35bb3a12e45eaf593807828a6e8f",
+    "tests/settings_suite.gd": "ae201881245dfff1cf4559ca5fbdc254309c3e528dc1d65208afe3aa56e6edcb"
+  },
+  "source_sha256_after": {
+    "project.godot": "50dd33506a714514953a0a2c15519c3e2224e2cf957b8bd8763f9a6aa1a29688",
+    "shaders/battle.glsl": "6e7eda9ff084d4971432c838ffe8a042d0abcf5ef23d2a21f1c3688feeedc173",
+    "scripts/gpu_world.gd": "37e131f9bc9ce863aae8a6851fe263346e26ba43f06e7062aa99f6b01554bd3d",
+    "scripts/game_settings.gd": "cf9c19660d1caafc0431d5fa35dbcfb58d1eeebc0fe6ca3d03a8e747ddb1834d",
+    "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+    "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+    "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+    "tests/gpu_suite.gd": "1f1eef3b0a3b8bc4814b0f0cfd41d04ad30b35bb3a12e45eaf593807828a6e8f",
+    "tests/settings_suite.gd": "ae201881245dfff1cf4559ca5fbdc254309c3e528dc1d65208afe3aa56e6edcb"
+  },
+  "sources_unchanged_during_run": true,
+  "status": "PASS"
+}

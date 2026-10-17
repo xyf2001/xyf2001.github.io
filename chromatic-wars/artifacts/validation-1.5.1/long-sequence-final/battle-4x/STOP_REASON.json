@@ -1,0 +1,32 @@
+{
+  "status": "INTERRUPTED BY USER",
+  "reason": "User explicitly requested 停止测试 直接输出; no more game executions were started.",
+  "signal_forwarding_note": "Initial orchestrator SIGINT could not enumerate /proc/PID/task/PID/children on this kernel; actual Godot child168777 was identified by PPid and stopped with SIGTERM.",
+  "actual_godot_exit": -15,
+  "actual_runner_exit": 1,
+  "last_periodic_progress": {
+    "active": 2414,
+    "big": 0,
+    "cpu_queue_commands": 0,
+    "deaths": 0,
+    "gpu_queue_commands": 0,
+    "gpu_sim_seconds_completed": 89.3333358764648,
+    "living": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "outputs": 71,
+    "overflow": 0,
+    "pinball_error": "",
+    "requested_speed": 4.0,
+    "rescues": 0,
+    "runtime_error": "",
+    "sim_seconds_scheduled": 89.4666666666839,
+    "wall_seconds": 302.669294
+  },
+  "final_gpu_fence_completed": false,
+  "not_a_gameplay_test_failure_claim": true,
+  "raw_runner_status_preserved": "FAIL"
+}

@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "scope": "delivery tools only, not final executable/native Windows/GPU validation",
+  "cpu_affinity": [
+    4
+  ],
+  "gpu_execution": false,
+  "checks": [
+    {
+      "name": "package safeguards temporary fixture tests",
+      "actual_exit_code": 0,
+      "passes": 8,
+      "command": "taskset -c 4 python3 -m unittest discover -s tests -p test_package_delivery.py -v"
+    },
+    {
+      "name": "actual runtime low-frame helper headless tests",
+      "actual_exit_code": 0,
+      "passes": 3,
+      "log": "runtime-metrics-suite.log"
+    },
+    {
+      "name": "export_pck_smoke.gd and runtime_validation.gd check-only",
+      "actual_exit_code": 0,
+      "passes": 2
+    },
+    {
+      "name": "Godot consumed main-pack flag identity probe",
+      "actual_exit_code": 0,
+      "log": "main-pack-args-probe.log",
+      "scope": "headless argv inspection from historical pack; no scene or GPU execution"
+    }
+  ],
+  "fixes": [
+    "PCK terminal failure cannot become PASS after await",
+    "PCK report open/flush errors exit nonzero",
+    "PCK records actual main pack absolute path/SHA via Linux raw argv and host execution scope",
+    "Release validation source SHA dictionary must match current runtime source",
+    "PCK SHA must match current executable",
+    "Source archive runtime members and Windows EXE member SHA are verified after ZIP creation",
+    "PARTIAL requires explicit allow flag; FAIL is never waived",
+    "Native Windows and physical GPU remain NOT TESTED",
+    "Runtime low FPS uses slowest 1 percent mean with method/sample metadata",
+    "Runtime report flush errors fail"
+  ],
+  "limitations": [
+    "The final exported executable has not been run by this tools-only audit. Root will perform actual PCK validation after export.",
+    "Source hash fingerprints are a consistency check, not proof of native Windows or RTX 5060 Ti execution."
+  ]
+}

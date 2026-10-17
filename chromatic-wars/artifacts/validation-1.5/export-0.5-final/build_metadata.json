@@ -1,0 +1,27 @@
+{
+  "recorded_utc": "2026-10-17T06:33:28.863961+00:00",
+  "import": {
+    "actual_exit": 0,
+    "engine_errors": []
+  },
+  "windows_export": {
+    "actual_exit": 0,
+    "engine_errors": [],
+    "target": "Windows x86_64 embedded PCK",
+    "bytes": 105457952,
+    "sha256": "4bd7eb11d6de3a287c17e575ea3d9d7fb2a535a129d6e7cc01d5cdce8fffea65"
+  },
+  "native_windows_execution": "NOT TESTED",
+  "shader_sha256": "6e7eda9ff084d4971432c838ffe8a042d0abcf5ef23d2a21f1c3688feeedc173",
+  "gpu_world_sha256": "37e131f9bc9ce863aae8a6851fe263346e26ba43f06e7062aa99f6b01554bd3d",
+  "pck": {
+    "status": "PASS",
+    "actual_exit": 0,
+    "engine_errors": [],
+    "outside_project": true,
+    "fresh_user_data": "/tmp/cw-pck-final-0_5-generation",
+    "main_pack_sha256": "4bd7eb11d6de3a287c17e575ea3d9d7fb2a535a129d6e7cc01d5cdce8fffea65",
+    "image_inspected": true,
+    "entity_generation_and_finite_checked": true
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "status": "INTERRUPTED_BY_USER_RULE_UPDATE",
+  "started_utc": "2026-10-17T05:31:07.428950+00:00",
+  "current": "historical1x stopped",
+  "runs": [],
+  "independent_fresh_games": true,
+  "gpu_exclusive": true,
+  "backend": "llvmpipe software Vulkan, not RTX5060Ti",
+  "paused_utc": "2026-10-17T05:58:13.694521+00:00",
+  "reason": "New explicit gun target-switch default0.5simsec requires new frozen rules; old1x continues at0.08, automatic2x/4x disabled.",
+  "monitor_pids_stopped": [
+    136735
+  ],
+  "automatic2x4x_disabled": true,
+  "stopped_utc": "2026-10-17T06:01:56.412538+00:00"
+}

@@ -1,0 +1,47 @@
+{
+  "started_utc": "2026-10-17T07:35:03.935880+00:00",
+  "command": [
+    "taskset",
+    "-c",
+    "0-3",
+    "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+    "--path",
+    "/workspace/xyf2001.github.io/chromatic-wars",
+    "--rendering-method",
+    "forward_plus",
+    "--rendering-driver",
+    "vulkan",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "res://artifacts/validation-1.5.1/rules/wall-pair-extended-second/probe.gd",
+    "--",
+    "--artifact-dir",
+    "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules/wall-pair-extended-second"
+  ],
+  "source_sha256_before": {
+    "project.godot": "c1f05ec55e451b741db0492c7fe535adbc8b459e67ed24febc52d6d86315c569",
+    "shaders/battle.glsl": "f80b48022bb8ac2948fae82ca71d3e074ebeb72c925268554b5f39a0f65b3aa1",
+    "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+    "scripts/game_settings.gd": "9e59670bf4014fc0145f2cb7cf9d893c9f2170c46d68ee381cd54d8669d97979",
+    "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+    "tests/gpu_suite.gd": "ff07b879cb5ff64b1152ad0532724be9ffc1abc7ef241f9d6611970890ea9f5b"
+  },
+  "probe_sha256": "5dbec83b24adb08ec4ae5766e1e29484233781f502b670230fe139ac7bbea197",
+  "backend": "llvmpipe software Vulkan, not RTX5060Ti",
+  "actual_exit": 0,
+  "elapsed_wall_seconds": 12.77235631000076,
+  "source_sha256_after": {
+    "project.godot": "c1f05ec55e451b741db0492c7fe535adbc8b459e67ed24febc52d6d86315c569",
+    "shaders/battle.glsl": "f80b48022bb8ac2948fae82ca71d3e074ebeb72c925268554b5f39a0f65b3aa1",
+    "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+    "scripts/game_settings.gd": "9e59670bf4014fc0145f2cb7cf9d893c9f2170c46d68ee381cd54d8669d97979",
+    "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+    "tests/gpu_suite.gd": "ff07b879cb5ff64b1152ad0532724be9ffc1abc7ef241f9d6611970890ea9f5b"
+  },
+  "finished_utc": "2026-10-17T07:35:16.709105+00:00",
+  "engine_error_lines": 0,
+  "pass": 8,
+  "fail": 0,
+  "sources_unchanged": true
+}

@@ -1,0 +1,28 @@
+{
+  "purpose": "offline plots of archived measurements; no game or GPU execution",
+  "input_sha256": {
+    "performance-area-guard/capacity-uniform140/comparison.json": "848f69a54fc8ea16131920ffda8a1a15662a1b08c3c707da3f113d72a818bd08",
+    "performance-area-guard/scale-current/current_matrix.json": "b0530a1a766bd8e95949914096f7b5e25e18c0567e8ad05bf991cfbb46748055",
+    "performance-area-guard/scale-current/comparison.json": "6830faaadb7280aa4a6d422b70c56d83fc7d172c4061d61d62866fe75c24a6fb",
+    "performance/scale-current/current_matrix.json": "f7817eed12416746621e7f39ea4b4ae799ad60952d2db44df800529e2e343fec",
+    "performance/scale-current/comparison.json": "170607ccc9463bd1dec8eb9d51de4e9fce9bc17f08f1f2fbd2462cdb3cfd117b"
+  },
+  "generator_sha256": "2c27cb260b1e14a77068b065553c84bc81da270705dd09cfa64d21077665bab1",
+  "matplotlib_version": "3.10.8",
+  "capacity_rows": 12,
+  "scale_rows": 6,
+  "same_rules_area_guard_rows": 13,
+  "output_sha256": {
+    "active_particle_scaling.csv": "dcf04bab646da8b2879d1ca44ece810bcd5fbb6ca16551063ebfceef694ff756",
+    "active_particle_scaling.png": "1355c0727fac9dec9efd5e69258b4f10daa4c32ab85c4e28d9ea8ad0fe49b0e8",
+    "active_particle_scaling.svg": "40530bef28e076ef1d21475cddacb5bd6e35a8e01e4c126d479cd8f1f86fb94e",
+    "capacity_comparison.csv": "c028290f429570ac8db9764f72f8f95b58d78a664df322c2f78f80a0efa70ca7",
+    "capacity_comparison.png": "6e557f649ee0880ee378610e74b6eb27d13a1fbea1e3b4cca03bf6cc39978161",
+    "capacity_comparison.svg": "511e3ef5b501b9cde361f75dbf4c2edfbae033f8d4eef89471b29c46ba8c782b",
+    "same_rules_area_guard.csv": "13d85d581cbe40664238f24e0d3c249bdf2b5581d6d86f209bcfbf4cce1854e2",
+    "same_rules_area_guard.png": "81498c1d11810e159c5dda80dc9d9ece852ffad1fae71d5e0d8f4fc2c3cfa719",
+    "same_rules_area_guard.svg": "d041deac132ab9aed2d34f153fe2a6000d4c82036a231fc8a34270dbbe6c3af2"
+  },
+  "hardware_note": "llvmpipe software Vulkan; not RTX 5060 Ti performance",
+  "rule_scope_note": "1.5.1 no-cost/1E-per-cell and corrected mechanical CCD; old-version comparison is not pure optimization"
+}

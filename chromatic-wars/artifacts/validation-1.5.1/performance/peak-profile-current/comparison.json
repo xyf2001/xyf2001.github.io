@@ -1,0 +1,330 @@
+{
+  "started_utc": "20261017T075219Z",
+  "fixture_schema_version": 3,
+  "intended_current_rule_version": "1.5.1-energy-magazine",
+  "throughput_schema": "v2: measured completed steps / full measured wall interval",
+  "behavior_note": "current rules include real mechanical CCD corrections; historical peak ratios are not pure optimization comparisons",
+  "execution_tool_sha256_before": {
+    "tools/run_validation_matrix.py": "d2a41417fe6bdf42d02af6beee08f03040b6a386c5000f390063b4364c1d3319",
+    "tools/run_tests.py": "90eafab182c27c09f0643304a4bedd0889dfde0ce556331d966bd4a1ac9cd76c"
+  },
+  "fixture_sha256": "0d985e09005318c08767ba00225f2e7f2fa96f0cc7a917ff2ebacaa2dffa0d1f",
+  "fixture_relative_path": "tools/peak_load_validation.gd",
+  "fixture_assets": {
+    "tools/validation_matrix.gd": {
+      "sha256": "23d9ef29da26c96c608ca70504737bfa307b8c9227bddba04af6b54a2f661ef2",
+      "evidence_file": "validation_matrix_fixture.gd"
+    },
+    "tools/peak_load_validation.gd": {
+      "sha256": "0d985e09005318c08767ba00225f2e7f2fa96f0cc7a917ff2ebacaa2dffa0d1f",
+      "evidence_file": "peak_load_validation_fixture.gd"
+    }
+  },
+  "samples": 12,
+  "warmup": 3,
+  "cases": "dense_pulse:1000:10000,dense_pulse:5000:10000,sniper_wall_pulse:1000:10000",
+  "profiling": true,
+  "affinity": "0-3",
+  "LP_NUM_THREADS": 4,
+  "physical_vram_claim": false,
+  "hardware_fps_claim": false,
+  "cgroup_cpu_max": "400000 100000",
+  "cgroup_cpuset_effective": "0-4",
+  "runs": [
+    {
+      "label": "current",
+      "project": "/workspace/xyf2001.github.io/chromatic-wars",
+      "returncode": 0,
+      "timed_out": false,
+      "elapsed_wall_seconds": 22.158906836004462,
+      "status": "PASS",
+      "cgroup_cpu_before": "usage_usec 20368112567\nuser_usec 18482063236\nsystem_usec 1886049331\nnice_usec 165628\nnr_periods 320234\nnr_throttled 935\nthrottled_usec 48344659\nnr_bursts 0\nburst_usec 0\n",
+      "cgroup_cpu_after": "usage_usec 20387641689\nuser_usec 18498129451\nsystem_usec 1889512238\nnice_usec 165628\nnr_periods 320436\nnr_throttled 935\nthrottled_usec 48344659\nnr_bursts 0\nburst_usec 0\n",
+      "git_before": {
+        "available": true,
+        "commit": "7a85f6e800a808e32df00c445b56cc49fe8da565",
+        "tracked_worktree_dirty": true,
+        "tracked_changes_porcelain": " M chromatic-wars/CHANGELOG.md\n M chromatic-wars/README.md\n M chromatic-wars/TEST_REPORT.md\n M \"chromatic-wars/docs/RTX5060Ti\\351\\252\\214\\346\\224\\266\\345\\273\\272\\350\\256\\256.md\"\n M \"chromatic-wars/docs/\\346\\200\\247\\350\\203\\275\\351\\252\\214\\350\\257\\2011.5.md\"\n M \"chromatic-wars/docs/\\346\\234\\254\\350\\275\\256\\345\\256\\236\\347\\216\\260\\344\\270\\216\\351\\252\\214\\346\\224\\266\\350\\214\\203\\345\\233\\264.md\"\n M \"chromatic-wars/docs/\\346\\255\\246\\345\\231\\250\\346\\225\\264\\346\\225\\260\\347\\273\\223\\347\\256\\227\\344\\270\\216\\351\\273\\230\\350\\256\\244\\345\\210\\206\\350\\243\\202.md\"\n M \"chromatic-wars/docs/\\346\\255\\273\\344\\272\\241\\346\\213\\222\\347\\273\\235\\345\\221\\275\\344\\273\\244\\350\\203\\275\\351\\207\\217\\350\\264\\246\\346\\234\\254.md\"\n M \"chromatic-wars/docs/\\347\\211\\251\\347\\220\\206\\350\\247\\204\\345\\210\\231\\345\\217\\221\\345\\270\\203\\345\\256\\241\\350\\256\\241.md\"\n"
+      },
+      "git_after": {
+        "available": true,
+        "commit": "7a85f6e800a808e32df00c445b56cc49fe8da565",
+        "tracked_worktree_dirty": true,
+        "tracked_changes_porcelain": " M chromatic-wars/CHANGELOG.md\n M chromatic-wars/README.md\n M chromatic-wars/TEST_REPORT.md\n M \"chromatic-wars/docs/RTX5060Ti\\351\\252\\214\\346\\224\\266\\345\\273\\272\\350\\256\\256.md\"\n M \"chromatic-wars/docs/\\346\\200\\247\\350\\203\\275\\351\\252\\214\\350\\257\\2011.5.md\"\n M \"chromatic-wars/docs/\\346\\234\\254\\350\\275\\256\\345\\256\\236\\347\\216\\260\\344\\270\\216\\351\\252\\214\\346\\224\\266\\350\\214\\203\\345\\233\\264.md\"\n M \"chromatic-wars/docs/\\346\\255\\246\\345\\231\\250\\346\\225\\264\\346\\225\\260\\347\\273\\223\\347\\256\\227\\344\\270\\216\\351\\273\\230\\350\\256\\244\\345\\210\\206\\350\\243\\202.md\"\n M \"chromatic-wars/docs/\\346\\255\\273\\344\\272\\241\\346\\213\\222\\347\\273\\235\\345\\221\\275\\344\\273\\244\\350\\203\\275\\351\\207\\217\\350\\264\\246\\346\\234\\254.md\"\n M \"chromatic-wars/docs/\\347\\211\\251\\347\\220\\206\\350\\247\\204\\345\\210\\231\\345\\217\\221\\345\\270\\203\\345\\256\\241\\350\\256\\241.md\"\n"
+      },
+      "source_sha256_before": {
+        "shaders/battle.glsl": "f80b48022bb8ac2948fae82ca71d3e074ebeb72c925268554b5f39a0f65b3aa1",
+        "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+        "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+        "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+        "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+        "scripts/game_settings.gd": "9e59670bf4014fc0145f2cb7cf9d893c9f2170c46d68ee381cd54d8669d97979",
+        "project.godot": "c1f05ec55e451b741db0492c7fe535adbc8b459e67ed24febc52d6d86315c569",
+        "tools/validation_matrix.gd": "23d9ef29da26c96c608ca70504737bfa307b8c9227bddba04af6b54a2f661ef2",
+        "tools/peak_load_validation.gd": "0d985e09005318c08767ba00225f2e7f2fa96f0cc7a917ff2ebacaa2dffa0d1f"
+      },
+      "source_sha256_after": {
+        "shaders/battle.glsl": "f80b48022bb8ac2948fae82ca71d3e074ebeb72c925268554b5f39a0f65b3aa1",
+        "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+        "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+        "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+        "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+        "scripts/game_settings.gd": "9e59670bf4014fc0145f2cb7cf9d893c9f2170c46d68ee381cd54d8669d97979",
+        "project.godot": "c1f05ec55e451b741db0492c7fe535adbc8b459e67ed24febc52d6d86315c569",
+        "tools/validation_matrix.gd": "23d9ef29da26c96c608ca70504737bfa307b8c9227bddba04af6b54a2f661ef2",
+        "tools/peak_load_validation.gd": "0d985e09005318c08767ba00225f2e7f2fa96f0cc7a917ff2ebacaa2dffa0d1f"
+      },
+      "sources_unchanged_during_run": true,
+      "execution_tool_sha256_after": {
+        "tools/run_validation_matrix.py": "d2a41417fe6bdf42d02af6beee08f03040b6a386c5000f390063b4364c1d3319",
+        "tools/run_tests.py": "90eafab182c27c09f0643304a4bedd0889dfde0ce556331d966bd4a1ac9cd76c"
+      },
+      "execution_tools_unchanged_during_run": true,
+      "engine_errors": [],
+      "raw_log": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/performance/peak-profile-current/current_matrix.log",
+      "json": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/performance/peak-profile-current/current_matrix.json",
+      "summary": [
+        {
+          "scenario": "dense_pulse",
+          "active": 1000,
+          "capacity": 10000,
+          "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+          "status": "PASS",
+          "measured_batches": 12,
+          "gpu_batch_p50_ms": 20.047342,
+          "gpu_batch_min_ms": 19.641117,
+          "gpu_batch_max_ms": 20.990759,
+          "drawn_fps_average": 72.7129945392541,
+          "drawn_fps_1pct_low": 26.2901911296895,
+          "step_batch_p50_ms": 101.717,
+          "initial": {
+            "accounted_energy": 378700,
+            "active": 1000,
+            "big_count": 0,
+            "big_energy": 0,
+            "candidate_count": 24062,
+            "collisions_metric": 1758,
+            "consumed_energy": 278700,
+            "contact_count": 1758,
+            "diagnostics": {
+              "active_by_team": [
+                250,
+                250,
+                250,
+                250
+              ],
+              "actual_contacts": 1758,
+              "collision_candidates": 24062,
+              "gpu_allocation_bytes": 6828672,
+              "motion_dispatch_groups": 17,
+              "normal_dispatch_groups": 16,
+              "pool_live_ids": 72,
+              "pool_normal_free": 9920,
+              "pool_sniper_free": 8,
+              "profiling_enabled": true
+            },
+            "max_cell_occupancy": 0,
+            "normal_energy": 100000,
+            "overflow": 0,
+            "reserve_energy": 0,
+            "sim_time": 0.0,
+            "sniper_split_count": 0
+          },
+          "final": {
+            "accounted_energy": 1400600,
+            "active": 72,
+            "big_count": 0,
+            "big_energy": 0,
+            "candidate_count": 120459,
+            "collisions_metric": 8790,
+            "consumed_energy": 1393500,
+            "contact_count": 8790,
+            "diagnostics": {
+              "active_by_team": [
+                4,
+                2,
+                32,
+                34
+              ],
+              "actual_contacts": 8790,
+              "collision_candidates": 120459,
+              "gpu_allocation_bytes": 6828672,
+              "motion_dispatch_groups": 3,
+              "normal_dispatch_groups": 2,
+              "pool_live_ids": 72,
+              "pool_normal_free": 9920,
+              "pool_sniper_free": 8,
+              "profiling_enabled": true
+            },
+            "max_cell_occupancy": 36,
+            "normal_energy": 7100,
+            "overflow": 0,
+            "reserve_energy": 0,
+            "sim_time": 0.00833333376795053,
+            "sniper_split_count": 0
+          }
+        },
+        {
+          "scenario": "dense_pulse",
+          "active": 5000,
+          "capacity": 10000,
+          "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+          "status": "PASS",
+          "measured_batches": 12,
+          "gpu_batch_p50_ms": 39.682154,
+          "gpu_batch_min_ms": 38.413783,
+          "gpu_batch_max_ms": 42.643519,
+          "drawn_fps_average": 61.1359900626227,
+          "drawn_fps_1pct_low": 16.5488937064557,
+          "step_batch_p50_ms": 116.281,
+          "initial": {
+            "accounted_energy": 1944484,
+            "active": 5000,
+            "big_count": 0,
+            "big_energy": 0,
+            "candidate_count": 377243,
+            "collisions_metric": 11000,
+            "consumed_energy": 1444484,
+            "contact_count": 11000,
+            "diagnostics": {
+              "active_by_team": [
+                1250,
+                1250,
+                1250,
+                1250
+              ],
+              "actual_contacts": 11000,
+              "collision_candidates": 377243,
+              "gpu_allocation_bytes": 6828672,
+              "motion_dispatch_groups": 80,
+              "normal_dispatch_groups": 79,
+              "pool_live_ids": 187,
+              "pool_normal_free": 9805,
+              "pool_sniper_free": 8,
+              "profiling_enabled": true
+            },
+            "max_cell_occupancy": 0,
+            "normal_energy": 500000,
+            "overflow": 0,
+            "reserve_energy": 0,
+            "sim_time": 0.0,
+            "sniper_split_count": 0
+          },
+          "final": {
+            "accounted_energy": 7240942,
+            "active": 189,
+            "big_count": 0,
+            "big_energy": 0,
+            "candidate_count": 1887843,
+            "collisions_metric": 55397,
+            "consumed_energy": 7222441,
+            "contact_count": 55397,
+            "diagnostics": {
+              "active_by_team": [
+                0,
+                0,
+                3,
+                186
+              ],
+              "actual_contacts": 55397,
+              "collision_candidates": 1887843,
+              "gpu_allocation_bytes": 6828672,
+              "motion_dispatch_groups": 4,
+              "normal_dispatch_groups": 3,
+              "pool_live_ids": 189,
+              "pool_normal_free": 9803,
+              "pool_sniper_free": 8,
+              "profiling_enabled": true
+            },
+            "max_cell_occupancy": 169,
+            "normal_energy": 18501,
+            "overflow": 0,
+            "reserve_energy": 0,
+            "sim_time": 0.00833333376795053,
+            "sniper_split_count": 0
+          }
+        },
+        {
+          "scenario": "sniper_wall_pulse",
+          "active": 1000,
+          "capacity": 10000,
+          "device": "llvmpipe (LLVM 19.1.7, 256 bits)",
+          "status": "PASS",
+          "measured_batches": 12,
+          "gpu_batch_p50_ms": 55.7637225,
+          "gpu_batch_min_ms": 52.538687,
+          "gpu_batch_max_ms": 68.352155,
+          "drawn_fps_average": 59.046054595707,
+          "drawn_fps_1pct_low": 12.7536379752324,
+          "step_batch_p50_ms": 121.796,
+          "initial": {
+            "accounted_energy": 100000,
+            "active": 1000,
+            "big_count": 0,
+            "big_energy": 0,
+            "candidate_count": 0,
+            "collisions_metric": 0,
+            "consumed_energy": 0,
+            "contact_count": 0,
+            "diagnostics": {
+              "active_by_team": [
+                1000,
+                0,
+                0,
+                0
+              ],
+              "actual_contacts": 0,
+              "collision_candidates": 0,
+              "gpu_allocation_bytes": 6828672,
+              "motion_dispatch_groups": 17,
+              "normal_dispatch_groups": 16,
+              "pool_live_ids": 2000,
+              "pool_normal_free": 8000,
+              "pool_sniper_free": 0,
+              "profiling_enabled": true
+            },
+            "max_cell_occupancy": 0,
+            "normal_energy": 100000,
+            "overflow": 0,
+            "reserve_energy": 0,
+            "sim_time": 0.0,
+            "sniper_split_count": 0
+          },
+          "final": {
+            "accounted_energy": 100000,
+            "active": 2000,
+            "big_count": 0,
+            "big_energy": 0,
+            "candidate_count": 0,
+            "collisions_metric": 0,
+            "consumed_energy": 0,
+            "contact_count": 0,
+            "diagnostics": {
+              "active_by_team": [
+                2000,
+                0,
+                0,
+                0
+              ],
+              "actual_contacts": 0,
+              "collision_candidates": 0,
+              "gpu_allocation_bytes": 6828672,
+              "motion_dispatch_groups": 33,
+              "normal_dispatch_groups": 32,
+              "pool_live_ids": 2000,
+              "pool_normal_free": 8000,
+              "pool_sniper_free": 0,
+              "profiling_enabled": true
+            },
+            "max_cell_occupancy": 18,
+            "normal_energy": 100000,
+            "overflow": 0,
+            "reserve_energy": 0,
+            "sim_time": 0.00833333376795053,
+            "sniper_split_count": 1000
+          }
+        }
+      ]
+    }
+  ]
+}

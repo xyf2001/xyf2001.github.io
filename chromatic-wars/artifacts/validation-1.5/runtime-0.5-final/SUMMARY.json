@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "actual_godot_exit": 0,
+  "check_count": 10,
+  "engine_errors": [],
+  "source_commit": "3df4ecd",
+  "verified_utc": "2026-10-17T06:33:08.821542+00:00",
+  "runtime_source_sha256": {
+    "shaders/battle.glsl": "6e7eda9ff084d4971432c838ffe8a042d0abcf5ef23d2a21f1c3688feeedc173",
+    "scripts/gpu_world.gd": "37e131f9bc9ce863aae8a6851fe263346e26ba43f06e7062aa99f6b01554bd3d",
+    "scripts/game_settings.gd": "cf9c19660d1caafc0431d5fa35dbcfb58d1eeebc0fe6ca3d03a8e747ddb1834d",
+    "scripts/main.gd": "d33b9584ee2fcf71c060692c82efcee5bec631a2a9a72d8e330b207cf72e61d0",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6"
+  },
+  "image_inspected": true,
+  "hardware": "llvmpipe software Vulkan; not RTX 5060 Ti",
+  "source_observation": "Current sources match the committed runtime files throughout root runtime validation; this summary stores their post-run SHA."
+}

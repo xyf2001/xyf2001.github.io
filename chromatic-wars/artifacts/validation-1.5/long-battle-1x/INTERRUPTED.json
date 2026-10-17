@@ -1,0 +1,52 @@
+{
+  "started_utc": "2026-10-17T05:17:59.448361+00:00",
+  "git_commit": "69633f51b06d6d528ef1f30c37371dcffecacb02",
+  "source_sha256_before": {
+    "shaders/battle.glsl": "b879f4b992c76e4f324a68b3ff076348f0c24f6d512e5b112b0bd4533f9e5356",
+    "scripts/gpu_world.gd": "250d8706288ba5ed039d107fd86d6b36159a2aa3cec7818d21276d3f14de8418",
+    "scripts/game_settings.gd": "f43eeaf3d162a66b1d96e416561d14949da64a2cc986470dd62eb546a3be56c1",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/battle_suite.gd": "1b92e87a0be9172b9779f07b0d1563632459ae53b49cef73575674f20695cddb"
+  },
+  "backend": "llvmpipe software Vulkan; not RTX5060Ti",
+  "cpu_affinity": "0-3",
+  "LP_NUM_THREADS": 4,
+  "cgroup_cpu_max": "400000 100000",
+  "duration_sim_seconds": 1200,
+  "requested_speed": 1,
+  "wall_budget_seconds": 7200,
+  "process_timeout_seconds": 7500,
+  "status": "INTERRUPTED",
+  "completed_full_battle": false,
+  "interrupted_utc": "2026-10-17T05:19:58.612707+00:00",
+  "reason": "Parent-authorized early budget-estimation stop: initial software-Vulkan throughput predicts7200wallsec insufficient; independent same-seed1200simsec run will use14400wallsec, not a continuation.",
+  "last_progress": {
+    "active": 9973,
+    "big": 2,
+    "cpu_queue_commands": 0,
+    "deaths": 0,
+    "gpu_queue_commands": 0,
+    "gpu_sim_seconds_completed": 13.1999998092651,
+    "living": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "outputs": 10,
+    "overflow": 0,
+    "pinball_error": "",
+    "requested_speed": 1.0,
+    "rescues": 0,
+    "runtime_error": "",
+    "sim_seconds_scheduled": 13.3999999999999,
+    "wall_seconds": 90.546835
+  },
+  "source_sha256_after": {
+    "shaders/battle.glsl": "b879f4b992c76e4f324a68b3ff076348f0c24f6d512e5b112b0bd4533f9e5356",
+    "scripts/gpu_world.gd": "250d8706288ba5ed039d107fd86d6b36159a2aa3cec7818d21276d3f14de8418",
+    "scripts/game_settings.gd": "f43eeaf3d162a66b1d96e416561d14949da64a2cc986470dd62eb546a3be56c1",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/battle_suite.gd": "1b92e87a0be9172b9779f07b0d1563632459ae53b49cef73575674f20695cddb"
+  }
+}

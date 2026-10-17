@@ -1,0 +1,130 @@
+{
+  "prepared_utc": "2026-10-17T07:55:46.234373+00:00",
+  "expected_sources": {
+    "shaders/battle.glsl": "c8c1007e7d7fd6b84f6a9b87857dd5e305f25075bfdb8cb94b702a9dd1d136b1",
+    "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007"
+  },
+  "runner": "/workspace/chromatic-tools/run_area_guard_wall_probes.py",
+  "prepared_by_runner_sha256": "10c1c4b9ab2d2d7efcd9450b44eb776264bd10f186a2cded755d8ab85bcbc9ac",
+  "environment_overrides": {
+    "DISPLAY": ":99",
+    "VK_ICD_FILENAMES": "/workspace/chromatic-tools/root/usr/share/vulkan/icd.d/lvp_icd.json",
+    "LD_LIBRARY_PATH": "/workspace/chromatic-tools/root/usr/lib/x86_64-linux-gnu",
+    "XDG_RUNTIME_DIR": "/tmp/cw-runtime",
+    "XDG_CACHE_HOME": "/tmp/cw-cache",
+    "XDG_CONFIG_HOME": "/tmp/cw-config",
+    "XDG_DATA_HOME": "/tmp/cw-data",
+    "LP_NUM_THREADS": "4"
+  },
+  "backend": "llvmpipe software Vulkan, not RTX 5060 Ti",
+  "expected_checks": 20,
+  "physical_scenarios": 8,
+  "probes": [
+    {
+      "source": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules/wall-pair-probe-third/probe.gd",
+      "destination": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-probe",
+      "probe_sha256": "c4dc7dcdb9b87d26486d9d2ed747b847411e759603b4f3c4d1a3902ce35efa1d",
+      "expected_checks": 4,
+      "physical_scenarios": 1,
+      "command": [
+        "taskset",
+        "-c",
+        "0-3",
+        "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+        "--path",
+        "/workspace/xyf2001.github.io/chromatic-wars",
+        "--rendering-method",
+        "forward_plus",
+        "--rendering-driver",
+        "vulkan",
+        "--audio-driver",
+        "Dummy",
+        "--script",
+        "res://artifacts/validation-1.5.1/rules-area-guard/wall-pair-probe/probe.gd",
+        "--",
+        "--artifact-dir",
+        "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-probe"
+      ]
+    },
+    {
+      "source": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules/wall-pair-mechanical-second/probe.gd",
+      "destination": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-mechanical",
+      "probe_sha256": "7e23ad6b62f60673af821237dfee0f466062ea7c74f64fd847988ee735e9c433",
+      "expected_checks": 4,
+      "physical_scenarios": 1,
+      "command": [
+        "taskset",
+        "-c",
+        "0-3",
+        "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+        "--path",
+        "/workspace/xyf2001.github.io/chromatic-wars",
+        "--rendering-method",
+        "forward_plus",
+        "--rendering-driver",
+        "vulkan",
+        "--audio-driver",
+        "Dummy",
+        "--script",
+        "res://artifacts/validation-1.5.1/rules-area-guard/wall-pair-mechanical/probe.gd",
+        "--",
+        "--artifact-dir",
+        "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-mechanical"
+      ]
+    },
+    {
+      "source": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules/wall-pair-mechanical-control-second/probe.gd",
+      "destination": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-mechanical-control",
+      "probe_sha256": "278d6ca06b1c848512e271dbf073c966203ab0cff78006b44f73fb867231500b",
+      "expected_checks": 4,
+      "physical_scenarios": 1,
+      "command": [
+        "taskset",
+        "-c",
+        "0-3",
+        "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+        "--path",
+        "/workspace/xyf2001.github.io/chromatic-wars",
+        "--rendering-method",
+        "forward_plus",
+        "--rendering-driver",
+        "vulkan",
+        "--audio-driver",
+        "Dummy",
+        "--script",
+        "res://artifacts/validation-1.5.1/rules-area-guard/wall-pair-mechanical-control/probe.gd",
+        "--",
+        "--artifact-dir",
+        "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-mechanical-control"
+      ]
+    },
+    {
+      "source": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules/wall-pair-extended-second/probe.gd",
+      "destination": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-extended",
+      "probe_sha256": "5dbec83b24adb08ec4ae5766e1e29484233781f502b670230fe139ac7bbea197",
+      "expected_checks": 8,
+      "physical_scenarios": 5,
+      "command": [
+        "taskset",
+        "-c",
+        "0-3",
+        "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+        "--path",
+        "/workspace/xyf2001.github.io/chromatic-wars",
+        "--rendering-method",
+        "forward_plus",
+        "--rendering-driver",
+        "vulkan",
+        "--audio-driver",
+        "Dummy",
+        "--script",
+        "res://artifacts/validation-1.5.1/rules-area-guard/wall-pair-extended/probe.gd",
+        "--",
+        "--artifact-dir",
+        "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/rules-area-guard/wall-pair-extended"
+      ]
+    }
+  ],
+  "status": "PREPARED_NOT_RUN",
+  "gpu_started": false
+}

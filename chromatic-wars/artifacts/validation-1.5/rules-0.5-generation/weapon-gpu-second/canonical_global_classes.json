@@ -1,0 +1,21 @@
+{
+  "checked_utc": "2026-10-17T06:13:51.130510+00:00",
+  "expected": {
+    "GameSettings": "res://scripts/game_settings.gd",
+    "GPUWorld": "res://scripts/gpu_world.gd",
+    "PinballPhysics": "res://scripts/pinball_physics.gd"
+  },
+  "actual": {
+    "GameSettings": [
+      "res://scripts/game_settings.gd"
+    ],
+    "GPUWorld": [
+      "res://scripts/gpu_world.gd"
+    ],
+    "PinballPhysics": [
+      "res://scripts/pinball_physics.gd"
+    ]
+  },
+  "pass": true,
+  "historical_artifacts_classes_present": false
+}

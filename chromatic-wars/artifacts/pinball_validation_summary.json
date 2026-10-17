@@ -1,0 +1,420 @@
+{
+  "hardware_scope": "CPU-only production PinballPhysics, Godot 4.6.3 headless; process pinned to CPU 4; no GPU FPS claim.",
+  "suites": {
+    "final_cpu": {
+      "log": "cpu_multiseed_1_5.log",
+      "complete": true,
+      "passes": 23,
+      "failures": [],
+      "not_tested": [],
+      "long_run_metrics": [
+        {
+          "main_sim_seconds": 1800.0,
+          "secondary_sim_seconds": 1200.0,
+          "seeds": [
+            20261017,
+            20261018,
+            20261019
+          ],
+          "wall_seconds": 828.021
+        },
+        {
+          "average_output_energy": 47476645.7118069,
+          "birth_errors": 0,
+          "maximum_energy": 4294967296.0,
+          "unstuck_reasons": {
+            "local_loop": 6,
+            "still": 1672
+          }
+        }
+      ]
+    },
+    "properties": {
+      "log": "pinball_properties_1_5.log",
+      "complete": true,
+      "passes": 17,
+      "failures": [],
+      "not_tested": [],
+      "source_config_migration_test": "PASS: old custom coordinates preserved; explicit empty layout restores15 presets."
+    },
+    "channel_floor": {
+      "log": "channel_floor_1_5.log",
+      "complete": true,
+      "passes": 27,
+      "failures": [],
+      "not_tested": []
+    }
+  },
+  "seeds": [
+    {
+      "active": 16,
+      "average_output_energy": 111125565.330206,
+      "counts": [
+        1432,
+        1399,
+        2764,
+        2828,
+        1429,
+        1618
+      ],
+      "maximum_active_energy": 4294967296.0,
+      "maximum_event_energy": 4294967296.0,
+      "multiplier_events": 11470,
+      "output_events": 1066,
+      "seed": 20261017,
+      "sim_seconds": 1800.0,
+      "unstuck_events": 698,
+      "worst_idle_seconds": 90.0,
+      "unstuck_contact_combinations": {
+        "ball+divider": 332,
+        "divider": 276,
+        "ball+divider+left_wall": 16,
+        "ball+divider+right_wall": 23,
+        "divider+right_wall": 16,
+        "divider+left_wall": 19,
+        "ball+peg": 1,
+        "divider+floor+left_wall": 3,
+        "ball+right_wall": 7,
+        "ball+left_wall": 2,
+        "ball+divider+floor": 1,
+        "divider+floor": 1,
+        "divider+floor+right_wall": 1
+      },
+      "per_ball_unstuck_counts": {
+        "5": 32,
+        "8": 39,
+        "2": 59,
+        "9": 36,
+        "13": 53,
+        "3": 33,
+        "12": 46,
+        "0": 61,
+        "7": 38,
+        "11": 36,
+        "14": 46,
+        "6": 26,
+        "1": 52,
+        "10": 64,
+        "15": 38,
+        "4": 39
+      },
+      "maximum_same_ball_birth_relaunches": 15,
+      "unstuck_hotspots_10unit_bins": [
+        {
+          "x": 150,
+          "y": 350,
+          "count": 125
+        },
+        {
+          "x": 330,
+          "y": 350,
+          "count": 122
+        },
+        {
+          "x": 400,
+          "y": 330,
+          "count": 111
+        },
+        {
+          "x": 80,
+          "y": 330,
+          "count": 111
+        },
+        {
+          "x": 400,
+          "y": 340,
+          "count": 30
+        },
+        {
+          "x": 80,
+          "y": 340,
+          "count": 25
+        },
+        {
+          "x": 80,
+          "y": 350,
+          "count": 25
+        },
+        {
+          "x": 400,
+          "y": 350,
+          "count": 14
+        },
+        {
+          "x": 430,
+          "y": 320,
+          "count": 14
+        },
+        {
+          "x": 40,
+          "y": 340,
+          "count": 14
+        },
+        {
+          "x": 150,
+          "y": 360,
+          "count": 13
+        },
+        {
+          "x": 330,
+          "y": 360,
+          "count": 12
+        }
+      ],
+      "maximum_unstuck_speed": 10.042960401289566,
+      "unstuck_without_nearby_solid_contact": 0,
+      "unstuck_reasons": {
+        "still": 696,
+        "local_loop": 2
+      }
+    },
+    {
+      "active": 16,
+      "average_output_energy": 4420883.60506329,
+      "counts": [
+        1004,
+        964,
+        1685,
+        1594,
+        926,
+        1007
+      ],
+      "maximum_active_energy": 134217728.0,
+      "maximum_event_energy": 134217728.0,
+      "multiplier_events": 7180,
+      "output_events": 790,
+      "seed": 20261018,
+      "sim_seconds": 1200.0,
+      "unstuck_events": 506,
+      "worst_idle_seconds": 90.0,
+      "unstuck_contact_combinations": {
+        "ball+divider": 237,
+        "divider": 194,
+        "divider+right_wall": 14,
+        "ball+right_wall": 2,
+        "ball+divider+left_wall": 14,
+        "divider+left_wall": 13,
+        "ball+divider+right_wall": 18,
+        "divider+floor+left_wall": 2,
+        "divider+floor": 3,
+        "ball+divider+floor": 6,
+        "ball+left_wall": 2,
+        "ball+floor+peg": 1
+      },
+      "per_ball_unstuck_counts": {
+        "7": 36,
+        "11": 38,
+        "4": 23,
+        "1": 39,
+        "10": 25,
+        "0": 26,
+        "14": 33,
+        "15": 41,
+        "3": 32,
+        "5": 29,
+        "12": 26,
+        "9": 34,
+        "2": 45,
+        "13": 39,
+        "6": 28,
+        "8": 12
+      },
+      "maximum_same_ball_birth_relaunches": 10,
+      "unstuck_hotspots_10unit_bins": [
+        {
+          "x": 330,
+          "y": 350,
+          "count": 95
+        },
+        {
+          "x": 150,
+          "y": 350,
+          "count": 89
+        },
+        {
+          "x": 400,
+          "y": 330,
+          "count": 71
+        },
+        {
+          "x": 80,
+          "y": 330,
+          "count": 61
+        },
+        {
+          "x": 150,
+          "y": 360,
+          "count": 20
+        },
+        {
+          "x": 80,
+          "y": 340,
+          "count": 17
+        },
+        {
+          "x": 400,
+          "y": 340,
+          "count": 17
+        },
+        {
+          "x": 430,
+          "y": 320,
+          "count": 14
+        },
+        {
+          "x": 330,
+          "y": 360,
+          "count": 14
+        },
+        {
+          "x": 80,
+          "y": 350,
+          "count": 12
+        },
+        {
+          "x": 400,
+          "y": 350,
+          "count": 11
+        },
+        {
+          "x": 50,
+          "y": 320,
+          "count": 10
+        }
+      ],
+      "maximum_unstuck_speed": 40.48013526377944,
+      "unstuck_without_nearby_solid_contact": 0,
+      "unstuck_reasons": {
+        "still": 504,
+        "local_loop": 2
+      }
+    },
+    {
+      "active": 16,
+      "average_output_energy": 4916021.49937107,
+      "counts": [
+        969,
+        973,
+        1866,
+        1604,
+        930,
+        1014
+      ],
+      "maximum_active_energy": 134217728.0,
+      "maximum_event_energy": 134217728.0,
+      "multiplier_events": 7356,
+      "output_events": 795,
+      "seed": 20261019,
+      "sim_seconds": 1200.0,
+      "unstuck_events": 474,
+      "worst_idle_seconds": 90.0,
+      "unstuck_contact_combinations": {
+        "divider": 177,
+        "ball+divider+left_wall": 12,
+        "ball+divider": 231,
+        "ball+left_wall": 4,
+        "ball+divider+right_wall": 17,
+        "divider+left_wall": 15,
+        "ball+divider+floor": 2,
+        "divider+floor": 4,
+        "divider+right_wall": 10,
+        "divider+floor+left_wall": 1,
+        "divider+floor+right_wall": 1
+      },
+      "per_ball_unstuck_counts": {
+        "8": 38,
+        "2": 50,
+        "6": 22,
+        "4": 14,
+        "14": 35,
+        "3": 24,
+        "11": 33,
+        "1": 29,
+        "9": 31,
+        "15": 34,
+        "10": 35,
+        "7": 20,
+        "13": 27,
+        "12": 20,
+        "5": 36,
+        "0": 26
+      },
+      "maximum_same_ball_birth_relaunches": 9,
+      "unstuck_hotspots_10unit_bins": [
+        {
+          "x": 330,
+          "y": 350,
+          "count": 97
+        },
+        {
+          "x": 150,
+          "y": 350,
+          "count": 83
+        },
+        {
+          "x": 400,
+          "y": 330,
+          "count": 70
+        },
+        {
+          "x": 80,
+          "y": 330,
+          "count": 56
+        },
+        {
+          "x": 400,
+          "y": 340,
+          "count": 17
+        },
+        {
+          "x": 80,
+          "y": 340,
+          "count": 14
+        },
+        {
+          "x": 400,
+          "y": 360,
+          "count": 14
+        },
+        {
+          "x": 330,
+          "y": 360,
+          "count": 13
+        },
+        {
+          "x": 80,
+          "y": 360,
+          "count": 13
+        },
+        {
+          "x": 80,
+          "y": 350,
+          "count": 11
+        },
+        {
+          "x": 400,
+          "y": 350,
+          "count": 10
+        },
+        {
+          "x": 40,
+          "y": 340,
+          "count": 8
+        }
+      ],
+      "maximum_unstuck_speed": 12.010365898278266,
+      "unstuck_without_nearby_solid_contact": 0,
+      "unstuck_reasons": {
+        "still": 472,
+        "local_loop": 2
+      }
+    }
+  ],
+  "limits": [
+    "Default channels still form real two-support rests for oversized balls. The preserved-value 3-second unstuck detector handles these; this is not reported as no natural sticking.",
+    "Custom geometry or widths wider than the maximum ball can defeat size filtering or create genuine traps. Custom coordinates are preserved, not forcibly rewritten.",
+    "Left ammunition remains exact only through 2^53-1 and explicitly pauses on an overflowing multiplier. The curve uses a shared CPU/GPU mathematical limit 1e30, reached around17047 simulated seconds for defaults, outside the tested duration.",
+    "These are standalone left-machine tests; they do not substitute for a complete two-system match."
+  ],
+  "final_source_notes": "The final long run includes the current default geometry, growth curve and still-speed guard. The final custom-config loading change does not change default physics and was subsequently executed by the17-case property suite."
+}

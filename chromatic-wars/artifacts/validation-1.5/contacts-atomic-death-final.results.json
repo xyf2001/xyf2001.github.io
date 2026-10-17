@@ -1,0 +1,228 @@
+{
+  "suite": "contact_energy_suite",
+  "arguments": {
+    "atomic-only": true,
+    "death-only": true
+  },
+  "actual_exit_code": 0,
+  "hardware": "llvmpipe (LLVM 19.1.7, 256 bits), software Vulkan; not RTX 5060 Ti",
+  "environment": {
+    "display": ":99",
+    "LP_NUM_THREADS": 4,
+    "cpu_affinity": "0-3",
+    "audio_driver": "Dummy"
+  },
+  "log": "artifacts/validation-1.5/contacts-atomic-death-final.log",
+  "counts": {
+    "PASS": 7,
+    "FAIL": 0,
+    "NOT TESTED": 0
+  },
+  "engine_errors": [],
+  "cases": [
+    {
+      "detail": "",
+      "name": "接触守恒Compute初始化",
+      "status": "PASS"
+    },
+    {
+      "detail": "8轮真实GPU同相位并发；每轮32敌我对、64次消费原子加法、每轮至少63次低word进位，残余9沿原向继续",
+      "metrics": {
+        "rounds": [
+          {
+            "accounted": 274877907040,
+            "consumed_delta": 274877906752,
+            "expected_consumed_delta": 274877906752,
+            "expected_low_word_carries": 63,
+            "remaining": 288,
+            "survivors": 32,
+            "trial": 0,
+            "valid": true
+          },
+          {
+            "accounted": 274877907040,
+            "consumed_delta": 274877906752,
+            "expected_consumed_delta": 274877906752,
+            "expected_low_word_carries": 64,
+            "remaining": 288,
+            "survivors": 32,
+            "trial": 1,
+            "valid": true
+          },
+          {
+            "accounted": 274877907040,
+            "consumed_delta": 274877906752,
+            "expected_consumed_delta": 274877906752,
+            "expected_low_word_carries": 64,
+            "remaining": 288,
+            "survivors": 32,
+            "trial": 2,
+            "valid": true
+          },
+          {
+            "accounted": 274877907040,
+            "consumed_delta": 274877906752,
+            "expected_consumed_delta": 274877906752,
+            "expected_low_word_carries": 64,
+            "remaining": 288,
+            "survivors": 32,
+            "trial": 3,
+            "valid": true
+          },
+          {
+            "accounted": 274877907040,
+            "consumed_delta": 274877906752,
+            "expected_consumed_delta": 274877906752,
+            "expected_low_word_carries": 64,
+            "remaining": 288,
+            "survivors": 32,
+            "trial": 4,
+            "valid": true
+          },
+          {
+            "accounted": 274877907040,
+            "consumed_delta": 274877906752,
+            "expected_consumed_delta": 274877906752,
+            "expected_low_word_carries": 64,
+            "remaining": 288,
+            "survivors": 32,
+            "trial": 5,
+            "valid": true
+          },
+          {
+            "accounted": 274877907040,
+            "consumed_delta": 274877906752,
+            "expected_consumed_delta": 274877906752,
+            "expected_low_word_carries": 64,
+            "remaining": 288,
+            "survivors": 32,
+            "trial": 6,
+            "valid": true
+          },
+          {
+            "accounted": 274877907040,
+            "consumed_delta": 274877906752,
+            "expected_consumed_delta": 274877906752,
+            "expected_low_word_carries": 64,
+            "remaining": 288,
+            "survivors": 32,
+            "trial": 7,
+            "valid": true
+          }
+        ]
+      },
+      "name": "32独立格并行u64原子加法进位与唯一配对",
+      "status": "PASS"
+    },
+    {
+      "detail": "左球已输出的过期命令只能记显式损耗，不能生产攻击或从总账消失；优先槽+命令环合计五条",
+      "metrics": {
+        "balls": [],
+        "consumed_delta": 83,
+        "particles": [],
+        "rejected_delta": 5,
+        "team": {
+          "alive": false,
+          "core_radius": 12.0,
+          "death_nonce": 0,
+          "gun": 0,
+          "gun_angle": 0.0152993202209473,
+          "gun_mode": 0.0,
+          "gun_target_angle": 0.0,
+          "pending": false,
+          "ready_time": 0.0,
+          "request_nonce": 0,
+          "rescue_cd": 0.0,
+          "shield": 0,
+          "shield_radius": 0.0,
+          "sniper": 0,
+          "state": 2,
+          "storm": 0,
+          "team": 0,
+          "x": 256.0,
+          "y": 256.0
+        }
+      },
+      "name": "死队拒绝五类普通输出仍完整记录83能量损耗",
+      "status": "PASS"
+    },
+    {
+      "detail": "成功命令清a.x后，8个子步及调试空flush不再增加消费或拒绝计数",
+      "metrics": {
+        "consumed": 2199023254099,
+        "rejected": 5
+      },
+      "name": "清优先槽与后续空刷新不重复收费",
+      "status": "PASS"
+    },
+    {
+      "detail": "op2 death豁免拒绝分支；死亡不生产普通武器的规则保持",
+      "metrics": {
+        "balls": [
+          {
+            "birth_scale": 99.9999923706055,
+            "contact_mask": 0,
+            "energy": 29,
+            "flags": 0,
+            "id": 0,
+            "level": 0,
+            "pending_split": false,
+            "radius": 8.61554908752441,
+            "sniper_level": 0,
+            "team": 0,
+            "type": 3,
+            "vx": 39.4812545776367,
+            "vy": 14.3258695602417,
+            "x": 278.238800048828,
+            "y": 264.069396972656
+          }
+        ],
+        "consumed": 2199023254099,
+        "rejected": 5
+      },
+      "name": "带死亡标记的29能量余波仍正常出球且不收费",
+      "status": "PASS"
+    },
+    {
+      "detail": "定时31能量仍留CPU队列，不能因队伍已死而提前吞掉未来输入",
+      "metrics": {
+        "consumed": 2199023254099,
+        "due": 0.022,
+        "queued": 1,
+        "sim_time": 0.019
+      },
+      "name": "未来死队命令未到期不提前计损耗",
+      "status": "PASS"
+    },
+    {
+      "detail": "31在实际生效时拒绝并计账，既有29死亡余波保持，总账不重复或丢失",
+      "metrics": {
+        "balls": [
+          {
+            "birth_scale": 99.9999923706055,
+            "contact_mask": 0,
+            "energy": 29,
+            "flags": 0,
+            "id": 0,
+            "level": 0,
+            "pending_split": false,
+            "radius": 8.61554908752441,
+            "sniper_level": 0,
+            "team": 0,
+            "type": 3,
+            "vx": 39.4812545776367,
+            "vy": 14.3258695602417,
+            "x": 278.396759033203,
+            "y": 264.126647949219
+          }
+        ],
+        "consumed_delta": 31,
+        "queued": 0,
+        "rejected_delta": 1
+      },
+      "name": "定时死队命令到期仅一次计31损耗",
+      "status": "PASS"
+    }
+  ],
+  "status": "PASS"
+}

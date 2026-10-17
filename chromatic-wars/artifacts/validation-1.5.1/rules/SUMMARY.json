@@ -1,0 +1,88 @@
+{
+  "version": "1.5.1-energy-magazine",
+  "shader_sha256": "f80b48022bb8ac2948fae82ca71d3e074ebeb72c925268554b5f39a0f65b3aa1",
+  "host_sha256": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+  "runner_sha256": "90eafab182c27c09f0643304a4bedd0889dfde0ce556331d966bd4a1ac9cd76c",
+  "status": "PASS",
+  "actual_rule_assertions": {
+    "weapon_and_gpu": 139,
+    "contact_including_atomic": 32,
+    "pool_entity_invariants": 13076,
+    "pool_observations": 114,
+    "settings": 47,
+    "independent_wall_ccd_probes": 20
+  },
+  "count_note": "pool checks include per-entity uniqueness and repeated19-round energy depletion; they are not13076independent gameplay features",
+  "runs": [
+    {
+      "directory": "weapon-gpu-second",
+      "status": "PASS",
+      "source_hashes_unchanged": true,
+      "snapshot_status": "PASS",
+      "suites": [
+        {
+          "name": "import",
+          "actual_exit": 0,
+          "reported_assertions": 0,
+          "engine_errors": []
+        },
+        {
+          "name": "weapon_validation",
+          "actual_exit": 0,
+          "reported_assertions": 139,
+          "engine_errors": []
+        }
+      ]
+    },
+    {
+      "directory": "contact-second",
+      "status": "PASS",
+      "source_hashes_unchanged": true,
+      "snapshot_status": "PASS",
+      "suites": [
+        {
+          "name": "contact_energy",
+          "actual_exit": 0,
+          "reported_assertions": 32,
+          "engine_errors": []
+        }
+      ]
+    },
+    {
+      "directory": "pool-third",
+      "status": "PASS",
+      "source_hashes_unchanged": true,
+      "snapshot_status": "PASS",
+      "suites": [
+        {
+          "name": "pool_integrity",
+          "actual_exit": 0,
+          "reported_assertions": 1,
+          "engine_errors": []
+        }
+      ]
+    },
+    {
+      "directory": "settings-final",
+      "status": "PASS",
+      "source_hashes_unchanged": true,
+      "snapshot_status": "PASS",
+      "suites": [
+        {
+          "name": "settings",
+          "actual_exit": 0,
+          "reported_assertions": 47,
+          "engine_errors": []
+        }
+      ]
+    }
+  ],
+  "preserved_failures": [
+    "weapon-gpu-first:7out-of-bounds fixture failures+6missing assertions due array runtime error",
+    "pool-second:obsolete complete-energy territory-death fixture caused18failures",
+    "wall-pair-probe-first:actual wall-reflected missed pair",
+    "wall-pair-mechanical-first and wall-pair-mechanical-control-first:actual closest-normal mechanical response defects"
+  ],
+  "new_rule_full_game_and_endurance": "NOT TESTED until new actual long sequence completes",
+  "performance": "f80checkpoint44actualperformance cases passed; retained in../performance as same-rules optimization-before evidence"
+}

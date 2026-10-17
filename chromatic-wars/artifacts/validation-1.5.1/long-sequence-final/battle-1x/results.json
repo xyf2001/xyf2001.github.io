@@ -1,0 +1,272 @@
+{
+  "started_utc": "20261017T081912562307Z",
+  "project": "/workspace/xyf2001.github.io/chromatic-wars",
+  "suites": [
+    {
+      "name": "battle",
+      "status": "PASS",
+      "reason": "实际通过 6 项断言",
+      "results": [
+        {
+          "detail": "",
+          "metrics": {
+            "effective_config": {
+              "air_exponent": 2.8,
+              "air_force": 2950.0,
+              "air_height": 180.0,
+              "air_width": 96.0,
+              "ball_min_speed": 40.0,
+              "ball_speed": 92.0,
+              "channel_width_2": 67.0,
+              "channel_width_4": 47.0,
+              "channel_width_8": 37.0,
+              "core_0_x": 256.0,
+              "core_0_y": 256.0,
+              "core_1_x": 768.0,
+              "core_1_y": 256.0,
+              "core_2_x": 256.0,
+              "core_2_y": 768.0,
+              "core_3_x": 768.0,
+              "core_3_y": 768.0,
+              "custom_pegs": [],
+              "disabled_preset_pegs": [],
+              "emergency_cd": 180.0,
+              "fixed_dt": 0.00833333333333333,
+              "fps_limit": 60,
+              "friction": 0.0,
+              "friendly_particle_collisions": true,
+              "gravity": 820.0,
+              "grid_size": 512,
+              "growth_curve_time": 1200.0,
+              "growth_duration": 1200.0,
+              "growth_target": 1000000.0,
+              "gun_discharge_duration": 10.0,
+              "gun_duration": 1200.0,
+              "gun_end": 1200.0,
+              "gun_rate": 1200.0,
+              "gun_rotation_speed": 1.7,
+              "gun_start": 1200.0,
+              "gun_target_switch_cd": 0.5,
+              "intro_gun": 1000000.0,
+              "intro_shield": 1000000.0,
+              "packet_energy": 1,
+              "particle_capacity": 10000,
+              "particle_radius": 1.2,
+              "particle_speed": 140.0,
+              "peg_radius": 6.0,
+              "precision_mode": "exact",
+              "radius_k": 3.0,
+              "radius_max": 36.0,
+              "radius_min": 4.2,
+              "render_resolution": 768,
+              "render_size": 768,
+              "restitution": 1.0,
+              "seed": 20261017,
+              "shield_max_diameter": 389.12,
+              "shield_scale": 1.0,
+              "sniper_charge_time": 0.65,
+              "sniper_speed": 620.0,
+              "sniper_split_angle": 8.0,
+              "storm_ring_interval": 0.1,
+              "storm_ring_particles": 360,
+              "terrain_resolution": 512,
+              "time_scale": 1.0,
+              "trail_length": 0.12,
+              "visual_density": 1.0
+            }
+          },
+          "name": "长局GPU启动",
+          "status": "PASS"
+        },
+        {
+          "detail": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/long-sequence-final/battle-1x/battle_1.0x.json",
+          "name": "长局原始结果文件可写",
+          "status": "PASS"
+        },
+        {
+          "detail": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/long-sequence-final/battle-1x/battle_1.0x.json",
+          "name": "长局原始结果保存完成",
+          "status": "PASS"
+        },
+        {
+          "detail": "最终栅栏后重新核对GPU时钟、整数溢出、CPU弹球错误和运行时异常",
+          "metrics": {
+            "gpu_overflow": 0,
+            "gpu_time": 1200.0,
+            "pinball_error": "",
+            "runtime_error": "",
+            "sim_time": 1200.00000000147
+          },
+          "name": "长局最终物理与GPU完成状态",
+          "status": "PASS"
+        },
+        {
+          "detail": "实际完成所请求时长；不因时限宣布胜负",
+          "metrics": {
+            "achieved_speed": 0.222937637192055,
+            "requested": 1200.0,
+            "requested_speed": 1.0,
+            "sim_seconds": 1200.00000000147
+          },
+          "name": "请求的对局模拟时长覆盖",
+          "status": "PASS"
+        },
+        {
+          "detail": "正式分辨率和真实碰撞达到至少1200模拟秒",
+          "metrics": {
+            "requested_speed": 1.0,
+            "sim_seconds": 1200.00000000147
+          },
+          "name": "20分钟完整左右系统耐久",
+          "status": "PASS"
+        }
+      ],
+      "engine_errors": [],
+      "log": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5.1/long-sequence-final/battle-1x/battle.log",
+      "returncode": 0,
+      "elapsed_seconds": 5394.71,
+      "timed_out": false
+    }
+  ],
+  "seed": 20261017,
+  "duration_sim_seconds": 1200.0,
+  "requested_speed": 1.0,
+  "wall_budget_seconds": 14400.0,
+  "particle_capacity": 10000,
+  "host": {
+    "platform": "linux"
+  },
+  "godot": "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+  "source_sha256_before": {
+    "project.godot": "c1f05ec55e451b741db0492c7fe535adbc8b459e67ed24febc52d6d86315c569",
+    "shaders/battle.glsl": "c8c1007e7d7fd6b84f6a9b87857dd5e305f25075bfdb8cb94b702a9dd1d136b1",
+    "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+    "scripts/game_settings.gd": "9e59670bf4014fc0145f2cb7cf9d893c9f2170c46d68ee381cd54d8669d97979",
+    "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+    "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+    "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+    "tests/gpu_suite.gd": "4371202f8b0fd202fdc2f97a1e11b33f7ea9028bb459ae110cb3060c0880ce8d",
+    "tools/run_tests.py": "90eafab182c27c09f0643304a4bedd0889dfde0ce556331d966bd4a1ac9cd76c",
+    "export_presets.cfg": "7a3eeda24649279bd8db3f9401075cc84bb8705cf9153902ee2c80ffdf7af784",
+    "scenes/main.tscn": "546a539b45d22dbd1212db4c311fb0d98eed00d38ba214af6c5633cf15007710",
+    "scripts/air_curtain.gd": "d6ba23a18297100995670d8c3ce52735c374c77ad85199a53259f92f3fde4651",
+    "scripts/battle_labels.gd": "1a6e7c06fb3a81894e85c65c01a63c755c0daf83b605f9657dc21bf3623f5dd9",
+    "scripts/game_ui.gd": "b106425c739644592f6c669a0d097f78996f60ed7997d48ade6921d6fb4ccb00",
+    "scripts/main.gd": "91c093ed08f302b7b20b15b4d0d4fb500cbc3efb2f36f5aef7e7cc98aa6fff75",
+    "scripts/multiplier_channels.gd": "e7c4b000d21c581e8bbb5d654475dddd8885223f3347ed9d566a702659bbcc12",
+    "scripts/weapon_conveyor.gd": "e5ae5376ebe8aba381297aaf4a1a25bb08472195b2bbe3e3b3df13aa8f83eff4",
+    "tests/battle_suite.gd": "42252523ff071f079e3c14457bc9158b30e82ecabd274d9c14277bba7ba14d37"
+  },
+  "source_snapshot": {
+    "status": "PASS",
+    "entries": {
+      "project.godot": {
+        "sha256": "c1f05ec55e451b741db0492c7fe535adbc8b459e67ed24febc52d6d86315c569",
+        "file": "frozen_runtime_source/project.godot"
+      },
+      "shaders/battle.glsl": {
+        "sha256": "c8c1007e7d7fd6b84f6a9b87857dd5e305f25075bfdb8cb94b702a9dd1d136b1",
+        "file": "frozen_runtime_source/shaders/battle.glsl"
+      },
+      "scripts/gpu_world.gd": {
+        "sha256": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+        "file": "frozen_runtime_source/scripts/gpu_world.gd"
+      },
+      "scripts/game_settings.gd": {
+        "sha256": "9e59670bf4014fc0145f2cb7cf9d893c9f2170c46d68ee381cd54d8669d97979",
+        "file": "frozen_runtime_source/scripts/game_settings.gd"
+      },
+      "scripts/gpu_collisions.gd": {
+        "sha256": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+        "file": "frozen_runtime_source/scripts/gpu_collisions.gd"
+      },
+      "scripts/gpu_emitters.gd": {
+        "sha256": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+        "file": "frozen_runtime_source/scripts/gpu_emitters.gd"
+      },
+      "scripts/gpu_render.gd": {
+        "sha256": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+        "file": "frozen_runtime_source/scripts/gpu_render.gd"
+      },
+      "scripts/pinball_physics.gd": {
+        "sha256": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+        "file": "frozen_runtime_source/scripts/pinball_physics.gd"
+      },
+      "tests/test_harness.gd": {
+        "sha256": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+        "file": "frozen_runtime_source/tests/test_harness.gd"
+      },
+      "tests/gpu_suite.gd": {
+        "sha256": "4371202f8b0fd202fdc2f97a1e11b33f7ea9028bb459ae110cb3060c0880ce8d",
+        "file": "frozen_runtime_source/tests/gpu_suite.gd"
+      },
+      "tools/run_tests.py": {
+        "sha256": "90eafab182c27c09f0643304a4bedd0889dfde0ce556331d966bd4a1ac9cd76c",
+        "file": "frozen_runtime_source/tools/run_tests.py"
+      },
+      "export_presets.cfg": {
+        "sha256": "7a3eeda24649279bd8db3f9401075cc84bb8705cf9153902ee2c80ffdf7af784",
+        "file": "frozen_runtime_source/export_presets.cfg"
+      },
+      "scenes/main.tscn": {
+        "sha256": "546a539b45d22dbd1212db4c311fb0d98eed00d38ba214af6c5633cf15007710",
+        "file": "frozen_runtime_source/scenes/main.tscn"
+      },
+      "scripts/air_curtain.gd": {
+        "sha256": "d6ba23a18297100995670d8c3ce52735c374c77ad85199a53259f92f3fde4651",
+        "file": "frozen_runtime_source/scripts/air_curtain.gd"
+      },
+      "scripts/battle_labels.gd": {
+        "sha256": "1a6e7c06fb3a81894e85c65c01a63c755c0daf83b605f9657dc21bf3623f5dd9",
+        "file": "frozen_runtime_source/scripts/battle_labels.gd"
+      },
+      "scripts/game_ui.gd": {
+        "sha256": "b106425c739644592f6c669a0d097f78996f60ed7997d48ade6921d6fb4ccb00",
+        "file": "frozen_runtime_source/scripts/game_ui.gd"
+      },
+      "scripts/main.gd": {
+        "sha256": "91c093ed08f302b7b20b15b4d0d4fb500cbc3efb2f36f5aef7e7cc98aa6fff75",
+        "file": "frozen_runtime_source/scripts/main.gd"
+      },
+      "scripts/multiplier_channels.gd": {
+        "sha256": "e7c4b000d21c581e8bbb5d654475dddd8885223f3347ed9d566a702659bbcc12",
+        "file": "frozen_runtime_source/scripts/multiplier_channels.gd"
+      },
+      "scripts/weapon_conveyor.gd": {
+        "sha256": "e5ae5376ebe8aba381297aaf4a1a25bb08472195b2bbe3e3b3df13aa8f83eff4",
+        "file": "frozen_runtime_source/scripts/weapon_conveyor.gd"
+      },
+      "tests/battle_suite.gd": {
+        "sha256": "42252523ff071f079e3c14457bc9158b30e82ecabd274d9c14277bba7ba14d37",
+        "file": "frozen_runtime_source/tests/battle_suite.gd"
+      }
+    },
+    "errors": []
+  },
+  "source_sha256_after": {
+    "project.godot": "c1f05ec55e451b741db0492c7fe535adbc8b459e67ed24febc52d6d86315c569",
+    "shaders/battle.glsl": "c8c1007e7d7fd6b84f6a9b87857dd5e305f25075bfdb8cb94b702a9dd1d136b1",
+    "scripts/gpu_world.gd": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+    "scripts/game_settings.gd": "9e59670bf4014fc0145f2cb7cf9d893c9f2170c46d68ee381cd54d8669d97979",
+    "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+    "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+    "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+    "tests/gpu_suite.gd": "4371202f8b0fd202fdc2f97a1e11b33f7ea9028bb459ae110cb3060c0880ce8d",
+    "tools/run_tests.py": "90eafab182c27c09f0643304a4bedd0889dfde0ce556331d966bd4a1ac9cd76c",
+    "export_presets.cfg": "7a3eeda24649279bd8db3f9401075cc84bb8705cf9153902ee2c80ffdf7af784",
+    "scenes/main.tscn": "546a539b45d22dbd1212db4c311fb0d98eed00d38ba214af6c5633cf15007710",
+    "scripts/air_curtain.gd": "d6ba23a18297100995670d8c3ce52735c374c77ad85199a53259f92f3fde4651",
+    "scripts/battle_labels.gd": "1a6e7c06fb3a81894e85c65c01a63c755c0daf83b605f9657dc21bf3623f5dd9",
+    "scripts/game_ui.gd": "b106425c739644592f6c669a0d097f78996f60ed7997d48ade6921d6fb4ccb00",
+    "scripts/main.gd": "91c093ed08f302b7b20b15b4d0d4fb500cbc3efb2f36f5aef7e7cc98aa6fff75",
+    "scripts/multiplier_channels.gd": "e7c4b000d21c581e8bbb5d654475dddd8885223f3347ed9d566a702659bbcc12",
+    "scripts/weapon_conveyor.gd": "e5ae5376ebe8aba381297aaf4a1a25bb08472195b2bbe3e3b3df13aa8f83eff4",
+    "tests/battle_suite.gd": "42252523ff071f079e3c14457bc9158b30e82ecabd274d9c14277bba7ba14d37"
+  },
+  "sources_unchanged_during_run": true,
+  "status": "PASS"
+}

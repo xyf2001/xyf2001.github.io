@@ -1,0 +1,112 @@
+{
+  "checkpoint": "1.5.1-energy-magazine/f80b before any proposed full-own-territory guard",
+  "shader_sha256": "f80b48022bb8ac2948fae82ca71d3e074ebeb72c925268554b5f39a0f65b3aa1",
+  "host_sha256": "73988ae98dca436c683a8db7ae3d131c4aa07514a77fae546170a7805f7c9007",
+  "schema": 3,
+  "throughput": "version2 full measured wall denominator retained",
+  "backend": "software Vulkan llvmpipe LLVM19.1.7/256bits, not RTX5060Ti",
+  "groups": [
+    {
+      "path": "scale-current",
+      "samples": 120,
+      "warmup": 10,
+      "profiling": false,
+      "fixture_sha256": "23d9ef29da26c96c608ca70504737bfa307b8c9227bddba04af6b54a2f661ef2",
+      "runs": [
+        {
+          "label": "current",
+          "cases": 13,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        }
+      ]
+    },
+    {
+      "path": "capacity-uniform140",
+      "samples": 60,
+      "warmup": 10,
+      "profiling": false,
+      "fixture_sha256": "23d9ef29da26c96c608ca70504737bfa307b8c9227bddba04af6b54a2f661ef2",
+      "runs": [
+        {
+          "label": "baseline",
+          "cases": 6,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        },
+        {
+          "label": "current",
+          "cases": 6,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        }
+      ]
+    },
+    {
+      "path": "peak-current",
+      "samples": 20,
+      "warmup": 3,
+      "profiling": false,
+      "fixture_sha256": "0d985e09005318c08767ba00225f2e7f2fa96f0cc7a917ff2ebacaa2dffa0d1f",
+      "runs": [
+        {
+          "label": "current",
+          "cases": 3,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        }
+      ]
+    },
+    {
+      "path": "profile-current",
+      "samples": 12,
+      "warmup": 3,
+      "profiling": true,
+      "fixture_sha256": "23d9ef29da26c96c608ca70504737bfa307b8c9227bddba04af6b54a2f661ef2",
+      "runs": [
+        {
+          "label": "current",
+          "cases": 13,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        }
+      ]
+    },
+    {
+      "path": "peak-profile-current",
+      "samples": 12,
+      "warmup": 3,
+      "profiling": true,
+      "fixture_sha256": "0d985e09005318c08767ba00225f2e7f2fa96f0cc7a917ff2ebacaa2dffa0d1f",
+      "runs": [
+        {
+          "label": "current",
+          "cases": 3,
+          "status": "PASS",
+          "actual_exit": 0,
+          "source_hashes_unchanged": true,
+          "execution_tool_hashes_unchanged": true,
+          "engine_errors": []
+        }
+      ]
+    }
+  ],
+  "actual_cases_passed": 44,
+  "rules_differ_from_old_cost_checkpoints": true,
+  "long_endurance": "NOT TESTED: awaits final main/export/PCK and explicit root handoff"
+}

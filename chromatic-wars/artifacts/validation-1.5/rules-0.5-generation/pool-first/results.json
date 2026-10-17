@@ -1,0 +1,67 @@
+{
+  "started_utc": "20261017T061557904489Z",
+  "project": "/workspace/xyf2001.github.io/chromatic-wars",
+  "suites": [
+    {
+      "name": "pool_integrity",
+      "status": "PASS",
+      "reason": "实际通过 1 项断言",
+      "results": [
+        {
+          "detail": "Aggregate of real per-entity checks; raw observations retained",
+          "metrics": {
+            "artifact_saved": true,
+            "checks": 1744,
+            "failures": 0,
+            "observations": 42,
+            "path": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5/rules-0.5-generation/pool-first/pool_integrity_suite.json"
+          },
+          "name": "GPU pool allocation/reclamation/indirect regression",
+          "status": "PASS"
+        }
+      ],
+      "engine_errors": [],
+      "log": "/workspace/xyf2001.github.io/chromatic-wars/artifacts/validation-1.5/rules-0.5-generation/pool-first/pool_integrity.log",
+      "returncode": 0,
+      "elapsed_seconds": 19.595,
+      "timed_out": false
+    }
+  ],
+  "seed": 20261016,
+  "duration_sim_seconds": 1200,
+  "requested_speed": 1.0,
+  "wall_budget_seconds": 3600,
+  "particle_capacity": 10000,
+  "host": {
+    "platform": "linux"
+  },
+  "godot": "/opt/godot/4.6.3/Godot_v4.6.3-stable_linux.x86_64",
+  "source_sha256_before": {
+    "project.godot": "50dd33506a714514953a0a2c15519c3e2224e2cf957b8bd8763f9a6aa1a29688",
+    "shaders/battle.glsl": "6e7eda9ff084d4971432c838ffe8a042d0abcf5ef23d2a21f1c3688feeedc173",
+    "scripts/gpu_world.gd": "37e131f9bc9ce863aae8a6851fe263346e26ba43f06e7062aa99f6b01554bd3d",
+    "scripts/game_settings.gd": "cf9c19660d1caafc0431d5fa35dbcfb58d1eeebc0fe6ca3d03a8e747ddb1834d",
+    "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+    "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+    "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+    "tests/gpu_suite.gd": "1f1eef3b0a3b8bc4814b0f0cfd41d04ad30b35bb3a12e45eaf593807828a6e8f",
+    "tests/pool_integrity_suite.gd": "9149c7ee821483ab4f1f517816d189c5222b0ab0a40b95b0fc094cbe8c0aea4e"
+  },
+  "source_sha256_after": {
+    "project.godot": "50dd33506a714514953a0a2c15519c3e2224e2cf957b8bd8763f9a6aa1a29688",
+    "shaders/battle.glsl": "6e7eda9ff084d4971432c838ffe8a042d0abcf5ef23d2a21f1c3688feeedc173",
+    "scripts/gpu_world.gd": "37e131f9bc9ce863aae8a6851fe263346e26ba43f06e7062aa99f6b01554bd3d",
+    "scripts/game_settings.gd": "cf9c19660d1caafc0431d5fa35dbcfb58d1eeebc0fe6ca3d03a8e747ddb1834d",
+    "scripts/gpu_collisions.gd": "e04d8abeec35cf8720c4159cce184b30ff00e984ecf0d68d72ca9301f9378534",
+    "scripts/gpu_emitters.gd": "00b5a97d45d8306de821bf208a487db967b13a08cdcbf959cbbdd88ef108e9d5",
+    "scripts/gpu_render.gd": "0f3ec505576511fe798b45d7b0568cad2f390a008f0da4fcac0d7a4ccacf0290",
+    "scripts/pinball_physics.gd": "0b806c2a82a3fa09aaeee2e63d1872710e836b08fcc950c3d1e5e9797043ecc6",
+    "tests/test_harness.gd": "75a1f257e14f1ea7f9b7b6e73aae8d6e589c31eed4532254e13d5b889d33f2f1",
+    "tests/gpu_suite.gd": "1f1eef3b0a3b8bc4814b0f0cfd41d04ad30b35bb3a12e45eaf593807828a6e8f",
+    "tests/pool_integrity_suite.gd": "9149c7ee821483ab4f1f517816d189c5222b0ab0a40b95b0fc094cbe8c0aea4e"
+  },
+  "sources_unchanged_during_run": true,
+  "status": "PASS"
+}
