@@ -46,6 +46,7 @@ var _diagnostic_text := ""
 var _logged_device := ""
 var _editor_toggle: CheckButton
 var _peg_count: Label
+var _rescue_feedback: Array[String] = ["", "", "", ""]
 
 func setup(config: Dictionary) -> void:
 	_config = Settings.validate(config)
@@ -479,6 +480,17 @@ func _update_team(index: int, team: Dictionary) -> void:
 	var cd_text := "就绪" if cd <= 0 else "%.1f 模拟秒" % cd
 	_team_labels[index].text = "%s · 领土 %.1f%%\n护盾 %s\n机枪 %s\n紧急保命 %s" % [state, territory, _number_text(shield), _number_text(gun), cd_text]
 	_team_labels[index].tooltip_text = "护盾 %s\n机枪 %s\n保命冷却 %.3f 模拟秒" % [_number_text(shield), _number_text(gun), cd]
+	if not _rescue_feedback[index].is_empty():
+		_team_labels[index].text += "\n[color=#ffd27d]" + _rescue_feedback[index] + "[/color]"
+
+func clear_rescue_feedback() -> void:
+	_rescue_feedback.fill("")
+
+func show_rescue_feedback(team: int, message: String) -> void:
+	if team < 0 or team >= _rescue_feedback.size():
+		return
+	_rescue_feedback[team] = message
+	_notify(TEAM_NAMES[team] + " · " + message)
 
 func _input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:

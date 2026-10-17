@@ -22,6 +22,7 @@ var font: Font
 var editor_mode := false
 var editor_preview: Node2D
 var quitting := false
+var rescue_attempts: Dictionary = {}
 
 func _ready() -> void:
 	font = ThemeDB.fallback_font
@@ -102,11 +103,28 @@ func _restart() -> void:
 	world.rescue_requested.connect(func(team: int):
 		if current_generation != generation: return
 		var energy := pinball.rescue(team)
+		var teams: Array = world.stats.get("teams", [])
+		var nonce := int(teams[team].get("request_nonce", 0)) if team < teams.size() else 0
+		rescue_attempts[team] = {"nonce": nonce, "energy": energy, "reported": false}
 		world.resolve_rescue(team, energy)
+		ui.show_rescue_feedback(team, "保命触发，正在补盾 +%.0f" % energy if energy > 0.0 else "保命失败：没有可用弹药球")
 		print("紧急保命：阵营%d，球能量 %.0f，模拟时间 %.3f" % [team, energy, elapsed])
+	)
+	world.stats_updated.connect(func(data: Dictionary):
+		if current_generation == generation:
+			_update_rescue_feedback(data)
 	)
 	world.team_eliminated.connect(func(team: int):
 		if current_generation != generation: return
+		var teams: Array = world.stats.get("teams", [])
+		var cd := float(teams[team].get("rescue_cd", 0.0)) if team < teams.size() else 0.0
+		var attempt: Dictionary = rescue_attempts.get(team, {})
+		if not attempt.is_empty() and float(attempt.get("energy", 0.0)) <= 0.0:
+			ui.show_rescue_feedback(team, "保命失败：没有可用弹药球")
+		elif cd > 0.0:
+			ui.show_rescue_feedback(team, "已保命补盾，冷却内再次被击破" if not attempt.is_empty() else "保命冷却中，无法再次触发")
+		else:
+			ui.show_rescue_feedback(team, "核心被击破，未获得有效救援")
 		var values := pinball.eliminate(team)
 		world.death_balls(team, values)
 		print("确认淘汰：阵营%d，余波球数%d，模拟时间 %.3f" % [team, values.size(), elapsed])
@@ -120,12 +138,32 @@ func _restart() -> void:
 	first_texture = false
 	battle_view.texture = null
 	trigger_history.clear()
+	rescue_attempts.clear()
+	ui.clear_rescue_feedback()
 	settings["font"] = font
 	pinball.configure(settings)
 	pinball.reset(int(settings.get("seed", 20261016)))
 	Engine.max_fps = int(settings.get("fps_limit", 60))
 	world.start()
 	queue_redraw()
+
+func _update_rescue_feedback(data: Dictionary) -> void:
+	var teams: Array = data.get("teams", [])
+	for team: int in rescue_attempts:
+		var attempt: Dictionary = rescue_attempts[team]
+		if bool(attempt.get("reported", false)) or team >= teams.size():
+			continue
+		var state: Dictionary = teams[team]
+		if int(state.get("request_nonce", -1)) != int(attempt.nonce) or bool(state.get("pending", false)):
+			continue
+		var energy := float(attempt.energy)
+		if energy > 0.0:
+			ui.show_rescue_feedback(team, "保命成功：补盾 +%.0f" % energy if bool(state.get("alive", false)) else "已保命补盾，后续攻击再次击破")
+		elif bool(state.get("alive", false)):
+			ui.show_rescue_feedback(team, "常规补盾已解除本次危险")
+		else:
+			ui.show_rescue_feedback(team, "保命失败：没有可用弹药球")
+		attempt["reported"] = true
 
 func _dispose_retired(old: GPUWorld) -> void:
 	# 旧回调仍绑定该节点。真正收到RD释放确认且回调归还后才可回收。

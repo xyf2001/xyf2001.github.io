@@ -315,8 +315,8 @@ func _initialize_rd(generation: int, configuration: Dictionary) -> void:
 	var required_particle_bytes := (capacity + BIG_CAPACITY) * PARTICLE_STRIDE
 	# Godot 未暴露 maxStorageBufferRange；使用 Vulkan 保证的最小 128 MiB。
 	var storage_limit := 128 * 1024 * 1024
-	if int(_rd.limit_get(RenderingDevice.LIMIT_MAX_STORAGE_BUFFERS_PER_SHADER_STAGE)) < 12:
-		_fail_rd("GPU 每阶段存储缓冲数量少于 12，无法执行全 GPU 战场。", generation)
+	if int(_rd.limit_get(RenderingDevice.LIMIT_MAX_STORAGE_BUFFERS_PER_SHADER_STAGE)) < 14:
+		_fail_rd("GPU 每阶段存储缓冲数量少于 14，无法执行全 GPU 战场。", generation)
 		return
 	if required_particle_bytes > storage_limit:
 		_fail_rd("GPU 存储缓冲上限不足：粒子缓冲需要 %d 字节，设备上限 %d。请降低粒子容量。" % [required_particle_bytes, storage_limit], generation)
@@ -355,6 +355,10 @@ func _initialize_rd(generation: int, configuration: Dictionary) -> void:
 	sizes.append(WEAPON_STATE_BYTES)
 	sizes.append((POOL_HEADER_WORDS + capacity * 2) * 4)
 	sizes.append(DIAGNOSTIC_WORDS * 4)
+	# binding13：每物理槽4B首接触染色游标，仅存活槽逐步重置。
+	sizes.append((capacity + BIG_CAPACITY) * 4)
+	# binding14：宽狙击弹32单位粗格头与独立next链，普通九色布局不变。
+	sizes.append((4 * 32 * 32 + capacity + BIG_CAPACITY) * 4)
 	_buffers.clear()
 	_memory_bytes = 0
 	for buffer_index: int in sizes.size():
@@ -541,6 +545,8 @@ func _execute_rd(generation_id: int, batch: Array, upload: Array, rescues: Array
 		_dispatch(list, 2, int(_rt_settings.particle_capacity) + BIG_CAPACITY, 0, tail, timing.x, timing.y)
 		_dispatch(list, 3, GRID_HEADS, 0, tail, timing.x, timing.y)
 		_dispatch(list, 4, int(_rt_settings.particle_capacity), 0, tail, timing.x, timing.y)
+		# 单写者先支付首接触前的领土，随后才允许并行粒子抵消；不提前染穿盾/墙。
+		_dispatch(list, 13, 1, 0, tail, timing.x, timing.y)
 		for color: int in 9:
 			_dispatch(list, 5, CollisionRules.PHASE_WIDTH * CollisionRules.PHASE_WIDTH, color, tail, timing.x, timing.y)
 		_dispatch(list, 6, 1, 0, tail, timing.x, timing.y)
