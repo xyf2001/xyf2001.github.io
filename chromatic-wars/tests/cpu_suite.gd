@@ -6,6 +6,10 @@ const Air = preload("res://scripts/air_curtain.gd")
 const Conveyor = preload("res://scripts/weapon_conveyor.gd")
 var actual_bottom_logs: int = 0
 var birth_errors: int = 0
+var output_energy: float = 0.0
+var maximum_energy: float = 2.0
+var current_run_peak_energy: float = 2.0
+var unstuck_reasons: Dictionary = {}
 
 func run_suite() -> void:
 	print("环境：Godot %s；左侧CPU规则测试；右侧GPU不在本套件范围" % Engine.get_version_info()["string"])
@@ -15,6 +19,7 @@ func run_suite() -> void:
 	_test_conveyor()
 	_test_rescue()
 	_test_physical_contacts()
+	_test_motion_watch()
 	await _test_long_run()
 	finish()
 
@@ -35,16 +40,20 @@ func _test_initial_and_threshold() -> void:
 		initial_ok = initial_ok and float(ball["value"]) == 2.0 and is_equal_approx(float(ball["r"]), 4.2)
 		initial_ok = initial_ok and float(ball["threshold"]) == 100.0 and Vector2(ball["v"]).y < 0.0
 	check(initial_ok and ids.size() == 16 and counts == [4, 4, 4, 4], "开局16球与四队对等", "每队4球，数值2、最小物理半径、顶部向上发射", {"team_counts": counts})
-	var linear_ok := true
+	var curve_ok := true
 	var max_error := 0.0
+	var previous_rate := INF
 	for index in range(1001):
 		var t: float = float(index) * 1.2
-		var reference: float = 100.0 + 999900.0 * clampf(t / 1200.0, 0.0, 1.0)
+		var relative_progress: float = (sqrt(1.0 + t / 1200.0) - 1.0) / (sqrt(2.0) - 1.0)
+		var reference: float = 100.0 * pow(10000.0, relative_progress)
 		var error: float = absf(pinball.threshold_at(t) - reference)
 		max_error = maxf(max_error, error)
-		linear_ok = linear_ok and error < 0.001
-	linear_ok = linear_ok and pinball.threshold_at(-10.0) == 100.0 and pinball.threshold_at(1800.0) == 1000000.0
-	check(linear_ok, "体积门槛连续线性", "1001个时间点对照独立线性公式；端点钳制", {"max_error": max_error})
+		var rate: float = log(pinball.threshold_at(t + 0.5) / pinball.threshold_at(t)) / 0.5
+		curve_ok = curve_ok and error < 0.001 and rate <= previous_rate and rate > 0.0
+		previous_rate = rate
+	curve_ok = curve_ok and is_equal_approx(pinball.threshold_at(-10.0), 100.0) and is_equal_approx(pinball.threshold_at(1200.0), 1000000.0) and pinball.threshold_at(1800.0) > 1000000.0
+	check(curve_ok, "体积门槛指数增长且相对增长率下降", "1001时间点以幂式参考对照log域实现；起点100、1200模拟秒1e6，随后继续增长", {"max_error": max_error, "threshold_600": pinball.threshold_at(600.0), "threshold_1800": pinball.threshold_at(1800.0)})
 	var first: Dictionary = pinball.balls[0]
 	first["value"] = 400.0
 	first["p"] = Vector2(240.0, 210.0)
@@ -56,7 +65,7 @@ func _test_initial_and_threshold() -> void:
 	first["p"] = Vector2(230.0, 780.0)
 	first["v"] = Vector2(0.0, 100.0)
 	pinball.step(1.0 / 120.0, 600.0 + 1.0 / 120.0)
-	check(float(first["value"]) == 2.0 and float(first["threshold"]) > 500000.0 and is_equal_approx(float(first["r"]), pinball.radius_min), "完整输出后按当前门槛重生", "数值重置2，门槛刷新，半径回最小", {"value": first["value"], "birth_threshold": first["threshold"], "radius": first["r"]})
+	check(float(first["value"]) == 2.0 and is_equal_approx(float(first["threshold"]), pinball.threshold_at(float(first["birth_time"]))) and is_equal_approx(float(first["r"]), pinball.radius_min), "完整输出后按当前门槛重生", "数值重置2，门槛采用实际输出子步时间，半径回最小", {"value": first["value"], "birth_threshold": first["threshold"], "radius": first["r"]})
 	var minimum_large_ammo: float = pinball.radius_for(900000.0, 1000000.0)
 	check(is_equal_approx(minimum_large_ammo, pinball.radius_min) and pinball.radius_for(400.0, 100.0) > pinball.radius_min, "后期高数值可保持小物理半径", "900000/1000000小于出生门槛；开局400/100已增大")
 	pinball.free()
@@ -172,9 +181,55 @@ func _test_physical_contacts() -> void:
 	check(float(a["mass"]) > float(b["mass"]) and absf(Vector2(a["v"]).x) < absf(Vector2(b["v"]).x - (-100.0)), "大球质量更大且碰撞偏移更小", "半径平方质量参与真实冲量", {"large_mass": a["mass"], "small_mass": b["mass"]})
 	pinball.free()
 
+func _test_motion_watch() -> void:
+	# Sensor fixtures supply a known trajectory to the production observer;
+	# physical integration itself is covered by the long run and channel suite.
+	for scenario in ["still", "local_loop", "moving"]:
+		var pinball = _new_pinball()
+		pinball.balls.resize(1)
+		var ball: Dictionary = pinball.balls[0]
+		ball["value"] = 8192.0
+		ball["threshold"] = 10000.0
+		ball["t_birth"] = 10000.0
+		ball["birth_time"] = 123.0
+		ball["p"] = Vector2(240.0, 240.0)
+		ball["v"] = Vector2.ZERO
+		pinball._update_radius(ball)
+		pinball.simulation_time = 0.0
+		pinball._reset_motion_watch(ball)
+		var relocated_at := -1.0
+		for index in range(110):
+			var t: float = float(index + 1) * 0.1
+			pinball.simulation_time = t
+			if scenario == "local_loop":
+				ball["p"] = Vector2(240.0 + 24.0 * sin(t * TAU), 240.0 + 24.0 * cos(t * TAU))
+				ball["v"] = Vector2(24.0 * TAU * cos(t * TAU), -24.0 * TAU * sin(t * TAU))
+			elif scenario == "moving":
+				ball["p"] = Vector2(240.0 + 110.0 * sin(t), 200.0 + 20.0 * t)
+				ball["v"] = Vector2(110.0 * cos(t), 20.0)
+			pinball._watch_motion(ball)
+			if pinball.unstuck_events > 0:
+				relocated_at = t
+				break
+		var preserved: bool = ball["value"] == 8192.0 and ball["threshold"] == 10000.0 and ball["t_birth"] == 10000.0 and ball["birth_time"] == 123.0 and int(ball["team"]) == 0 and pinball.output_events == 0 and pinball.multiplier_events == 0
+		var correct: bool = preserved
+		if scenario == "moving":
+			correct = correct and relocated_at < 0.0
+		else:
+			correct = correct and relocated_at >= (3.0 if scenario == "still" else 8.0) and relocated_at < (4.0 if scenario == "still" else 9.0) and Vector2(ball["v"]).y < 0.0 and Vector2(ball["p"]).y < 150.0
+		check(correct, "防卡轨迹观测-%s" % scenario, "静止与局部回圈应保值重发；持续推进轨迹不触发；重发不记输出或倍率", {"relocated_at_sim_seconds": relocated_at, "energy": ball["value"], "threshold": ball["threshold"], "outputs": pinball.output_events, "multipliers": pinball.multiplier_events})
+		pinball.free()
+
 func _on_physical_trigger(data: Dictionary) -> void:
+	maximum_energy = maxf(maximum_energy, float(data.get("after", data.get("energy", 2.0))))
+	current_run_peak_energy = maxf(current_run_peak_energy, float(data.get("after", data.get("energy", 2.0))))
+	if data.get("type", "") == "unstuck":
+		var reason: String = str(data.get("reason", "unknown"))
+		unstuck_reasons[reason] = int(unstuck_reasons.get(reason, 0)) + 1
+		print("PINBALL_UNSTUCK " + JSON.stringify(data))
 	if data.get("type", "") == "output":
 		actual_bottom_logs += 1
+		output_energy += float(data.get("energy", 0.0))
 		if actual_bottom_logs <= 120:
 			print("PHYSICAL_OUTPUT " + JSON.stringify(data))
 
@@ -183,16 +238,29 @@ func _test_long_run() -> void:
 	pinball.trigger_log.connect(_on_physical_trigger)
 	var requested: float = float(options.get("duration", "1200"))
 	var seed: int = int(options.get("seed", "20261016"))
+	var seed_count: int = clampi(int(options.get("seeds", "3")), 1, 32)
+	var secondary_duration: float = maxf(0.01, float(options.get("secondary-duration", str(minf(120.0, requested)))))
+	var executed_seeds: Array[int] = []
 	var all_valid := true
+	var reported_invalid := false
 	var all_progress := true
 	var worst_idle := 0.0
 	var total_multipliers := 0
 	var total_outputs := 0
 	var begin: int = Time.get_ticks_msec()
-	# 一个完整20分钟左侧长局，加两个短种子回归；不声称这是完整GPU对局。
-	for run_index in range(3):
+	# CPU-only real left-side simulation; these are not complete GPU matches.
+	# --secondary-duration permits multiple full long seeds without changing physics.
+	for run_index in range(seed_count):
 		pinball.reset(seed + run_index)
-		var duration: float = requested if run_index == 0 else minf(120.0, requested)
+		current_run_peak_energy = 2.0
+		executed_seeds.append(seed + run_index)
+		var run_output_start: int = actual_bottom_logs
+		var run_energy_start: float = output_energy
+		var run_max_energy: float = 2.0
+		var last_birth: Dictionary = {}
+		var last_output: Dictionary = {}
+		var reported_stalls: Dictionary = {}
+		var duration: float = requested if run_index == 0 else secondary_duration
 		var last_events: Array[int] = []
 		var last_active: Array[float] = []
 		for _id in range(16):
@@ -210,13 +278,26 @@ func _test_long_run() -> void:
 				var id: int = ball["id"]
 				var p: Vector2 = ball["p"]
 				var v: Vector2 = ball["v"]
-				all_valid = all_valid and is_finite(p.x) and is_finite(p.y) and is_finite(v.x) and is_finite(v.y) and is_finite(float(ball["value"]))
-				all_valid = all_valid and float(ball["value"]) >= 2.0 and p.y >= 58.0 and p.y <= 790.0 and p.x >= 15.0 and p.x <= 465.0
+				var ball_valid: bool = is_finite(p.x) and is_finite(p.y) and is_finite(v.x) and is_finite(v.y) and is_finite(float(ball["value"])) and float(ball["value"]) >= 2.0 and p.y >= 58.0 and p.y <= 790.0 and p.x >= 15.0 and p.x <= 465.0
+				all_valid = all_valid and ball_valid
+				if not ball_valid and not reported_invalid:
+					reported_invalid = true
+					print("PINBALL_INVALID_STATE " + JSON.stringify({"seed": seed + run_index, "sim_seconds": t, "ball": ball.duplicate(true)}))
+				run_max_energy = maxf(run_max_energy, float(ball["value"]))
+				maximum_energy = maxf(maximum_energy, float(ball["value"]))
+				if last_birth.has(id) and int(last_output[id]) == int(ball["outputs"]):
+					if float(last_birth[id]) != float(ball["threshold"]) or float(ball["t_birth"]) != float(ball["threshold"]):
+						birth_errors += 1
+				last_birth[id] = ball["threshold"]
+				last_output[id] = ball["outputs"]
 				var events: int = int(ball["loops"]) + int(ball["outputs"])
 				if events != last_events[id]:
 					last_active[id] = t
 					last_events[id] = events
 				worst_idle = maxf(worst_idle, t - last_active[id])
+				if t - last_active[id] > 90.0 and not reported_stalls.has(id):
+					reported_stalls[id] = true
+					print("PINBALL_STALL_OBSERVATION " + JSON.stringify({"seed": seed + run_index, "sim_seconds": t, "no_multiplier_or_output_seconds": t - last_active[id], "ball": ball.duplicate(true)}))
 			if index % 1200 == 0:
 				await process_frame
 			if index % 7200 == 0:
@@ -228,8 +309,9 @@ func _test_long_run() -> void:
 			all_progress = all_progress and int(ball["loops"]) + int(ball["outputs"]) > 0
 			total_multipliers += int(ball["loops"])
 			total_outputs += int(ball["outputs"])
-		print("PINBALL_LONG_RUN " + JSON.stringify({"seed": seed + run_index, "sim_seconds": duration, "multiplier_events": pinball.multiplier_events, "output_events": pinball.output_events, "counts": pinball.channels.counts, "active": pinball.balls.size(), "worst_idle_seconds": worst_idle}))
-	check(all_valid, "多种子左侧持续模拟16球完整与数值有限", "按命令指定模拟时长和两个至多120秒种子；每模拟秒检查球数、边界、有限值及显式故障", {"main_sim_seconds": requested, "seeds": [seed, seed + 1, seed + 2], "wall_seconds": float(Time.get_ticks_msec() - begin) / 1000.0})
+		print("PINBALL_LONG_RUN " + JSON.stringify({"seed": seed + run_index, "sim_seconds": duration, "multiplier_events": pinball.multiplier_events, "output_events": pinball.output_events, "counts": pinball.channels.counts, "active": pinball.balls.size(), "worst_idle_seconds": worst_idle, "maximum_active_energy": run_max_energy, "maximum_event_energy": current_run_peak_energy, "average_output_energy": (output_energy - run_energy_start) / maxf(1.0, actual_bottom_logs - run_output_start), "unstuck_events": pinball.unstuck_events}))
+	check(all_valid, "多种子左侧持续模拟16球完整与数值有限", "按命令指定主/次种子时长；每模拟秒检查球数、边界、有限值及显式故障", {"main_sim_seconds": requested, "secondary_sim_seconds": secondary_duration, "seeds": executed_seeds, "wall_seconds": float(Time.get_ticks_msec() - begin) / 1000.0})
 	check(all_progress and worst_idle < 120.0, "多种子实体通道不卡球", "每球均产生倍率或完整输出，任何球连续无进度不得达到120模拟秒", {"worst_idle_seconds": worst_idle, "multiplier_events": total_multipliers, "output_events": total_outputs})
 	check(actual_bottom_logs >= 100, "至少100次真实物理落槽日志", "记录正式物理触发落点/相位/槽位/输出；与独立坐标夹具日志分开", {"physical_outputs": actual_bottom_logs})
+	check(birth_errors == 0, "长局倍率/防卡保持出生基准", "逐模拟秒对照相邻快照：未正常输出的同一球不能更改阈值，t_birth必须始终匹配", {"birth_errors": birth_errors, "maximum_energy": maximum_energy, "average_output_energy": output_energy / maxf(1.0, actual_bottom_logs), "unstuck_reasons": unstuck_reasons})
 	pinball.free()

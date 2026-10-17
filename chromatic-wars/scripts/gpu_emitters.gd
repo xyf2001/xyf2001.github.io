@@ -38,6 +38,7 @@ static func encode(command: Dictionary) -> PackedByteArray:
 	elif op == 17:
 		result.encode_float(16, float(command.get("vx", 0.0)))
 		result.encode_float(20, float(command.get("vy", 0.0)))
+		result.encode_u32(24, maxi(0, int(command.get("count", 0))))
 	elif op == 15:
 		result.encode_u32(16, int(command.get("count", 1)))
 	else:

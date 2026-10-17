@@ -45,6 +45,8 @@ def main() -> None:
     parser.add_argument("--release-label", default="initial")
     parser.add_argument("--untested", action="store_true",
                         help="按用户要求跳过运行验证，明确标记本次构建未经测试")
+    parser.add_argument("--allow-partial-validation", action="store_true",
+                        help="允许打包明确标为PARTIAL的实际验证汇总；不把未完成项冒充通过")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     output = args.output.resolve()
@@ -56,13 +58,15 @@ def main() -> None:
         raise FileNotFoundError(executable)
     if args.untested:
         release_validation = "NOT TESTED (user requested)"
+        release_validation_status = "NOT TESTED"
         export_resource_check = "NOT TESTED (user requested)"
     else:
         battle_path = root / args.validation_file
         if not battle_path.is_file():
             raise RuntimeError("本次验证尚无结束结果，不能打包为最终交付")
         battle = json.loads(battle_path.read_text())
-        if battle["status"] != "PASS":
+        release_validation_status = str(battle["status"])
+        if release_validation_status != "PASS" and not (args.allow_partial_validation and release_validation_status == "PARTIAL"):
             raise RuntimeError("本次验证失败，请先诊断实际记录")
         pck_path = root / args.pck_dir / "export_pck.json"
         pck = json.loads(pck_path.read_text())
@@ -87,6 +91,7 @@ def main() -> None:
             "test_report": "TEST_REPORT.md",
             "export_resource_check": export_resource_check,
             "release_validation": release_validation,
+            "release_validation_status": release_validation_status,
             "historical_battle_result": "artifacts/tests/final-battle-1200/results.json"}
     (root / "BUILD_INFO.json").write_text(json.dumps(info, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (root / "SOURCE_SHA256SUMS.txt").write_text("".join(f"{value}  {name}\n" for name, value in hashes.items()), encoding="utf-8")
@@ -102,7 +107,8 @@ def main() -> None:
         "按用户要求，本构建未运行测试或内嵌资源/Compute运行验证。\n"
         "TEST_REPORT.md及artifacts中的历史结果不代表本次构建通过验证。\n"
         if args.untested else
-        "先看TEST_REPORT.md：本构建实际导出并验证了内嵌资源/Compute，\n"
+        "先看TEST_REPORT.md：本构建实际导出并验证了内嵌资源/Compute。\n"
+        f"实际验证汇总状态：{release_validation_status}；未完成项目仍按报告标注，不代表全部验收通过。\n"
     )
     windows_notes.write_text(
         "颜色大战 · Windows x64\n\n"

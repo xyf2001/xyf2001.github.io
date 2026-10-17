@@ -41,6 +41,7 @@ var radius_gain: float = 3.0
 var threshold_start: float = 100.0
 var threshold_target: float = 1000000.0
 var threshold_duration: float = 1200.0
+var threshold_curve_time: float = 1200.0
 var generated: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var multiplier_events: int = 0
 var output_events: int = 0
@@ -71,6 +72,7 @@ func configure(settings: Dictionary) -> void:
 	threshold_start = maxf(2.0, float(settings.get("threshold_start", threshold_start)))
 	threshold_target = maxf(threshold_start, float(settings.get("threshold_target", settings.get("growth_target", threshold_target))))
 	threshold_duration = maxf(1.0, float(settings.get("threshold_duration", settings.get("growth_duration", threshold_duration))))
+	threshold_curve_time = maxf(1.0, float(settings.get("growth_curve_time", threshold_curve_time)))
 	debug = bool(settings.get("debug", debug))
 	if settings.get("font") is Font:
 		font = settings["font"]
@@ -78,15 +80,23 @@ func configure(settings: Dictionary) -> void:
 	conveyor.configure(settings)
 	channels.configure(settings)
 	static_revision += 1
+	var requested_disabled: Array[int] = disabled_preset_pegs.duplicate()
 	if settings.has("disabled_preset_pegs") and settings["disabled_preset_pegs"] is Array:
 		disabled_preset_pegs.clear()
 		for saved_id in settings["disabled_preset_pegs"]:
 			var preset_id: int = int(saved_id)
 			if preset_id >= 0 and preset_id < 15 and not disabled_preset_pegs.has(preset_id):
 				disabled_preset_pegs.append(preset_id)
+		requested_disabled = disabled_preset_pegs.duplicate()
 		_build_pegs()
 	if settings.has("custom_pegs") and settings["custom_pegs"] is Array:
 		var saved_pegs: Array = settings["custom_pegs"].duplicate()
+		# A preset layout correction must not silently discard an existing
+		# custom peg at a newly occupied preset coordinate. Restore user pegs
+		# first, then hide only overlapping presets without moving user data.
+		for preset_id in range(15):
+			if not disabled_preset_pegs.has(preset_id):
+				disabled_preset_pegs.append(preset_id)
 		custom_pegs.clear()
 		_build_pegs()
 		for saved_peg in saved_pegs:
@@ -100,13 +110,21 @@ func configure(settings: Dictionary) -> void:
 			else:
 				continue
 			add_custom_peg(Vector2(peg.x, peg.y), peg.z)
+		disabled_preset_pegs = requested_disabled
+		_build_pegs()
 	for ball in balls:
 		_update_radius(ball)
 	queue_redraw()
 
 func threshold_at(time: float) -> float:
-	# The configured target is a point on a continuous line, not a final cap.
-	return threshold_start + (threshold_target - threshold_start) * maxf(0.0, time) / threshold_duration
+	# The target is a point on a continuing exponential curve, not a cap.
+	# d(log T)/dt decreases monotonically: late births still grow harder,
+	# without a constant exponential relative rate. Compute in log space to
+	# avoid raising huge ammunition values or overflowing intermediate terms.
+	var curve_span: float = sqrt(1.0 + threshold_duration / threshold_curve_time) - 1.0
+	var progress: float = (sqrt(1.0 + maxf(0.0, time) / threshold_curve_time) - 1.0) / curve_span
+	var log_growth: float = log(threshold_target / threshold_start) * progress
+	return threshold_start * exp(minf(log_growth, 69.07755278982137 - log(threshold_start))) # 1e30; GPU float32-safe.
 
 func _preset_pegs() -> Array[Vector3]:
 	var defaults: Array[Vector3] = []
@@ -114,7 +132,11 @@ func _preset_pegs() -> Array[Vector3]:
 		defaults.append(Vector3(110.0 + float(column) * 130.0, 194.0, 5.4))
 	for row in range(3):
 		for column in range(4):
-			defaults.append(Vector3(66.0 + float(column) * 108.0 + float(row % 2) * 32.0, 523.0 + float(row) * 100.0, 6.0))
+			# Preserve all 15 editable preset indices and row heights. The old
+			# edge gaps (36/44 units) wedged 72-unit balls between a peg and wall.
+			# These four columns leave >=76 at walls and 80 between peg faces.
+			var stagger: float = 4.0 if row % 2 else -4.0
+			defaults.append(Vector3(102.0 + float(column) * 92.0 + stagger, 523.0 + float(row) * 100.0, 6.0))
 	return defaults
 
 func _build_pegs() -> void:
@@ -122,6 +144,11 @@ func _build_pegs() -> void:
 	pegs.clear()
 	var defaults: Array[Vector3] = _preset_pegs()
 	for index in range(defaults.size()):
+		if not disabled_preset_pegs.has(index):
+			for custom in custom_pegs:
+				if Vector2(defaults[index].x, defaults[index].y).distance_squared_to(Vector2(custom.x, custom.y)) < pow(defaults[index].z + custom.z + 2.0, 2.0):
+					disabled_preset_pegs.append(index)
+					break
 		if not disabled_preset_pegs.has(index):
 			pegs.append(defaults[index])
 	pegs.append_array(custom_pegs)
@@ -408,6 +435,11 @@ func _watch_motion(ball: Dictionary) -> void:
 		simulation_time - float(short_start[2]) >= STILL_WINDOW - MOTION_SAMPLE_PERIOD * 1.1
 		and short_path <= maxf(12.0, radius * 0.9)
 		and short_extent.length() <= maxf(8.0, radius * 0.6)
+		# A ball can leave a support during the confirmation delay while its
+		# 3-second history still looks stationary. Do not teleport a newly
+		# released/falling ball; sustained fast bounded loops use the separate
+		# residence-window detector below.
+		and Vector2(ball["v"]).length() <= maxf(8.0, radius * 0.3)
 	)
 	var first_sample: PackedFloat64Array = samples[0]
 	var full_extent: Vector2 = full_max - full_min
@@ -434,10 +466,50 @@ func _watch_motion(ball: Dictionary) -> void:
 		return
 	# This is a relocation, never a weapon output or multiplier event.
 	# _launch(false) preserves team, exact value, threshold and birth times.
+	var before: Dictionary = {"position": position, "x": position.x, "y": position.y, "velocity": ball["v"], "vx": Vector2(ball["v"]).x, "vy": Vector2(ball["v"]).y, "radius": radius, "mass": ball["mass"], "energy": ball["value"], "threshold": ball["threshold"], "birth_time": ball["birth_time"], "short_path": short_path, "short_extent": short_extent, "full_path": full_path, "full_extent": full_extent, "nearby_contacts": _nearby_contacts(ball)}
 	ball["unstuck_count"] = int(ball.get("unstuck_count", 0)) + 1
 	unstuck_events += 1
 	_launch(ball, false)
-	trigger_log.emit({"type": "unstuck", "team": ball["team"], "ball_id": ball_id, "energy": ball["value"], "time": simulation_time, "reason": "local_loop" if looping else "still"})
+	trigger_log.emit({"type": "unstuck", "team": ball["team"], "ball_id": ball_id, "energy": ball["value"], "time": simulation_time, "reason": "local_loop" if looping else "still", "before": before})
+
+func _nearby_contacts(ball: Dictionary) -> Array[Dictionary]:
+	# Event-only diagnostics. Never changes physical outcomes or allocates
+	# per-frame state; used to distinguish real support from false unsticks.
+	var found: Array[Dictionary] = []
+	var point: Vector2 = ball["p"]
+	var radius: float = ball["r"]
+	for index in range(pegs.size()):
+		var peg: Vector3 = pegs[index]
+		var offset: Vector2 = point - Vector2(peg.x, peg.y)
+		var gap: float = offset.length() - radius - peg.z
+		if gap <= 2.0:
+			found.append({"kind": "peg", "index": index, "center": Vector2(peg.x, peg.y), "gap": gap, "normal": offset.normalized()})
+	var geometry: Array[PackedVector2Array] = []
+	geometry.append_array(channels.polygons)
+	geometry.append_array(channels.bottom_walls)
+	for index in range(geometry.size()):
+		var nearest: Vector2 = Vector2.ZERO
+		var distance: float = INF
+		var polygon: PackedVector2Array = geometry[index]
+		for edge in range(polygon.size()):
+			var candidate: Vector2 = Geometry2D.get_closest_point_to_segment(point, polygon[edge], polygon[(edge + 1) % polygon.size()])
+			var candidate_distance: float = point.distance_to(candidate)
+			if candidate_distance < distance:
+				distance = candidate_distance
+				nearest = candidate
+		if distance - radius <= 2.0:
+			found.append({"kind": "divider" if index < channels.polygons.size() else "floor", "index": index, "point": nearest, "gap": distance - radius, "normal": (point - nearest).normalized()})
+	for other in balls:
+		if int(other["id"]) == int(ball["id"]) or bool(other.get("waiting_spawn", false)):
+			continue
+		var delta: Vector2 = point - Vector2(other["p"])
+		var gap: float = delta.length() - radius - float(other["r"])
+		if gap <= 2.0:
+			found.append({"kind": "ball", "id": other["id"], "gap": gap, "normal": delta.normalized()})
+	for side in [{"kind": "left_wall", "gap": point.x - radius - BOUNDS.position.x}, {"kind": "right_wall", "gap": BOUNDS.end.x - point.x - radius}, {"kind": "top_wall", "gap": point.y - radius - BOUNDS.position.y}]:
+		if float(side["gap"]) <= 2.0:
+			found.append(side)
+	return found
 
 func step(dt: float, sim_time: float) -> void:
 	if dt <= 0.0 or not error.is_empty():

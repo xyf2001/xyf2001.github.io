@@ -1,23 +1,27 @@
-# 可重复的真实运行测试
+# 实际运行验证
 
-在项目根目录运行，Python仅负责启动Godot、硬截止、收集真实断言与保存日志：
+Python启动器只负责启动Godot、截止时间和真实断言收集；无断言、引擎错误、崩溃和超时均不能报告通过。
 
 ```bash
 python3 -m unittest discover -s tests -p 'test_*.py' -v
-python3 tools/run_tests.py --godot /实际路径/Godot --suite cpu --duration 1200 --timeout 900
-python3 tools/run_tests.py --godot /实际路径/Godot --suite gpu --timeout 180
-python3 tools/run_tests.py --godot /实际路径/Godot --suite stress --timeout 300
-python3 tests/check_output_log.py artifacts/tests/实际时间/cpu.log --output artifacts/tests/实际时间/physical_outputs.json
+python3 tools/run_tests.py --godot /路径/Godot --suite all --duration 1800 --timeout 1800
+python3 tools/run_tests.py --godot /路径/Godot --suite stress --timeout 1800
+python3 tools/run_tests.py --godot /路径/Godot --suite battle --duration 1200 --speed 1 --wall-seconds 3600 --timeout 3900
 ```
 
-Windows可用`python tools/run_tests.py --godot "C:/Godot/Godot_v4.6.3-stable_win64_console.exe"`。CPU套件使用无窗口模式；GPU与压力套件必须实际普通窗口Forward+/Vulkan。Linux可用现成DISPLAY，或`--wrapper "xvfb-run -a"`；Xvfb只是显示服务，仍须具备可用Vulkan实现。软件Vulkan的结果不能代表真实显卡帧率。
+`all`包括设置、通道底墙、CPU长局、弹球属性、GPU碰撞/能量、武器和基础GPU回归。`stress`、`battle`须显式选择。CPU/设置套件使用headless；GPU套件必须普通窗口Forward+ / Vulkan，不能用headless假代替。Linux可用现成DISPLAY或`--wrapper 'xvfb-run -a'`。Xvfb仅提供显示服务；仍须有Vulkan。软件Vulkan结果不代表RTX 5060 Ti实际性能。
 
-结果位于`artifacts/tests/<UTC时间>/`：原始`.log`、`results.json`、`REPORT.md`，GPU套件另存实际视口截图`gpu_initial.png`。退出码0表示请求范围内通过，1表示失败（包括无断言、崩溃、超时、脚本错误），77表示仍含NOT TESTED。6个Python测试专门验证不会把空测试、跳过或引擎失败误报为PASS。
+结果保存在`artifacts/tests/<UTC时间>/`：原始`.log`、`results.json`、`REPORT.md`。退出码0为所请求范围通过，1为失败，77为含未测试项目。每项断言均输出`CHROMATIC_TEST` JSON。正式遥测和性能矩阵只读小表/有限采样；物理规则测试的独立小夹具<=4096槽显式使用all_particles调试读回核对全部状态，防止free pool复用非前64物理ID造成遗漏。规则测试的调试读回成本不用于性能对比。
 
-CPU默认主种子1200模拟秒，另外两个种子各120秒。`--duration 120`可以缩短为三次120秒回归；这个结果不能证明20分钟长局。套件分别记录120次人工坐标/相位输入与至少100次正式物理落槽日志，二者明确区分。物理模块的显式故障（例如超过可精确表示范围）也会使有限值检查失败。每60模拟秒打印真实进度与最大速度，便于区分慢模拟与卡死。
+`tools/validation_matrix.gd`使用可复制到旧项目的同一确定性初始条件夹具，正式Compute负责所有后续运动和碰撞。矩阵包括1000/5000/10000/30000/50000/100000活跃粒子、相同1000或10000活跃而容量10k/100k/1M的对照，以及密集交汇、高速狙击、四队风暴。所有档位保持512领土格、768渲染像素、相同固定步长和同阵营碰撞，机枪显式`gun_rate=0`。均匀场景将另外三个核心置死，避免长采样意外核心命中改变活跃数量；物理碰撞仍启用。
 
-GPU规则测试用真实Compute执行注入、移动、空间分区、碰撞、染色、护盾和保命握手。CPU只在这些独立测试中读取最多64个普通粒子、64个大球、少量团队状态与地块，并对照独立能量守恒公式；它不构成游戏的CPU回退路径。截图是单次Debug视口取图，正式游戏渲染不调用该路径。
+```bash
+Godot --path . --rendering-method forward_plus --rendering-driver vulkan --audio-driver Dummy --script res://tools/validation_matrix.gd -- --samples 60 --warmup 10 --profiling false --json res://artifacts/validation/formal.json
+Godot --path . --rendering-method forward_plus --rendering-driver vulkan --audio-driver Dummy --script res://tools/validation_matrix.gd -- --cases uniform:10000:10000,dense_crossing:1000:10000 --samples 12 --warmup 3 --profiling true --json res://artifacts/validation/counters.json
+```
 
-压力测试实际填满10k、50k、100k粒子，每档运行12个完整固定物理步，记录活跃数量、能量、碰撞格占用、溢出、观测视口FPS、GPU耗时和显存缓冲/纹理估计。测试场景是均匀同队二维点阵；它验证实际容量及基础吞吐，不证明密集多队战局60 FPS。默认明确将300k、1M标为NOT TESTED，可在有足够性能的真实显卡上加`--capacity 300000`或`--capacity 1000000`实际测试对应档位。
+优化对比主矩阵必须`profiling=false`，避免新版本原子计数开销造成不公平。另行短测开启计数，报告实际候选/接触；旧版没有候选计数时使用null。每批4字节异步完成栅栏，只在初末读小表。逐批匹配GPU timestamp，按pass记录运动、空间索引、9色碰撞、串行事件、绘制。报告真实drawn FPS均值/1% low、p50/p95/p99帧时间，也分别报告完成固定物理步的吞吐。异步等待期间视口仍可重绘，drawn FPS不能等同于模拟FPS。主线程排队、渲染线程提交CPU时间、异步完成等待墙钟时间分别记录；后者包括驱动/调度延迟，不能称精确CPU-GPU同步时间。分配字节是应用缓冲区/纹理大小，不能冒称物理显存驻留。
 
-自动脚本不能替代Windows实际启动/导出、完整GPU对局20–30分钟、多种子整局、交互观感和长期显存泄漏人工验收。请在`TEST_REPORT.md`逐项记录这些项目的实际状态，不可用CPU长局或短GPU规则测试替代。
+冻结baseline和修改后必须使用完全相同夹具、采样、地图、分辨率、时间步长、发射模式、后端、CPU affinity和线程数。共享主机调度波动在原始样本中保留，不用短样本的中位数宣称精确优化百分比。
+
+`battle`保持真实10000容量、512领土格、768渲染像素和正式弹药成本，绘制左右系统。`--speed 1/2/4`是按真实时钟累积的目标倍率；软件设备追不上时不跳过固定物理。达到wall budget但未达到目标模拟时长时报告NOT TESTED，并记录实际时长。最终小表GPU完成栅栏避免把CPU排队时间冒称已完成GPU对局。禁止再以旧64格地图/4096能量包小规模长局冒充默认对局。

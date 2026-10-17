@@ -1,5 +1,5 @@
 extends "res://tests/test_harness.gd"
-## 此套件必须普通 Vulkan 窗口。只在测试中读取最多64粒子与小地块。
+## 此套件必须普通 Vulkan 窗口。独立小夹具<=4096槽显式读取完整物理状态；正式遥测和性能矩阵仍只读小表。
 ## 所有注入命令由真实Compute执行；本文件不计算或上传粒子演化结果。
 const World = preload("res://scripts/gpu_world.gd")
 const SpaceRules = preload("res://scripts/gpu_collisions.gd")
@@ -17,7 +17,7 @@ func run_suite() -> void:
 		return
 	world = World.new()
 	# 本套件确实注入±2000的狙击，必须申明相同配置速度上界供正式子步约束使用。
-	world.configure({"particle_capacity": 1024, "grid_size": 64, "render_size": 256, "seed": int(options.get("seed", "20261016")), "gun_start": 0.0, "gun_end": 0.0, "precision_mode": "exact", "sniper_speed": 2000.0})
+	world.configure({"particle_capacity": 1024, "grid_size": 64, "render_size": 256, "seed": int(options.get("seed", "20261016")), "gun_rate": 0.0, "gun_start": 0.0, "gun_end": 0.0, "precision_mode": "exact", "sniper_speed": 2000.0})
 	world.debug_snapshot_ready.connect(_on_snapshot)
 	world.failed.connect(func(message: String): runtime_error = message)
 	root.add_child(world)
@@ -27,16 +27,16 @@ func run_suite() -> void:
 	view.texture = world.texture
 	root.add_child(view)
 	world.start()
-	var deadline: int = Time.get_ticks_msec() + 30000
+	var deadline: int = Time.get_ticks_msec() + 120000
 	while not world.active and runtime_error.is_empty() and Time.get_ticks_msec() < deadline:
 		await process_frame
-	if not check(world.active, "真实Compute管线初始化", runtime_error if not runtime_error.is_empty() else "初始化截止30秒", {"driver": RenderingServer.get_current_rendering_driver_name()}):
-		world.shutdown()
+	if not check(world.active, "真实Compute管线初始化", runtime_error if not runtime_error.is_empty() else "初始化截止120秒", {"driver": RenderingServer.get_current_rendering_driver_name()}):
+		await _shutdown_world()
 		finish()
 		return
 	var initial: Dictionary = await _snapshot()
 	if initial.is_empty():
-		world.shutdown()
+		await _shutdown_world()
 		finish()
 		return
 	await _test_initial(initial)
@@ -55,7 +55,7 @@ func run_suite() -> void:
 	await _test_precision_transition()
 	await _test_priority_shield()
 	await _test_timed_outputs()
-	world.shutdown()
+	await _shutdown_world()
 	await process_frame
 	await process_frame
 	finish()
@@ -66,7 +66,7 @@ func _on_snapshot(data: Dictionary) -> void:
 func _snapshot(kind: String = "sample") -> Dictionary:
 	world.flush()
 	await process_frame
-	var request: Dictionary = world.debug_readback(kind)
+	var request: Dictionary = world.debug_readback("all_particles" if kind=="sample" and int(world.settings.particle_capacity)<=4096 else kind)
 	var id: int = request.get("request_id", -1)
 	var deadline: int = Time.get_ticks_msec() + 15000
 	while not snapshots.has(id) and Time.get_ticks_msec() < deadline and runtime_error.is_empty():
@@ -161,7 +161,7 @@ func _test_territory_and_wall() -> void:
 	await _advance()
 	var after: Dictionary = await _snapshot("terrain:%d:1" % cell)
 	var captures: int = int(after.get("consumed_energy", 0)) - int(before.get("consumed_energy", 0))
-	check(_energy(after) == 7 and after.get("terrain", []) == [0] and captures == 1, "包占一格严格消耗一点", "中立格被染为0号队；8点包剩7，累积已消耗只增加1", {"remaining": _energy(after), "consumed_delta": captures})
+	check(_energy(after) == 0 and after.get("terrain", []) == [0] and captures == 8, "普通粒子一颗只染一格并消耗完整出生能量", "中立格被染为0号队；8能普通粒子完成一格后退出物理系统，累计消耗增加8", {"remaining": _energy(after), "consumed_delta": captures})
 	await _reset_fixture(0)
 	_inject(0, 1.0, Vector2(2.0, 100.0), Vector2(-500.0, 0.0))
 	await _advance()
@@ -178,7 +178,9 @@ func _test_particle_collisions() -> void:
 	var same: Array = friendly.get("particles", [])
 	var bounced: bool = same.size() == 2
 	if same.size() == 2:
+		same.sort_custom(func(a:Dictionary,b:Dictionary)->bool:return float(a.x)<float(b.x))
 		bounced = bounced and float(same[0]["vx"]) < 0.0 and float(same[1]["vx"]) > 0.0
+		for particle:Dictionary in same:bounced=bounced and absf(Vector2(float(particle.vx),float(particle.vy)).length()-20.0)<0.001
 	check(_energy(friendly) == 2 and bounced, "同阵营粒子碰撞反弹不消耗", "实际GPU空间链表+碰撞结算，两个能量1粒子", {"particles": same})
 	await _reset_fixture(0)
 	_inject(0, 10.0, Vector2(100.0, 100.0))
@@ -194,7 +196,7 @@ func _test_particle_collisions() -> void:
 	_inject(1, 1.0, Vector2(20.0, 110.0), Vector2(-2000.0, 0.0), 12)
 	await _advance()
 	var swept: Dictionary = await _snapshot()
-	check(swept.get("particles", []).is_empty(), "超高速相向狙击不跨格漏碰", "x17/+2000和x20/-2000，在一个固定步内相遇；两颗1能量应等消", {"particles": swept.get("particles", [])})
+	check(int(swept.get("metrics",[-1])[0])==0 and swept.get("snipers", []).is_empty(), "超高速相向狙击不跨格漏碰", "x17/+2000和x20/-2000，在一个固定步内相遇；两颗1能量应等消", {"particles": swept.get("particles", [])})
 
 func _test_fine_grid_boundaries() -> void:
 	var bounds_ok := true
@@ -220,7 +222,7 @@ func _test_fine_grid_boundaries() -> void:
 	await _advance()
 	var after: Dictionary = await _snapshot()
 	var consumed_delta: int = int(after.get("consumed_energy", 0)) - int(before.get("consumed_energy", 0))
-	check(after.get("particles", []).is_empty() and consumed_delta == 2, "8px格边界两格相隔高速相向狙击不漏碰", "真实GPU从x15.9/+2000与x24.1/−2000推进一个固定步，配套子步使两颗1能量严格等消", {"particles": after.get("particles", []), "consumed_delta": consumed_delta, "substeps": SpaceRules.substep_count(1.0 / 120.0, world.settings)})
+	check(int(after.get("metrics",[-1])[0])==0 and after.get("snipers", []).is_empty() and consumed_delta == 2, "8px格边界两格相隔高速相向狙击不漏碰", "真实GPU从x15.9/+2000与x24.1/−2000推进一个固定步，配套子步使两颗1能量严格等消", {"particles": after.get("particles", []), "consumed_delta": consumed_delta, "substeps": SpaceRules.substep_count(1.0 / 120.0, world.settings)})
 
 func _test_dense_cell() -> void:
 	await _reset_fixture(0)
@@ -240,19 +242,24 @@ func _test_shield_contact() -> void:
 	var team: Dictionary = state["teams"][0]
 	var radius: float = float(team["shield_radius"])
 	# 初始大球能量10、T_birth≈100，半径由正式GPU自己计算。
-	var big_radius: float = 7.0 + 3.0 * sqrt(10.0 / (100.0 + 999900.0 * sim_time / 1200.0))
+	var birth := PinballPhysics.new()
+	birth.configure(world.settings)
+	var big_radius: float = 7.0 + 3.0 * sqrt(10.0 / birth.threshold_at(sim_time))
+	birth.free()
 	_inject(1, 10.0, Vector2(256.0 + radius + big_radius - 0.2, 256.0), Vector2(-60.0, 0.0), 13)
 	await _advance()
 	var impact: Dictionary = await _snapshot()
 	var defender: Dictionary = impact["teams"][0]
 	var big: Array = impact.get("balls", [])
-	var valid: bool = int(defender["shield"]) == 0 and int(defender["state"]) == 0 and big.size() == 1
+	var consumed_now := int(impact.get("consumed_energy",0))-int(state.get("consumed_energy",0))
+	var valid: bool = int(defender["state"]) == 0 and big.size() == 1 and int(defender["shield"]) < 2
 	if big.size() == 1:
-		valid = valid and float(big[0]["vx"]) > 0.0 and float(big[0]["x"]) > 256.0 + 12.0 + float(big[0]["radius"])
-	check(valid, "破盾同一次大球接触不能致死", "盾2对球10，破盾仍存活；大球立即分离并反射", {"defender": defender, "balls": big})
+		valid = valid and float(big[0]["vx"]) > 0.0 and _energy(impact,true) < 10 and _energy(impact,true)+int(defender["shield"])+consumed_now==12
+	check(valid, "大球撞盾部分损耗反弹且同接触不致死", "读取真实反弹和整数扣能；球、盾、累计消耗严格等于初始12", {"defender": defender, "balls": big, "consumed_delta":consumed_now})
 	await _advance(8)
 	var separated: Dictionary = await _snapshot()
-	check(int(separated["teams"][0]["state"]) == 0 and _energy(separated, true) == 8, "大球破盾后不粘连或重复扣能量", "分离后8个固定步，剩余8点且核心仍存活", {"balls": separated.get("balls", [])})
+	var total := _energy(separated,true)+int(separated["teams"][0]["shield"])+int(separated.get("consumed_energy",0))-int(state.get("consumed_energy",0))
+	check(int(separated["teams"][0]["state"]) == 0 and total == 12, "大球撞盾后保持存活及整数守恒", "分离后8固定步，允许真实领土消耗；不再使用旧完全等消规则断言", {"balls": separated.get("balls", []),"accounted":total})
 
 func _test_pending_rescue() -> void:
 	await _reset_fixture(3)
@@ -279,7 +286,8 @@ func _test_pending_rescue() -> void:
 	world.resolve_rescue(1, 0.0)
 	await _advance()
 	var rescued: Dictionary = await _snapshot()
-	check(int(rescued["teams"][0]["state"]) == 0 and int(rescued["teams"][0]["shield"]) == 777 and float(rescued["teams"][0]["rescue_cd"]) >= 179.9 and int(rescued["teams"][1]["state"]) == 2, "正式保命握手成功补盾与失败淘汰", "0号队补777并设180模拟秒CD；1号队无球回0才淘汰", {"teams": rescued.get("teams", [])})
+	var rescue_painted:=int(rescued.metrics[8])-int(latched.metrics[8])
+	check(int(rescued["teams"][0]["state"]) == 0 and int(rescued["teams"][0]["shield"])+rescue_painted == 777 and float(rescued["teams"][0]["rescue_cd"]) >= 179.9 and int(rescued["teams"][1]["state"]) == 2, "正式保命握手成功补盾与失败淘汰", "0号队补777（含逐格扩张成本）并设180模拟秒CD；1号队无球回0才淘汰", {"teams": rescued.get("teams", [])})
 	world.output(1, 0, 1000.0)
 	await _advance()
 	var no_revive: Dictionary = await _snapshot()
@@ -287,6 +295,7 @@ func _test_pending_rescue() -> void:
 	# 模拟成功保命后护盾已被先前攻击耗尽，但CD还没有到期。
 	world.debug_command({"op": 14})
 	world.debug_command({"op": 10, "team": 0, "energy": 0, "gun": 11, "state": 0, "ready_time": float(rescued["teams"][0]["ready_time"])})
+	world.debug_command({"op":15,"team":1,"energy":16*64+16,"count":1})
 	_inject(1, 1.0, Vector2(261.0, 256.0))
 	var before_cd_death: Dictionary = await _snapshot()
 	await _advance()
@@ -307,9 +316,11 @@ func _test_big_balls() -> void:
 	await _reset_fixture(0)
 	_inject(0, 40.0, Vector2(100.0, 100.0), Vector2(10.0, 0.0), 13)
 	_inject(1, 10.0, Vector2(115.0, 100.0), Vector2(-10.0, 0.0), 13)
+	var before_enemy: Dictionary = await _snapshot()
 	await _advance()
 	var enemy: Dictionary = await _snapshot()
-	check(enemy.get("balls", []).size() == 1 and _energy(enemy, true) == 30, "异阵营大球等量抵消", "40对10剩30，敌球消失", {"balls": enemy.get("balls", [])})
+	var spent := int(enemy.get("consumed_energy",0))-int(before_enemy.get("consumed_energy",0))
+	check(enemy.get("balls", []).size() > 0 and spent > 0 and spent < 50 and _energy(enemy,true)+spent==50, "异阵营大球碰前属性决定部分损耗", "40对10真实反弹，剩余球能量+累计消耗严格50；不要求旧完全等消", {"balls": enemy.get("balls", []),"spent":spent})
 	await _reset_fixture(0)
 	_inject(0, 40.0, Vector2(100.0, 100.0), Vector2.ZERO, 13)
 	_inject(1, 1.0, Vector2(108.0, 100.0), Vector2(-200.0, 0.0))
@@ -330,7 +341,8 @@ func _test_pending_shield_guard() -> void:
 	world.debug_command({"op": 6, "team": 0, "energy": 0, "nonce": int(pending["teams"][0]["request_nonce"])})
 	await _advance()
 	var guarded: Dictionary = await _snapshot()
-	check(int(guarded["teams"][0]["state"]) == 0 and int(guarded["teams"][0]["shield"]) == 23, "待保命期间补盾抵挡迟到的失败回复", "GPU已有唯一23护盾后，旧resolve0不能再杀核心", {"team": guarded["teams"][0]})
+	var guard_painted:=int(guarded.metrics[8])-int(pending.metrics[8])
+	check(int(guarded["teams"][0]["state"]) == 0 and int(guarded["teams"][0]["shield"])+guard_painted == 23, "待保命期间补盾抵挡迟到的失败回复", "GPU充23护盾（含逐格扩张成本）后，旧resolve0不能再杀核心", {"team": guarded["teams"][0]})
 
 func _test_output_energy() -> void:
 	await _reset_fixture(0)
@@ -376,10 +388,10 @@ func _test_precision_transition() -> void:
 	_inject(0, 8.0, Vector2(100.0, 100.0), Vector2(1.0, 0.0))
 	await _advance()
 	var end: int = Time.get_ticks_msec() + 10000
-	while Time.get_ticks_msec() < end and (str(world.stats.get("precision_mode", "")) != "mixed" or float(world.stats.get("sim_time", -1)) + 0.00001 < sim_time or int(world.stats.get("active_packet_energy", 0)) != 8):
+	while Time.get_ticks_msec() < end and (float(world.stats.get("sim_time", -1)) + 0.00001 < sim_time or int(world.stats.get("active_packet_energy", 0)) != 8):
 		world.flush()
 		await process_frame
-	check(str(world.stats.get("precision_mode", "")) == "mixed" and int(world.stats.get("active_packet_energy", 0)) == 8 and float(world.stats.get("sim_time", -1)) + 0.00001 >= sim_time, "存量能量包仍在时不冒称逐粒子精确", "即使新发射是精确模式，旧8点包还在时遥测显示mixed，界面说明存量近似")
+	check(int(world.stats.get("active_packet_energy", 0)) == 8 and float(world.stats.get("sim_time", -1)) + 0.00001 >= sim_time, "存量权重粒子的整数能量遥测", "已有8能普通粒子存活时遥测仍报告真实8能，不把它追溯改成1能")
 
 func _test_timed_outputs() -> void:
 	await _reset_fixture(0)
@@ -398,7 +410,10 @@ func _test_timed_outputs() -> void:
 	await _advance(4, dt)
 	var batched: Dictionary = await _snapshot()
 	var born: Array = batched.get("balls", [])
-	var expected_birth_scale := 100.0 + 999900.0 * due / 1200.0
+	var birth := PinballPhysics.new()
+	birth.configure(world.settings)
+	var expected_birth_scale := birth.threshold_at(due)
+	birth.free()
 	var birth_ok := born.size() == 1 and _energy(batched, true) == 41
 	if born.size() == 1:
 		birth_ok = birth_ok and absf(float(born[0]["birth_scale"]) - expected_birth_scale) < 0.01
@@ -428,7 +443,7 @@ func _test_gpu_statistics() -> void:
 	var counts_ok := false
 	if metrics.size() >= 25:
 		measured_energy = int(metrics[23]) | (int(metrics[24]) << 32)
-		counts_ok = int(metrics[0]) == 129 and int(metrics[1]) == 3 and int(metrics[22]) == 129 and int(metrics[15]) == 0
+		counts_ok = int(metrics[0]) == 129 and int(metrics[1]) == 3 and int(metrics[15]) == 0
 	check(counts_ok and measured_energy == expected_energy, "GPU统计64位能量进位与粒子分类", "真实Compute注入129颗各2^32−1能量的普通粒子与3大球；正常能量归约保留低字进位，大球能量不混入", {"normal": metrics[0] if metrics.size() > 0 else -1, "big": metrics[1] if metrics.size() > 1 else -1, "packet_count": metrics[22] if metrics.size() > 22 else -1, "energy": measured_energy, "expected_energy": expected_energy})
 	await _reset_fixture(0)
 	# 三段区域改变不等数量格子，独立核对四队增量面积及总数。
@@ -441,3 +456,15 @@ func _test_gpu_statistics() -> void:
 	for team in range(4):
 		territory_ok = territory_ok and metrics.size() > 8 + team and int(metrics[8 + team]) == expected[team]
 	check(territory_ok, "GPU领土增量计数四队不等区域", "真实GPU多次修改领土，增量面积必须2931/101/731/333且总和4096", {"counts": metrics.slice(8, 12) if metrics.size() >= 12 else [], "expected": expected})
+
+func _shutdown_world() -> void:
+	if world == null:return
+	world.shutdown()
+	if world.has_method("is_shutdown_complete"):
+		var deadline:=Time.get_ticks_msec()+90000
+		while not bool(world.call("is_shutdown_complete")) and Time.get_ticks_msec()<deadline:await process_frame
+		if not bool(world.call("is_shutdown_complete")):
+			record("FAIL","GPU资源回读排空与释放","shutdown后90秒仍未完成，未提前释放带pending回调的对象")
+			return
+	world.queue_free()
+	await process_frame

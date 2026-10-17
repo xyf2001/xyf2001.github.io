@@ -264,23 +264,24 @@ func _build_settings() -> void:
 	_number(items, "air_height", "空气墙高度", 40, 280, 5, "游戏单位")
 	_number(items, "air_width", "空气墙宽度", 30, 98, 2, "游戏单位")
 	_number(items, "air_exponent", "空气墙半径响应曲线", 0.5, 8, 0.1, "指数")
-	_section(items, "02  数值与体积 · 门槛按模拟时间线性增长")
+	_section(items, "02  数值与体积 · 门槛指数增长、相对增速渐缓")
 	_number(items, "growth_target", "体积门槛目标", 100, 1000000000, 1000, "能量")
-	_number(items, "growth_duration", "门槛增长时长", 1, 7200, 30, "模拟秒")
+	_number(items, "growth_duration", "门槛目标达到时间", 1, 7200, 30, "模拟秒")
+	_number(items, "growth_curve_time", "门槛增长缓和时间", 1, 7200, 30, "模拟秒")
 	_number(items, "radius_min", "弹药球最小半径", 4, 9, 0.5, "游戏单位")
 	_number(items, "radius_max", "弹药球最大半径", 12, 40, 0.5, "游戏单位")
 	_number(items, "radius_k", "半径增长系数", 0.1, 30, 0.5, "游戏单位")
 	_section(items, "03  武器、护盾与紧急保命")
 	_number(items, "intro_shield", "初始唯一护盾", 0, 1000000000, 1000, "能量")
 	_number(items, "intro_gun", "初始机枪库存", 0, 1000000000, 1000, "能量")
-	_number(items, "gun_rate", "机枪固定射速", 0, 10000, 10, "粒子/模拟秒")
+	_number(items, "gun_rate", "机枪固定射速（0调试停火）", 0, 10000, 10, "粒子/模拟秒")
 	_number(items, "gun_rotation_speed", "机枪旋转速度", 0.1, 6, 0.05, "弧度/模拟秒")
+	_number(items, "gun_target_switch_cd", "机枪目标切换冷却", 0, 2, 0.01, "模拟秒")
 	_number(items, "particle_cost_delay", "粒子成本开始增长", 0, 7200, 1, "模拟秒")
 	_number(items, "particle_cost_growth", "每模拟秒粒子成本增量", 0, 100, 0.01, "弹药/模拟秒")
-	_number(items, "storm_ring_particles", "风暴每圈粒子上限", 12, 512, 1, "粒子")
 	_number(items, "storm_ring_interval", "风暴圈间隔", 0.02, 2, 0.01, "模拟秒")
 	var cost_note := Label.new()
-	cost_note.text = "普通粒子在发射时锁定成本；一颗只染一格。\n风暴按圈发射，弹药越多圈数越多，不足一颗的弹药保留。"
+	cost_note.text = "机枪射速固定，补弹时锁定单发能量；尾发用尽不足一发的余量。\n正常射速下库存耗尽才停火。风暴每圈固定 360 颗、最多 3 圈，整数分配输入。"
 	cost_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	cost_note.add_theme_font_size_override("font_size", 12)
 	cost_note.add_theme_color_override("font_color", MUTED)
@@ -289,8 +290,10 @@ func _build_settings() -> void:
 	_number(items, "ball_min_speed", "大球最低移速", 1, 500, 1, "游戏单位/模拟秒")
 	_number(items, "sniper_speed", "狙击高能弹速度", 50, 2000, 10, "游戏单位/模拟秒")
 	_number(items, "sniper_charge_time", "狙击蓄能时长", 0, 3, 0.05, "模拟秒")
+	_number(items, "sniper_split_angle", "狙击分裂偏角", 0, 30, 0.1, "度")
 	var sniper_note := Label.new()
-	sniper_note.text = "狙击蓄能后发射一枚高能弹，沿出膛方向飞行。"
+	sniper_note.text = "狙击不会被普通粒子偏转；墙、敌盾、敌大球的新接触触发分裂。\n接触结算后的余能按主弹 70% / 子弹 30% 分配，余数归主弹，最多 3 级。"
+	sniper_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sniper_note.add_theme_font_size_override("font_size", 12)
 	sniper_note.add_theme_color_override("font_color", MUTED)
 	items.add_child(sniper_note)
@@ -313,7 +316,7 @@ func _build_settings() -> void:
 	_choice(items, "fixed_dt", "固定模拟步长", [["1/60 模拟秒", 1.0 / 60], ["1/120 模拟秒", 1.0 / 120], ["1/240 模拟秒", 1.0 / 240]])
 	_number(items, "fps_limit", "显示帧率上限", 0, 240, 10, "0 = 不限制")
 	var warning := Label.new()
-	warning.text = "容量、网格、渲染分辨率、步长与随机种子需要新开局。\n粒子出生能量随模拟时间增长，存量粒子保持原能量。\n流畅预设不降低分辨率；增大容量会增加计算与显存开销。"
+	warning.text = "容量、网格、渲染分辨率、步长与随机种子需要新开局。\n已发射粒子保留自身整数能量，机枪单发能量在补弹时更新。\n流畅预设保留分辨率和真实碰撞；容量增加会占用更多显存。"
 	warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	warning.add_theme_font_size_override("font_size", 12)
 	warning.add_theme_color_override("font_color", MUTED)
@@ -381,7 +384,7 @@ func update_state(data: Dictionary) -> void:
 	var active := bool(data.get("gpu_active", false))
 	var current_cost := 1 + int(floor(maxf(time - float(_config["particle_cost_delay"]), 0.0) * float(_config["particle_cost_growth"])))
 	current_cost = int(stats.get("current_particle_cost", current_cost))
-	_status.text = ("● GPU 常驻 · Texture2DRD 直显" if active else "● GPU 管线未就绪") + "  |  每粒 %s 弹药 · 一粒染一格" % _number_text(current_cost)
+	_status.text = ("● GPU 常驻 · Texture2DRD 直显" if active else "● GPU 管线未就绪") + "  |  当前粒子基准成本 %s 弹药" % _number_text(current_cost)
 	_status.add_theme_color_override("font_color", ACCENT if active else Color("ffb66e"))
 	var gpu_ms := float(stats.get("gpu_ms", data.get("gpu_ms", -1.0)))
 	var timing := "GPU %.2f ms" % gpu_ms if gpu_ms >= 0 else "GPU 计时不可用"
@@ -391,7 +394,7 @@ func update_state(data: Dictionary) -> void:
 	if stats.has("device") and device != _logged_device:
 		_logged_device = device
 		print("CHROMATIC_GPU_DEVICE " + device)
-	_threshold.text = "体积门槛 " + _compact(float(pinball.get("threshold", lerpf(100.0, float(_config["growth_target"]), maxf(time / float(_config["growth_duration"]), 0.0)))))
+	_threshold.text = "体积门槛 " + _compact(float(pinball.get("threshold", _growth_threshold(time))))
 	var count := int(stats.get("active_particles", stats.get("active", stats.get("particles", 0))))
 	var big := int(stats.get("big_balls", stats.get("big", 0)))
 	var queue := float(stats.get("queue_energy", stats.get("queued_energy", stats.get("backlog", 0))))
@@ -411,7 +414,7 @@ func update_state(data: Dictionary) -> void:
 	_error.visible = not error_text.is_empty()
 	_error.text = "模拟已停止\n" + error_text + "\n\n请修正参数或新开局。图形错误需要 Godot 4.3+、Forward+、Vulkan显卡与驱动。" if not error_text.is_empty() else ""
 	var balls: Variant = pinball.get("balls", [])
-	var diag := "GPU: %s\n活跃弹药球 %d / 16\n当前粒子成本 %s 弹药\n一粒染一格 · 出生能量锁定\n固定步长 %.3f 模拟毫秒\n" % [device, int(pinball.get("active_count", pinball.get("active_balls", 16))), _number_text(current_cost), float(data.get("fixed_dt", _config["fixed_dt"])) * 1000]
+	var diag := "GPU: %s\n活跃弹药球 %d / 16\n粒子基准成本 %s 弹药\n机枪补弹锁能 · 整数结算\n固定步长 %.3f 模拟毫秒\n" % [device, int(pinball.get("active_count", pinball.get("active_balls", 16))), _number_text(current_cost), float(data.get("fixed_dt", _config["fixed_dt"])) * 1000]
 	if balls is Array and not balls.is_empty():
 		if _details_panel.visible:
 			_update_ball_table(balls)
@@ -425,7 +428,7 @@ func update_state(data: Dictionary) -> void:
 	_diagnostic_text = JSON.stringify({"version": ProjectSettings.get_setting("application/config/version", "initial"), "device": device, "fps": float(data.get("fps", 0.0)),
 		"gpu_ms": gpu_ms, "sim_time": time, "paused": bool(data.get("paused", false)),
 		"time_scale": data.get("settings", _config).get("time_scale", 0.25), "time_backlog": data.get("time_backlog", 0.0),
-		"fixed_dt": data.get("fixed_dt", _config["fixed_dt"]), "particle_model": "birth_cost_one_cell", "current_particle_cost": current_cost,
+		"fixed_dt": data.get("fixed_dt", _config["fixed_dt"]), "particle_model": "source_locked_integer_energy", "current_particle_cost": current_cost,
 		"friendly_particle_collisions": _config["friendly_particle_collisions"],
 		"active_particles": count, "particle_capacity": stats.get("particle_capacity", _config["particle_capacity"]),
 		"big_balls": big, "queue_energy": queue, "grid_size": grid,
@@ -468,12 +471,13 @@ func _update_team(index: int, team: Dictionary) -> void:
 	var territory := float(team.get("territory", team.get("territory_ratio", 0.25)))
 	if territory <= 1:
 		territory *= 100
-	var shield := float(team.get("shield", team.get("shield_energy", 0)))
-	var gun := float(team.get("gun", team.get("gun_energy", 0)))
+	# GPU整数库存可超过float64精确整数范围；完整数字/提示保留原int64低位。
+	var shield := int(team.get("shield", team.get("shield_energy", 0)))
+	var gun := int(team.get("gun", team.get("gun_energy", 0)))
 	var cd := float(team.get("rescue_cd", team.get("emergency_cd", 0)))
 	var cd_text := "就绪" if cd <= 0 else "%.1f 模拟秒" % cd
-	_team_labels[index].text = "%s · 领土 %.1f%%\n护盾 %s\n机枪 %s\n紧急保命 %s" % [state, territory, _number_text(int(shield)), _number_text(int(gun)), cd_text]
-	_team_labels[index].tooltip_text = "护盾 %s\n机枪 %s\n保命冷却 %.3f 模拟秒" % [_number_text(int(shield)), _number_text(int(gun)), cd]
+	_team_labels[index].text = "%s · 领土 %.1f%%\n护盾 %s\n机枪 %s\n紧急保命 %s" % [state, territory, _number_text(shield), _number_text(gun), cd_text]
+	_team_labels[index].tooltip_text = "护盾 %s\n机枪 %s\n保命冷却 %.3f 模拟秒" % [_number_text(shield), _number_text(gun), cd]
 
 func _input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
@@ -654,6 +658,14 @@ func _compact(value: float) -> String:
 	if value >= 10000:
 		return "%.2f万" % (value / 10000)
 	return "%.0f" % value
+
+func _growth_threshold(sim_time: float) -> float:
+	# 与 PinballPhysics 的弛缓指数相同；没有左侧遥测时才使用备用显示。
+	var curve_time := float(_config["growth_curve_time"])
+	var target_time := float(_config["growth_duration"])
+	var curve_denominator := sqrt(1.0 + target_time / curve_time) - 1.0
+	var curve_progress := (sqrt(1.0 + maxf(sim_time, 0.0) / curve_time) - 1.0) / curve_denominator
+	return exp(minf(69.07755278982137, log(100.0) + log(float(_config["growth_target"]) / 100.0) * curve_progress))
 
 func _number_text(value: int) -> String:
 	var digits := str(value)

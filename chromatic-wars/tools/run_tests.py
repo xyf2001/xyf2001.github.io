@@ -79,11 +79,13 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", default=shutil.which("godot") or shutil.which("godot4"))
     parser.add_argument("--project", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--suite", choices=["cpu", "channel_floor", "settings", "gpu", "stress", "battle", "all"], default="all")
+    parser.add_argument("--suite", choices=["cpu", "channel_floor", "pinball_properties", "settings", "gpu", "contact_energy", "pool_integrity", "weapon_validation", "stress", "battle", "all"], default="all")
     parser.add_argument("--timeout", type=float, default=900, help="每个套件的真实时间截止秒数")
     parser.add_argument("--duration", type=float, default=1200, help="左侧长局测试的模拟秒数")
     parser.add_argument("--seed", type=int, default=20261016)
     parser.add_argument("--capacity", type=int, default=10000, help="GPU 压力测试容量")
+    parser.add_argument("--speed", type=float, default=1.0, choices=[1.0, 2.0, 4.0], help="完整对局的目标模拟倍率")
+    parser.add_argument("--wall-seconds", type=float, default=3600, help="长局真实时间预算，达到预算但不足目标模拟时长会标记未测试")
     parser.add_argument("--wrapper", default="", help="图形套件的可选命令前缀，例如 xvfb-run -a")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--import-project", action="store_true", help="先在图形环境执行编辑器导入")
@@ -94,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
     timestamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     output_dir = (args.output or args.project / "artifacts" / "tests" / timestamp).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    suites = ["settings", "cpu", "gpu"] if args.suite == "all" else [args.suite]
+    suites = ["settings", "channel_floor", "cpu", "pinball_properties", "contact_energy", "pool_integrity", "weapon_validation", "gpu"] if args.suite == "all" else [args.suite]
     report = {"started_utc": timestamp, "project": str(args.project), "suites": [],
               "seed": args.seed, "duration_sim_seconds": args.duration,
               "host": {"platform": sys.platform}, "godot": args.godot}
@@ -126,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
             if not script.is_file():
                 report["suites"].append({"name": suite, "status": "NOT TESTED", "reason": "测试脚本尚不存在"})
                 continue
-            graphical = suite not in {"cpu", "channel_floor", "settings"}
+            graphical = suite not in {"cpu", "channel_floor", "settings", "pinball_properties"}
             if graphical and not env.get("DISPLAY") and not env.get("WAYLAND_DISPLAY") and not args.wrapper:
                 report["suites"].append({"name": suite, "status": "NOT TESTED",
                     "reason": "没有图形显示。GPU 套件必须使用 Vulkan 普通窗口，可通过 --wrapper 'xvfb-run -a' 运行；不能用 --headless 代替"})
@@ -134,7 +136,8 @@ def main(argv: list[str] | None = None) -> int:
             command = (shlex.split(args.wrapper) if graphical else []) + common
             command += (["--rendering-method", "forward_plus", "--rendering-driver", "vulkan", "--audio-driver", "Dummy"] if graphical else ["--headless"])
             command += ["--script", "res://tests/" + suite + "_suite.gd", "--", "--seed", str(args.seed),
-                        "--duration", str(args.duration), "--capacity", str(args.capacity), "--artifact-dir", str(output_dir)]
+                        "--duration", str(args.duration), "--capacity", str(args.capacity), "--speed", str(args.speed),
+                        "--wall_seconds", str(args.wall_seconds), "--artifact-dir", str(output_dir)]
             log_path = output_dir / (suite + ".log")
             print(f"正在运行 {suite}，截止 {args.timeout:g} 秒；日志：{log_path}", flush=True)
             outcome = run_command(command, args.project, log_path, args.timeout, env)

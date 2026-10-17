@@ -21,6 +21,7 @@ var first_texture := false
 var font: Font
 var editor_mode := false
 var editor_preview: Node2D
+var quitting := false
 
 func _ready() -> void:
 	font = ThemeDB.fallback_font
@@ -70,15 +71,19 @@ func _ready() -> void:
 	_restart()
 
 func _restart() -> void:
+	if quitting: return
 	_set_editor_mode(false)
 	generation += 1
-	if world != null:
-		world.shutdown()
+	var old_world: GPUWorld = world
+	if old_world != null:
+		old_world.shutdown()
 		# RD释放排在渲染线程队列；延后回收节点，让小表异步回调先完成。
-		retired.append(world)
-		world.set_process(false)
-		_dispose_retired(world)
+		retired.append(old_world)
+		old_world.set_process(false)
 	world = GPUWorld.new()
+	# 同步释放快路径也必须看到新引用，否则退役函数会把旧对象误认成当前world而跳过回收。
+	if old_world != null:
+		_dispose_retired(old_world)
 	add_child(world)
 	world.configure(settings)
 	var current_generation := generation
@@ -123,8 +128,8 @@ func _restart() -> void:
 	queue_redraw()
 
 func _dispose_retired(old: GPUWorld) -> void:
-	# Godot异步读回通常延后数个渲染帧；保留8帧后移除空壳，避免每次重开累积Node。
-	for index in 8:
+	# 旧回调仍绑定该节点。真正收到RD释放确认且回调归还后才可回收。
+	while is_instance_valid(old) and not old.is_shutdown_complete():
 		await get_tree().process_frame
 	if is_instance_valid(old) and old != world:
 		retired.erase(old)
@@ -233,7 +238,7 @@ func _performance_preset() -> void:
 	# 只改变发射负载参数；不降低画面或领土精度。
 	settings["particle_cost_delay"] = 60.0
 	settings["particle_cost_growth"] = 0.25
-	settings["storm_ring_particles"] = 96
+	settings["storm_ring_particles"] = 360
 	settings["storm_ring_interval"] = 0.10
 	settings = GameSettings.validate(settings)
 	var save_error := GameSettings.save_file(settings)
@@ -315,8 +320,22 @@ func _draw() -> void:
 			HORIZONTAL_ALIGNMENT_LEFT, 780, 21, Color("ffb879"))
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		if world != null: world.shutdown()
-		for old in retired: old.shutdown()
-		# 渲染线程资源清理先排队，进程退出由Godot完成同步。
-		get_tree().quit()
+	if what == NOTIFICATION_WM_CLOSE_REQUEST and not quitting:
+		quitting = true
+		paused = true
+		one_step = false
+		_shutdown_and_quit()
+
+func _shutdown_and_quit() -> void:
+	# 读回回调绑定节点；退出也要等待回调归还和RD释放确认，不能仅排队就销毁树。
+	var closing: Array[GPUWorld] = retired.duplicate()
+	if world != null: closing.append(world)
+	for target in closing:
+		if is_instance_valid(target): target.shutdown()
+	var complete := false
+	while not complete:
+		complete = true
+		for target in closing:
+			if is_instance_valid(target) and not target.is_shutdown_complete(): complete = false
+		if not complete: await get_tree().process_frame
+	get_tree().quit()

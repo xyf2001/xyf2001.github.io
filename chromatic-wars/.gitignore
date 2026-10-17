@@ -1,3 +1,6 @@
 .godot/
 *.tmp
 export/
+__pycache__/
+runtime/
+artifacts/**/*.import

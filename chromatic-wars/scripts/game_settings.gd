@@ -4,20 +4,20 @@ extends RefCounted
 
 const CONFIG_PATH := "user://chromatic_wars.cfg"
 const CAPACITIES := [10000, 50000, 100000, 300000, 1000000]
-const LIVE_KEYS := ["gravity", "restitution", "friction", "air_force", "air_height", "air_width", "air_exponent", "growth_target", "growth_duration", "radius_min", "radius_max", "radius_k", "gun_rate", "gun_rotation_speed", "particle_cost_delay", "particle_cost_growth", "storm_ring_particles", "storm_ring_interval", "ball_speed", "ball_min_speed", "sniper_speed", "sniper_charge_time", "shield_scale", "shield_max_diameter", "emergency_cd", "particle_radius", "friendly_particle_collisions", "trail_length", "visual_density", "fps_limit", "time_scale", "channel_width_8", "channel_width_4", "channel_width_2", "custom_pegs", "disabled_preset_pegs", "peg_radius"]
+const LIVE_KEYS := ["gravity", "restitution", "friction", "air_force", "air_height", "air_width", "air_exponent", "growth_target", "growth_duration", "growth_curve_time", "radius_min", "radius_max", "radius_k", "gun_rate", "gun_rotation_speed", "gun_target_switch_cd", "particle_cost_delay", "particle_cost_growth", "storm_ring_interval", "ball_speed", "ball_min_speed", "sniper_speed", "sniper_charge_time", "sniper_split_angle", "shield_scale", "shield_max_diameter", "emergency_cd", "particle_radius", "friendly_particle_collisions", "trail_length", "visual_density", "fps_limit", "time_scale", "channel_width_8", "channel_width_4", "channel_width_2", "custom_pegs", "disabled_preset_pegs", "peg_radius"]
 
 static func defaults() -> Dictionary:
 	return {
 		"gravity": 820.0, "restitution": 1.0, "friction": 0.0,
 		"air_force": 2950.0, "air_height": 180.0, "air_width": 96.0, "air_exponent": 2.8,
-		"growth_target": 1000000.0, "growth_duration": 1200.0,
+		"growth_target": 1000000.0, "growth_duration": 1200.0, "growth_curve_time": 1200.0,
 		"radius_min": 4.2, "radius_max": 36.0, "radius_k": 3.0,
 		"intro_shield": 1000000.0, "intro_gun": 1000000.0,
-		"gun_rate": 1200.0, "gun_rotation_speed": 1.7,
+		"gun_rate": 1200.0, "gun_rotation_speed": 1.7, "gun_target_switch_cd": 0.08,
 		"gun_start": 1200.0, "gun_end": 1200.0, "gun_duration": 1200.0,
 		"particle_cost_delay": 60.0, "particle_cost_growth": 0.25,
-		"storm_ring_particles": 96, "storm_ring_interval": 0.10,
-		"ball_speed": 92.0, "ball_min_speed": 40.0, "sniper_speed": 620.0, "sniper_charge_time": 0.65,
+		"storm_ring_particles": 360, "storm_ring_interval": 0.10,
+		"ball_speed": 92.0, "ball_min_speed": 40.0, "sniper_speed": 620.0, "sniper_charge_time": 0.65, "sniper_split_angle": 8.0,
 		"shield_scale": 1.0, "shield_max_diameter": 389.12,
 		"channel_width_8": 37.0, "channel_width_4": 47.0, "channel_width_2": 67.0,
 		"custom_pegs": [], "disabled_preset_pegs": [], "peg_radius": 6.0,
@@ -43,6 +43,8 @@ static func load_file() -> Dictionary:
 	# 旧版起止射速迁移为恒定射速；保留用户自定义的末端值。
 	if not file.has_section_key("游戏", "gun_rate"):
 		config.erase("gun_rate")
+		if not file.has_section_key("游戏", "gun_end") and file.has_section_key("游戏", "gun_rate_end"):
+			config["gun_end"] = file.get_value("游戏", "gun_rate_end")
 	return validate(config)
 
 static func save_file(config: Dictionary) -> Error:
@@ -58,14 +60,14 @@ static func validate(config: Dictionary) -> Dictionary:
 		"gravity": [50.0, 2000.0], "restitution": [0.05, 1.0], "friction": [0.0, 0.3],
 		"air_force": [0.0, 12000.0], "air_height": [40.0, 280.0], "air_width": [30.0, 98.0],
 		"air_exponent": [0.5, 8.0], "growth_target": [100.0, 1000000000.0],
-		"growth_duration": [1.0, 7200.0], "radius_min": [4.0, 9.0],
+		"growth_duration": [1.0, 7200.0], "growth_curve_time": [1.0, 7200.0], "radius_min": [4.0, 9.0],
 		"radius_max": [12.0, 40.0], "radius_k": [0.1, 30.0],
 		"intro_shield": [0.0, 1000000000.0], "intro_gun": [0.0, 1000000000.0],
-		"gun_rate": [0.0, 10000.0], "gun_rotation_speed": [0.1, 6.0],
+		"gun_rate": [0.0, 10000.0], "gun_rotation_speed": [0.1, 6.0], "gun_target_switch_cd": [0.0, 2.0],
 		"particle_cost_delay": [0.0, 7200.0], "particle_cost_growth": [0.0, 100.0],
 		"storm_ring_interval": [0.02, 2.0],
 		"ball_speed": [10.0, 500.0], "ball_min_speed": [1.0, 500.0],
-		"sniper_speed": [50.0, 2000.0], "sniper_charge_time": [0.0, 3.0],
+		"sniper_speed": [50.0, 2000.0], "sniper_charge_time": [0.0, 3.0], "sniper_split_angle": [0.0, 30.0],
 		"shield_scale": [0.25, 3.0], "shield_max_diameter": [32.0, 768.0],
 		"channel_width_8": [12.0, 100.0], "channel_width_4": [12.0, 100.0], "channel_width_2": [12.0, 100.0],
 		"peg_radius": [3.0, 24.0],
@@ -118,7 +120,7 @@ static func validate(config: Dictionary) -> Dictionary:
 				disabled_preset_pegs.append(entry)
 	disabled_preset_pegs.sort()
 	result["disabled_preset_pegs"] = disabled_preset_pegs
-	for key: String in ["particle_capacity", "grid_size", "render_size", "storm_ring_particles", "fps_limit", "seed"]:
+	for key: String in ["particle_capacity", "grid_size", "render_size", "fps_limit", "seed"]:
 		var value: Variant = config.get(key, result[key])
 		if value is int or value is float:
 			if is_finite(float(value)):
@@ -129,7 +131,8 @@ static func validate(config: Dictionary) -> Dictionary:
 		result["grid_size"] = 512
 	if not result["render_size"] in [512, 768, 1024, 1536]:
 		result["render_size"] = 768
-	result["storm_ring_particles"] = clampi(int(result["storm_ring_particles"]), 12, 512)
+	# 每圈固定 360 颗、最多 3 圈是战斗规则；旧配置的 96 颗等值统一迁移。
+	result["storm_ring_particles"] = 360
 	result["fps_limit"] = clampi(int(result["fps_limit"]), 0, 240)
 	result["seed"] = clampi(int(result["seed"]), 0, 2147483647)
 	# 旧配置的粒子包开关不再改变战斗规则；普通粒子使用出生时成本。
