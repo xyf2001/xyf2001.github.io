@@ -780,7 +780,11 @@ void claim(uint i,uint index) {if(p[i].info.w==0u||owner[index]==p[i].info.z)ret
  if(less64(remaining,cost)){set_energy(i,uvec2(0u));consumed(remaining);return;}
  set_territory_owner(index,p[i].info.z);spend(i,cost);stat[3]++;consumed(cost);
 }
-void terrain_events(uint i) {if(p[i].info.w==0u)return;uint n=terrain_size();float unit=world()/float(n);vec2 a=p[i].geom.zw,b=p[i].pv.xy;
+void terrain_events(uint i) {if(p[i].info.w==0u)return;uint n=terrain_size(),own=p[i].info.z;
+ // 每颗实体读取当下权威面积，不跨实体缓存；全图己色时claim没有任何归属或能量写入。
+ // 保留大球原有的半径刷新副作用；敌地继续原来的完整逐格路径。
+ if(own<4u&&stat[8u+own]==n*n){if(p[i].info.w==3u)p[i].geom.x=ball_radius(i);return;}
+ float unit=world()/float(n);vec2 a=p[i].geom.zw,b=p[i].pv.xy;
  if(p[i].info.w!=3u){
   // Amanatides/Woo DDA：精确遍历中心轨迹真正经过的每一格，无采样跳格或固定次数截断。
   ivec2 cell=clamp(ivec2(floor(a/unit)),ivec2(0),ivec2(int(n)-1));ivec2 last=clamp(ivec2(floor(b/unit)),ivec2(0),ivec2(int(n)-1));vec2 ray=b-a;ivec2 step_dir=ivec2(sign(ray));vec2 t_delta=vec2(1e30),t_max=vec2(1e30);

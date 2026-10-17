@@ -44,6 +44,7 @@ func run_suite() -> void:
 	await _test_gpu_statistics()
 	await _test_territory_and_wall()
 	await _test_unit_territory_energy()
+	await _test_full_own_terrain_same_substep()
 	await _test_high_energy_territory("开局阶段")
 	await _test_particle_collisions()
 	await _test_fine_grid_boundaries()
@@ -275,6 +276,70 @@ func _test_unit_territory_energy() -> void:
 		depletion_valid = depletion_valid and _territory_fixture_entities(later, op).is_empty() and later.get("terrain", []) == [0, 0, 1, 1] and int(later.get("consumed_energy", 0)) == int(exhausted.get("consumed_energy", 0))
 		check(depletion_valid, "%s耗尽只完成最后付费格并立即退出物理" % fixture["label"], "2能高速扫过4敌格，只能染前2格；后2格保持敌色，后续2步不得继续染色或重复计损耗", {"terrain": exhausted.get("terrain", []), "consumed_delta": depletion_consumed, "entities_after_exhaustion": _territory_fixture_entities(exhausted, op), "later_terrain": later.get("terrain", [])})
 	sim_time = clock_before
+
+func _test_full_own_terrain_same_substep() -> void:
+	# A full-own-terrain fast path must consult the live incremental count
+	# separately for every entity, never cache it across an events pass.
+	var saved: Dictionary = {}
+	for key in ["particle_radius", "particle_speed", "sniper_speed", "ball_speed"]:
+		saved[key] = world.settings[key]
+	# The suite normally permits2000-speed snipers, which would subdivide
+	# 1/240 into4 steps and conceal a cached-per-substep ownership mistake.
+	world.update_settings({"particle_radius": 1.4, "particle_speed": 140.0, "sniper_speed": 140.0, "ball_speed": 42.0})
+	await _reset_fixture(0)
+	var positions: Array[Vector2] = [Vector2(98, 98), Vector2(103, 103), Vector2(108, 108)]
+	var teams: Array[int] = [0, 1, 0]
+	for index in range(3):
+		# Commands execute FIFO and append to the live-ID list. Reused pool
+		# IDs need not be increasing, so identity is captured before moving.
+		_inject(teams[index], 10.0, positions[index], Vector2(140, 0))
+	var before: Dictionary = await _snapshot()
+	var ids: Array[int] = []
+	var setup_valid: bool = before.get("particles", []).size() == 3 and int(before.metrics[8]) == 4096
+	for index in range(3):
+		var found := -1
+		for particle: Dictionary in before.get("particles", []):
+			if Vector2(float(particle.x), float(particle.y)).distance_to(positions[index]) < 0.001 and int(particle.team) == teams[index] and int(particle.type) == 1 and int(particle.energy) == 10:
+				found = int(particle.id)
+		ids.append(found)
+		setup_valid = setup_valid and found >= 0
+	var dt: float = 1.0 / 240.0
+	var planned_substeps: int = SpaceRules.substep_count(dt, world.settings)
+	await _advance(1, dt)
+	# Do not call_snapshot here: its empty flush resets the reported last
+	# batch step count to0. Read this real batch directly, with no flushes.
+	var request: Dictionary = world.debug_readback("all_particles")
+	var request_id: int = request.get("request_id", -1)
+	var deadline: int = Time.get_ticks_msec() + 15000
+	while not snapshots.has(request_id) and Time.get_ticks_msec() < deadline and runtime_error.is_empty():
+		await process_frame
+	if not snapshots.has(request_id):
+		world.update_settings(saved)
+		record("FAIL", "全己色同子步即时面积计数", runtime_error if not runtime_error.is_empty() else "15秒内没有完成无空flush的实际批次回读")
+		return
+	var after: Dictionary = snapshots[request_id]
+	snapshots.erase(request_id)
+	var terrain: Dictionary = await _snapshot("terrain:%d:1" % (6 * 64 + 6))
+	var by_id: Dictionary = {}
+	for particle: Dictionary in after.get("particles", []):
+		by_id[int(particle.id)] = particle
+	var expected_energy: Array[int] = [10, 9, 9]
+	var observed_energy: Array[int] = []
+	var valid: bool = setup_valid and planned_substeps == 1 and int(after.get("substeps_in_last_batch", -1)) == 1 and by_id.size() == 3
+	for index in range(3):
+		var particle: Dictionary = by_id.get(ids[index], {})
+		var remaining: int = int(particle.get("energy", -1))
+		observed_energy.append(remaining)
+		valid = valid and remaining == expected_energy[index]
+		if not particle.is_empty():
+			var expected_position: Vector2 = positions[index] + Vector2(140.0 * dt, 0.0)
+			valid = valid and int(particle.team) == teams[index] and int(particle.type) == 1 and Vector2(float(particle.x), float(particle.y)).distance_to(expected_position) < 0.001 and Vector2(float(particle.vx), float(particle.vy)).distance_to(Vector2(140, 0)) < 0.001
+	var consumed_delta: int = int(after.get("consumed_energy", 0)) - int(before.get("consumed_energy", 0))
+	var collision_delta: int = int(after.metrics[2]) - int(before.metrics[2])
+	var counts: Array = after.metrics.slice(8, 12)
+	valid = valid and consumed_delta == 2 and collision_delta == 0 and counts == [4096, 0, 0, 0] and terrain.get("terrain", []) == [0] and _energy(after) + consumed_delta == 30
+	check(valid, "全己色早退逐实体读取即时面积、同子步敌染后己方收回", "真实FIFO注入队0/1/0同格不重叠粒子；唯一子步应依次免费/扣1/扣1，能量10/9/9、消耗2、全图归0，禁止跨粒子缓存全己色判定", {"allocation_ids": ids, "observed_energy": observed_energy, "consumed_delta": consumed_delta, "collision_delta": collision_delta, "area_counts": counts, "terrain": terrain.get("terrain", []), "planned_substeps": planned_substeps, "actual_substeps": after.get("substeps_in_last_batch", -1), "particles": after.get("particles", [])})
+	world.update_settings(saved)
 
 func _test_particle_collisions() -> void:
 	await _reset_fixture(0)
