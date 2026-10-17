@@ -1,0 +1,30 @@
+{
+  "provenance": "User-provided manual telemetry from version 1.5.2; not measured or verified in cloud environment",
+  "reported_cpu": "AMD Ryzen 7 9800X3D",
+  "reported_gpu": "NVIDIA GeForce RTX 5080",
+  "baseline_commit": "c88e5e7f504253f60cffd42393c6d464e715dd05",
+  "diagnostic": {
+    "active_particle_energy": 19187,
+    "active_particles": 2067,
+    "big_balls": 0,
+    "device": "NVIDIA GeForce RTX 5080",
+    "fixed_dt": 0.00833333333333333,
+    "fps": 4.0,
+    "friendly_particle_collisions": false,
+    "gpu_ms": 174.268256,
+    "grid_size": 1024,
+    "overflow_count": 0,
+    "particle_capacity": 10000,
+    "particle_model": "weighted_integer_energy",
+    "paused": false,
+    "queue_energy": 0.0,
+    "render_size": 1536,
+    "sim_time": 30.3999999999989,
+    "time_backlog": 0.00647633333333835,
+    "time_scale": 0.25,
+    "version": "1.5.2-continuous-territory"
+  },
+  "timing_scope": "gpu_ms is the last captured GPU batch duration including that batch's substeps and rendering, not a single-step duration",
+  "current_version_performance": "NOT TESTED",
+  "same_conditions_after_change": "NOT TESTED; no improvement percentage available"
+}

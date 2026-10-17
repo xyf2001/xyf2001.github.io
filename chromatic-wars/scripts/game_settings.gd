@@ -3,6 +3,7 @@ extends RefCounted
 ## 配置只写入 user://，不改工程或锁定资源。validate 总是返回可安全使用的完整配置。
 
 const CONFIG_PATH := "user://chromatic_wars.cfg"
+const TIME_SCALE_DEFAULT_REVISION := 1
 const CAPACITIES := [10000, 50000, 100000, 300000, 1000000]
 const LIVE_KEYS := ["gravity", "restitution", "friction", "air_force", "air_height", "air_width", "air_exponent", "growth_target", "growth_duration", "growth_curve_time", "radius_min", "radius_max", "radius_k", "gun_rate", "gun_rotation_speed", "gun_target_switch_cd", "gun_discharge_duration", "storm_ring_interval", "ball_speed", "ball_min_speed", "sniper_speed", "sniper_charge_time", "sniper_split_angle", "shield_scale", "shield_max_diameter", "emergency_cd", "particle_radius", "friendly_particle_collisions", "trail_length", "visual_density", "fps_limit", "time_scale", "channel_width_8", "channel_width_4", "channel_width_2", "custom_pegs", "disabled_preset_pegs", "peg_radius"]
 
@@ -30,7 +31,7 @@ static func defaults() -> Dictionary:
 		"friendly_particle_collisions": true,
 		"trail_length": 0.12, "visual_density": 1.0,
 		"packet_energy": 1, "precision_mode": "exact", "fixed_dt": 1.0 / 120.0,
-		"fps_limit": 60, "time_scale": 0.25, "seed": 20261016,
+		"fps_limit": 60, "time_scale": 1.0, "seed": 20261016,
 	}
 
 static func load_file() -> Dictionary:
@@ -45,13 +46,26 @@ static func load_file() -> Dictionary:
 		config.erase("gun_rate")
 		if not file.has_section_key("游戏", "gun_end") and file.has_section_key("游戏", "gun_rate_end"):
 			config["gun_end"] = file.get_value("游戏", "gun_rate_end")
-	return validate(config)
+	# 独立元数据只迁移一次旧默认0.25。新版用户主动保存的慢速必须在以后加载时保留。
+	var stored_revision: Variant = file.get_value("metadata", "time_scale_default_revision", 0)
+	var revision := int(stored_revision) if stored_revision is int else 0
+	var migrate_default_speed := revision < TIME_SCALE_DEFAULT_REVISION
+	var saved_scale: Variant = file.get_value("游戏", "time_scale", null)
+	if migrate_default_speed and (saved_scale is int or saved_scale is float) and is_finite(float(saved_scale)) and float(saved_scale) == 0.25:
+		config["time_scale"] = 1.0
+	var validated := validate(config)
+	if migrate_default_speed:
+		var save_error := save_file(validated)
+		if save_error != OK:
+			push_warning("默认1倍速已应用，但升级配置保存失败：" + error_string(save_error))
+	return validated
 
 static func save_file(config: Dictionary) -> Error:
 	var file := ConfigFile.new()
 	var validated := validate(config)
 	for key: String in validated:
 		file.set_value("游戏", key, validated[key])
+	file.set_value("metadata", "time_scale_default_revision", TIME_SCALE_DEFAULT_REVISION)
 	return file.save(CONFIG_PATH)
 
 static func validate(config: Dictionary) -> Dictionary:
@@ -141,5 +155,5 @@ static func validate(config: Dictionary) -> Dictionary:
 	if not float(result["fixed_dt"]) in [1.0 / 60.0, 1.0 / 120.0, 1.0 / 240.0]:
 		result["fixed_dt"] = 1.0 / 120.0
 	if not float(result["time_scale"]) in [0.25, 0.5, 1.0, 2.0, 4.0]:
-		result["time_scale"] = 0.25
+		result["time_scale"] = 1.0
 	return result

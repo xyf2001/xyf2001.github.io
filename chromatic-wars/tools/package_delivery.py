@@ -145,7 +145,7 @@ def main() -> None:
     windows_notes.write_text(
         "颜色大战 · Windows x64\n\n"
         "解压整个压缩包，运行颜色大战.exe。需要Windows10/11、可用Vulkan显卡与驱动。\n"
-        "默认0.25倍速；空格暂停/继续，N单步，R重开，Tab参数，F12截图。\n"
+        "默认1倍速；空格暂停/继续，N单步，R重开，Tab参数，F12截图。\n"
         f"{validation_notes}"
         "本构建未在Windows系统或实体显卡上运行，不能承诺硬件性能。\n"
         "运行错误会显示中文原因。完整可编辑源工程在另一个Godot工程ZIP。\n"

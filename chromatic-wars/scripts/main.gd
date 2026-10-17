@@ -3,6 +3,7 @@ extends Node2D
 
 const BATTLE_RECT := Rect2(530, 112, 850, 850)
 var settings: Dictionary = {}
+var gpu_start_settings: Dictionary = {}
 var pinball: PinballPhysics
 var world: GPUWorld
 var ui: GameUI
@@ -57,6 +58,7 @@ func _ready() -> void:
 	ui = GameUI.new()
 	add_child(ui)
 	ui.setup(settings)
+	ui.diagnostic_provider = _collect_diagnostic_state
 	ui.pause_pressed.connect(_toggle_pause)
 	ui.step_pressed.connect(func(): paused = true; one_step = true)
 	ui.restart_pressed.connect(_restart)
@@ -87,6 +89,8 @@ func _restart() -> void:
 		_dispose_retired(old_world)
 	add_child(world)
 	world.configure(settings)
+	# 仅记录这代真正提交给configure的归一化开局配置；后续UI待重开值不能覆盖它。
+	gpu_start_settings = world.settings.duplicate(true)
 	var current_generation := generation
 	world.initialized.connect(func():
 		if current_generation == generation:
@@ -184,7 +188,7 @@ func _process(delta: float) -> void:
 		var dt := active_dt
 		if not paused:
 			# 真实帧时长只为固定步提供预算；所有游戏计时使用下方推进的模拟秒。
-			accumulator += delta * float(settings.get("time_scale", 0.25))
+			accumulator += delta * float(settings.get("time_scale", 1.0))
 		var steps := 0
 		while ((not paused and accumulator >= dt) or one_step) and steps < 8:
 			elapsed += dt
@@ -217,6 +221,44 @@ func _process(delta: float) -> void:
 func _weapon_output(team: int, kind: int, energy: float) -> void:
 	if world != null: world.output(team, kind, energy, elapsed)
 
+func _collect_diagnostic_state() -> Dictionary:
+	# 只在用户点击复制时汇总小表和配置，不读_rt_settings、不请求任何GPU读回。
+	var submitted: Dictionary = world.settings.duplicate(true) if world != null else {}
+	var pending_restart: Dictionary = {}
+	var restart_keys: Array[String] = ["particle_capacity", "grid_size", "render_size", "seed", "intro_shield", "intro_gun", "fixed_dt"]
+	for team_index: int in 4:
+		restart_keys.append("core_%d_x" % team_index)
+		restart_keys.append("core_%d_y" % team_index)
+	for key: String in restart_keys:
+		var active_value: Variant = active_dt if key == "fixed_dt" else gpu_start_settings.get(key)
+		if settings.get(key) != active_value:
+			pending_restart[key] = {"active_start_value":active_value, "desired_value":settings.get(key)}
+	var pinball_configuration := {
+		"gravity":pinball.gravity, "restitution":pinball.restitution, "friction":pinball.friction,
+		"radius_min":pinball.radius_min, "radius_max":pinball.radius_max, "radius_gain":pinball.radius_gain,
+		"threshold_start":pinball.threshold_start, "threshold_target":pinball.threshold_target,
+		"threshold_duration":pinball.threshold_duration, "threshold_curve_time":pinball.threshold_curve_time,
+		"active_seed":pinball.active_seed, "static_revision":pinball.static_revision,
+		"air":pinball.air.snapshot(), "air_reference_radius":pinball.air.reference_radius, "air_spread":pinball.air.spread,
+		"channels":pinball.channels.snapshot(), "conveyor":pinball.conveyor.snapshot(),
+		"custom_pegs":pinball.custom_pegs.duplicate(), "disabled_preset_pegs":pinball.disabled_preset_pegs.duplicate(),
+		"actual_pegs":pinball.pegs.duplicate()}
+	var configuration := {
+		"source":{"desired":"validated main.settings in memory", "gpu_start":"GPUWorld.configure normalized settings captured for this generation", "gpu_submitted":"main-thread GPUWorld.settings; submission is not GPU confirmation", "pinball_effective":"current CPU PinballPhysics fields and layout", "startup_provider":"GameSettings.load_file", "saved_config_path":GameSettings.CONFIG_PATH, "saved_config_exists":FileAccess.file_exists(GameSettings.CONFIG_PATH), "saved_config_compared":false, "supported_time_scale_default_revision":GameSettings.TIME_SCALE_DEFAULT_REVISION},
+		"desired":settings.duplicate(true), "gpu_start":gpu_start_settings.duplicate(true), "gpu_submitted":submitted,
+		"gpu_start_initialized":world != null and world.active, "gpu_parameters_confirmed":false,
+		"gpu_submitted_scope":"GPU parameter fields only; CPU-only entries may retain start values, use pinball_effective for current left physics",
+		"weapon_plan_scope":"gun_rate and gun_discharge_duration are submitted settings; a current magazine keeps its refill-locked plan, which is not additionally read back",
+		"pending_restart":pending_restart, "pinball_effective":pinball_configuration,
+		"runtime_effective":{"fixed_dt":active_dt, "target_time_scale":settings.get("time_scale", 1.0), "fps_limit":Engine.max_fps}}
+	return {"sim_time":elapsed, "paused":paused, "fixed_dt":active_dt, "fps":Engine.get_frames_per_second(),
+		"gpu_active":world != null and world.active, "error":pinball.error if not pinball.error.is_empty() else (world.error_message if world != null else "GPU未创建"),
+		"stats":world.stats.duplicate(true) if world != null else {}, "pinball":pinball.snapshot(), "time_backlog":accumulator,
+		"settings":settings, "configuration":configuration,
+		"diagnostic_runtime":{"generation":generation, "world_instance_id":world.get_instance_id() if world != null else 0,
+			"retired_world_count":retired.size(), "editor_mode":editor_mode, "quitting":quitting,
+			"recent_trigger_history":trigger_history.duplicate(true), "rescue_attempts":rescue_attempts.duplicate(true)}}
+
 func _trigger_log(data: Dictionary) -> void:
 	trigger_history.append(data)
 	if trigger_history.size() > 256: trigger_history.pop_front()
@@ -233,7 +275,7 @@ func _settings_changed(config: Dictionary) -> void:
 	if world != null and world.has_method("update_settings"):
 		world.call("update_settings", settings)
 	# 容量、地图精度和输出纹理在面板标明新开局生效；此处不隐式重建。
-	if float(previous.get("time_scale", 0.25)) != float(settings.get("time_scale", 0.25)):
+	if float(previous.get("time_scale", 1.0)) != float(settings.get("time_scale", 1.0)):
 		accumulator = 0.0
 
 func _toggle_pause() -> void:

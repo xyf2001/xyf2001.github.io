@@ -5,7 +5,7 @@ func run_suite() -> void:
 	var machine := PinballPhysics.new()
 	machine.configure(config)
 	check(machine.gravity == config.gravity and machine.friction == config.friction and machine.radius_min == config.radius_min and machine.air.reference_radius == machine.radius_min, "参数UI可接受范围与实际物理一致", "低重力/大摩擦/最小球半径都按同一边界验证，不在物理层静默改为另一数值", {"gravity":config.gravity,"friction":config.friction,"radius_min":config.radius_min})
-	check(config.fixed_dt == 1.0 / 120.0 and config.time_scale == 0.25, "离散时步与速度配置不产生显示错位", "手改存档中的非菜单数值安全回到明确默认值")
+	check(config.fixed_dt == 1.0 / 120.0 and config.time_scale == 1.0, "离散时步与速度配置不产生显示错位", "手改存档中的非菜单数值安全回到明确默认值")
 	var not_finite := GameSettings.validate({"gravity":NAN,"growth_target":INF})
 	check(is_finite(not_finite.gravity) and is_finite(not_finite.growth_target), "配置拒绝NaN和无穷", "非法数值不会进入物理或GPU参数")
 	var exact := GameSettings.validate({"precision_mode":"exact","packet_energy":4096})

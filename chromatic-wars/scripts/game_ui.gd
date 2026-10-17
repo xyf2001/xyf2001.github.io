@@ -43,6 +43,9 @@ var _syncing := false
 var _built := false
 var _notice_until := 0
 var _diagnostic_text := ""
+var _diagnostic_payload: Dictionary = {}
+var _diagnostic_state: Dictionary = {}
+var diagnostic_provider: Callable
 var _logged_device := ""
 var _editor_toggle: CheckButton
 var _peg_count: Label
@@ -135,16 +138,14 @@ func _build() -> void:
 	tip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	diagnostic_heading.add_child(tip)
 	var copy_diagnostics := Button.new()
-	copy_diagnostics.text = "复制"
+	copy_diagnostics.text = "复制完整诊断与配置"
+	copy_diagnostics.tooltip_text = "手动复制版本、设备、遥测和全部当前设置；区分开局配置、已提交参数与待新开局设置。不自动上传。"
 	copy_diagnostics.add_theme_font_size_override("font_size", 11)
-	copy_diagnostics.pressed.connect(func():
-		DisplayServer.clipboard_set(_diagnostic_text)
-		print("CHROMATIC_DIAGNOSTICS " + _diagnostic_text)
-	)
-	diagnostic_heading.add_child(copy_diagnostics)
+	copy_diagnostics.pressed.connect(_copy_complete_diagnostics)
+	detail_box.add_child(copy_diagnostics)
 	_ball_details = RichTextLabel.new()
 	_ball_details.bbcode_enabled = false
-	_ball_details.custom_minimum_size = Vector2(160, 96)
+	_ball_details.custom_minimum_size = Vector2(160, 72)
 	_ball_details.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_ball_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_ball_details.scroll_active = true
@@ -378,6 +379,7 @@ func _build_settings() -> void:
 func update_state(data: Dictionary) -> void:
 	if not _built:
 		return
+	_diagnostic_state = data.duplicate()
 	var time := float(data.get("sim_time", 0.0))
 	_clock.text = "模拟 %02d:%02d" % [int(time) / 60, int(time) % 60]
 	_pause.text = "继续" if bool(data.get("paused", false)) else "暂停"
@@ -427,16 +429,83 @@ func update_state(data: Dictionary) -> void:
 		if not largest.is_empty():
 			diag += "最大球 #%s · %s\n数值 %s / 半径 %.1f 游戏单位" % [str(largest.get("id", "—")), TEAM_NAMES[clampi(int(largest.get("team", 0)), 0, 3)], _compact(float(largest.get("value", largest.get("ammo", 0)))), float(largest.get("radius", 0))]
 	_ball_details.text = diag
-	_diagnostic_text = JSON.stringify({"version": ProjectSettings.get_setting("application/config/version", "initial"), "device": device, "fps": float(data.get("fps", 0.0)),
+	# 保留旧顶层字段的小摘要。全量配置仅在点击复制时生成和序列化。
+	_diagnostic_payload = {"version": ProjectSettings.get_setting("application/config/version", "initial"), "device": device, "fps": float(data.get("fps", 0.0)),
 		"gpu_ms": gpu_ms, "sim_time": time, "paused": bool(data.get("paused", false)),
-		"time_scale": data.get("settings", _config).get("time_scale", 0.25), "time_backlog": data.get("time_backlog", 0.0),
+		"time_scale": data.get("settings", _config).get("time_scale", 1.0), "time_backlog": data.get("time_backlog", 0.0),
 		"fixed_dt": data.get("fixed_dt", _config["fixed_dt"]), "particle_model": "weighted_integer_energy", "active_particle_energy": particle_energy,
 		"friendly_particle_collisions": _config["friendly_particle_collisions"],
 		"active_particles": count, "particle_capacity": stats.get("particle_capacity", _config["particle_capacity"]),
 		"big_balls": big, "queue_energy": queue, "grid_size": grid,
-		"render_size": _config["render_size"], "overflow_count": overflow})
+		"render_size": _config["render_size"], "overflow_count": overflow}
+	_diagnostic_text = JSON.stringify(_diagnostic_payload)
 	if Time.get_ticks_msec() > _notice_until:
 		_notice.text = "放柱模式：左键放置 / 右键删除  ·  参数内可关闭" if _editor_toggle.button_pressed else "空格 暂停  ·  N 单步  ·  R 重开  ·  Tab 参数"
+
+func _copy_complete_diagnostics() -> void:
+	if diagnostic_provider.is_valid():
+		var fresh: Variant = diagnostic_provider.call()
+		if fresh is Dictionary:
+			update_state(fresh)
+	var payload := _diagnostic_payload.duplicate(true)
+	var configuration: Dictionary = _diagnostic_state.get("configuration", {})
+	if configuration.is_empty():
+		configuration = {"desired":_config.duplicate(true), "source":{"desired":"UI configuration only; runtime provider unavailable"}, "gpu_parameters_confirmed":false}
+	var submitted: Dictionary = configuration.get("gpu_submitted", {})
+	# 顶层名称与旧诊断兼容，渲染尺寸使用本局已提交值，不误报待重开的UI值。
+	for key: String in ["particle_capacity", "grid_size", "render_size"]:
+		if submitted.has(key):
+			payload[key] = submitted[key]
+	if submitted.has("friendly_particle_collisions"):
+		payload["friendly_particle_collisions"] = submitted["friendly_particle_collisions"]
+	payload["diagnostic_schema"] = 2
+	payload["capture"] = {"source":"manual_copy", "utc":Time.get_datetime_string_from_system(true), "gpu_readback_requested":false, "automatic_upload":false,
+		"gpu_telemetry_sim_time":_diagnostic_state.get("stats", {}).get("sim_time", null)}
+	payload["engine"] = {"godot":Engine.get_version_info(), "os":OS.get_name(), "rendering_method":RenderingServer.get_current_rendering_method(), "rendering_driver":RenderingServer.get_current_rendering_driver_name()}
+	payload["settings"] = configuration
+	payload["runtime"] = _diagnostic_state.get("diagnostic_runtime", {})
+	payload["telemetry"] = _diagnostic_state.get("stats", {})
+	payload["pinball"] = _diagnostic_state.get("pinball", {})
+	payload["error"] = _diagnostic_state.get("error", "")
+	payload["encoding"] = {"vectors":"component objects; custom/actual pegs use x,y,z with z=radius in game units", "objects":"font and other engine objects omitted", "nonfinite_numbers":"null", "integers":"decimal JSON integers; use lossless parsing for values above 2^53"}
+	_diagnostic_text = JSON.stringify(_json_safe(payload))
+	DisplayServer.clipboard_set(_diagnostic_text)
+	print("CHROMATIC_DIAGNOSTICS " + _diagnostic_text)
+	_notify("已复制完整诊断与配置；未上传")
+
+func _json_safe(value: Variant, depth: int = 0) -> Variant:
+	if depth > 20:
+		return null
+	if value is Dictionary:
+		var safe: Dictionary = {}
+		for key: Variant in value:
+			var entry: Variant = value[key]
+			if str(key) == "font" or entry is Object or entry is Callable or entry is Signal or entry is RID:
+				continue
+			safe[str(key)] = _json_safe(entry, depth + 1)
+		return safe
+	if value is Array or value is PackedByteArray or value is PackedInt32Array or value is PackedInt64Array or value is PackedFloat32Array or value is PackedFloat64Array or value is PackedStringArray or value is PackedVector2Array or value is PackedVector3Array or value is PackedColorArray:
+		var safe_array: Array = []
+		for entry: Variant in value:
+			if entry is Object or entry is Callable or entry is Signal or entry is RID:
+				continue
+			safe_array.append(_json_safe(entry, depth + 1))
+		return safe_array
+	if value is Vector2 or value is Vector2i:
+		return {"x":_json_safe(value.x, depth + 1), "y":_json_safe(value.y, depth + 1)}
+	if value is Vector3 or value is Vector3i:
+		return {"x":_json_safe(value.x, depth + 1), "y":_json_safe(value.y, depth + 1), "z":_json_safe(value.z, depth + 1)}
+	if value is Color:
+		return {"r":_json_safe(value.r, depth + 1), "g":_json_safe(value.g, depth + 1), "b":_json_safe(value.b, depth + 1), "a":_json_safe(value.a, depth + 1)}
+	if value is Rect2 or value is Rect2i:
+		return {"position":_json_safe(value.position, depth + 1), "size":_json_safe(value.size, depth + 1)}
+	if value is float:
+		return value if is_finite(value) else null
+	if value is StringName:
+		return str(value)
+	if value == null or value is bool or value is int or value is String:
+		return value
+	return null
 
 func set_editor_mode(enabled: bool) -> void:
 	if _editor_toggle:

@@ -4,6 +4,8 @@
 // std430: Particle=64B, Team=128B, Command=32B。CPU只读Team/64字统计。
 // 每个dispatch之间必须插入compute barrier；9色碰撞每色单独dispatch。
 layout(local_size_x=64, local_size_y=1, local_size_z=1) in;
+// 各模式独立specialization管线，非本阶段的函数在驱动编译时可裁掉。
+layout(constant_id=0) const uint KERNEL_MODE=0u;
 struct Particle { vec4 pv; uvec4 info; vec4 geom; uvec4 aux; };
 struct Team { uvec4 shield_gun; uvec4 storm_sniper; uvec4 life; vec4 clocks;
               uvec4 accounting; vec4 core; uvec4 misc; vec4 visual; };
@@ -29,8 +31,8 @@ layout(set=0,binding=11,std430) restrict buffer ParticlePool { uint pool[]; };
 // First two uvec3 are VkDispatchIndirectCommand records. The remaining words are
 // optional diagnostics; they are never used as authoritative game state.
 layout(set=0,binding=12,std430) restrict buffer DispatchDiagnostics { uint dispatch_data[]; };
-// 每个存活槽本子步已付费的首接触前缀，单位为模拟秒；不改Particle64B布局。
-layout(set=0,binding=13,std430) restrict buffer TerrainPrefixes { float terrain_paid_until[]; };
+// 每槽8B：x为模拟秒float位，y为限制前缀的粒子ID；末尾两记录存大球mask/宽弹标志。
+layout(set=0,binding=13,std430) restrict buffer TerrainPrefixes { uvec2 terrain_prefix[]; };
 // 宽狙击弹使用独立32单位粗格；不扩大普通粒子的九色并行邻域。
 layout(set=0,binding=14,std430) restrict buffer WideProjectileSpace { uint wide_space[]; };
 layout(push_constant,std430) uniform Push { uvec4 control; vec4 clock; } pc;
@@ -537,7 +539,7 @@ void build_space(uint i) {if(i>=cap()||p[i].info.w==0u)return;
  // AI摘要与空间链同一并行pass构建；快粒子也必须先参与，绝不影响碰撞候选。
  summarize_gun_projectile(i);
  if(fast_particle(i)){p[i].aux.w=1u;next_id[i]=int(atomicExchange(stat[30],i));return;}
- if(p[i].info.w==2u){p[i].aux.w=2u;uint c=p[i].info.z*WIDE_COLUMNS*WIDE_COLUMNS+wide_cell(pair_endpoint(i));wide_space[WIDE_HEADS+i]=atomicExchange(wide_space[c],i);return;}
+ if(p[i].info.w==2u){p[i].aux.w=2u;uint c=p[i].info.z*WIDE_COLUMNS*WIDE_COLUMNS+wide_cell(pair_endpoint(i));wide_space[WIDE_HEADS+i]=atomicExchange(wide_space[c],i);atomicOr(terrain_prefix[total()+1u].x,1u);return;}
  p[i].aux.w=0u;uint c=p[i].info.z*cols()*cols()+cell_index(pair_endpoint(i));next_id[i]=atomicExchange(head[c],int(i));}
 // 9色中心格的3×3邻域互不相交，单线程负责一个中心格，故没有两个线程修改同一粒子。
 // 链表遍历直到-1，不存在32/64粒子截断。pair按索引排序只结算一次。
@@ -865,14 +867,32 @@ void terrain_heap_sift(inout TerrainCandidate heap[32],uint count,uint root) {
   if(!terrain_earlier(heap[root],heap[child]))break;TerrainCandidate swap=heap[root];heap[root]=heap[child];heap[child]=swap;root=child;
  }
 }
+ivec4 terrain_clamped_bounds(vec2 a,vec2 b,float radius,uint n) {
+ float unit=world()/float(n);ivec2 maximum=ivec2(int(n)-1);
+ ivec2 low=clamp(ivec2(floor((min(a,b)-vec2(radius))/unit)),ivec2(0),maximum);
+ ivec2 high=clamp(ivec2(floor((max(a,b)+vec2(radius))/unit)),ivec2(0),maximum);
+ return ivec4(low,high);
+}
+// 保守只读捷径：整个胶囊AABB均为己色，才允许调用方跳过染地前缀查询。
+// 不缓存跨实体结果，也不把仅中心线的归属当成完整半径覆盖。
+bool terrain_bounds_all_owned(uint i) {
+ if(p[i].info.w==0u)return true;uint n=terrain_size(),own=p[i].info.z;
+ if(own<4u&&stat[8u+own]==n*n)return true;
+ ivec4 bounds=terrain_clamped_bounds(p[i].geom.zw,p[i].pv.xy,p[i].geom.x,n);
+ for(int y=bounds.y;y<=bounds.w;y++)for(int x=bounds.x;x<=bounds.z;x++)if(owner[uint(y)*n+uint(x)]!=own)return false;
+ return true;
+}
 bool terrain_skip_start_overlap=false;
 void terrain_events(uint i) {if(p[i].info.w==0u)return;uint n=terrain_size(),own=p[i].info.z;
  // 每颗实体读取当下权威面积，不跨实体缓存；保留全图己色捷径与大球半径刷新。
  if(own<4u&&stat[8u+own]==n*n){if(p[i].info.w==3u)p[i].geom.x=ball_radius(i);return;}
  float unit=world()/float(n),radius=p[i].geom.x;vec2 a=p[i].geom.zw,b=p[i].pv.xy,ray=b-a;
  if(radius<=0.0)return;
- int low_y=max(0,int(floor((min(a.y,b.y)-radius)/unit)));
- int high_y=min(int(n)-1,int(floor((max(a.y,b.y)+radius)/unit)));
+ ivec4 bounds=terrain_clamped_bounds(a,b,radius,n);int low_y=bounds.y,high_y=bounds.w;
+ uvec2 extent=uvec2(bounds.zw-bounds.xy+ivec2(1));uint maximum_claims=extent.x*extent.y;
+ // 能量严格大于整个AABB的格数上界时，本段无论排序都不可能耗尽。
+ // 此时精确交叠只需扫描一次；不使用堆，不改变最终格子归属或整数扣账。
+ bool cannot_exhaust=less64(uvec2(maximum_claims,0u),energy(i));
  // 32仅是局部排序工作区，不是路径/候选上限；长轨迹与大球继续分批直到全部结算。
  // 已改色格自然从后续批次退出，避免额外GPU缓冲及每实体清空整张地图。
  TerrainCandidate heap[32];
@@ -890,6 +910,7 @@ void terrain_events(uint i) {if(p[i].info.w==0u)return;uint n=terrain_size(),own
     // 前缀已结算过起始圆帽；仅跳过严格重叠，边界相切后新进入的格仍须扣账。
     if(terrain_skip_start_overlap&&terrain_cell_entry(a,vec2(0.0),radius,low,low+vec2(unit),hit))continue;
     if(!terrain_cell_entry(a,ray,radius,low,low+vec2(unit),hit))continue;
+    if(cannot_exhaust){claim(i,index);continue;}
     // t=0的所有格都最早，直接结算以免大球的初始足迹被重复排序扫描。
     if(hit==0.0){claim(i,index);if(p[i].info.w==0u){p[i].pv.xy=a;return;}continue;}
     TerrainCandidate candidate=TerrainCandidate(hit,index);
@@ -902,6 +923,8 @@ void terrain_events(uint i) {if(p[i].info.w==0u)return;uint n=terrain_size(),own
   // 最大堆原地排序为真实进入时刻升序；同一时刻用格子ID稳定打破平局。
   for(uint end=count;end>1u;end--){TerrainCandidate swap=heap[0];heap[0]=heap[end-1u];heap[end-1u]=swap;terrain_heap_sift(heap,end-1u,0u);}
   for(uint k=0u;k<count;k++){claim(i,heap[k].index);if(p[i].info.w==0u){p[i].pv.xy=mix(a,b,heap[k].time);return;}}
+  // 未填满工作批次，说明本轮扫描已收齐全部剩余正TOI格，无需再扫一次。
+  if(count<limit)break;
  }
  if(p[i].info.w==3u)p[i].geom.x=ball_radius(i);
 }
@@ -921,55 +944,77 @@ float prefix_pair_time(uint a,uint b,float stop) {
  if(folded_pair_contact(a,b,radius,true,delta,sign_a,sign_b,hit_time))return min(stop,hit_time);
  return stop;
 }
-void preclaim_contact_prefixes() {
+const uint PREFIX_NO_PARTICLE=0xffffffffu;
+void prefix_consider_pair(uint a,uint b,inout float stop,inout uint limiter) {
+ float candidate=prefix_pair_time(a,b,stop);if(candidate<stop){stop=candidate;limiter=b;}
+}
+// 仅查询只读几何，所有线程都在任何染地/抵消之前完成；不改owner/p/pool/stat。
+uvec2 query_contact_prefix(uint a) {
  uint count=active_count();float duration=max(pc.clock.x,0.0);
- uvec2 prefix_balls=uvec2(0u);for(uint k=0u;k<balls();k++)if(p[cap()+k].info.w==3u)prefix_balls[k/32u]|=1u<<(k%32u);
- bool has_wide=false;
- for(uint ordinal=0u;ordinal<count;ordinal++){uint i=active_id(ordinal);terrain_paid_until[i]=-1.0;has_wide=has_wide||(p[i].info.w==2u&&p[i].aux.w==2u);}
- for(uint ordinal=0u;ordinal<count;ordinal++){
-  uint a=active_id(ordinal);if(p[a].info.w!=1u&&p[a].info.w!=2u)continue;
-  float start=clamp(motion_start(a),0.0,duration),stop=duration,travel=duration-start;
-  vec2 from=p[a].geom.zw,to=p[a].pv.xy,ray=to-from;float radius=p[a].geom.x;
-  // 只处理首面墙之前的真实直线；反射之后仍由原实体事件循环逐段处理。
-  for(int axis=0;axis<2;axis++)if(abs(ray[axis])>0.0000001){
-   float boundary=ray[axis]>0.0?world()-radius:radius;float fraction=(boundary-from[axis])/ray[axis];
-   if(fraction>=0.0&&fraction<=1.0)stop=min(stop,start+travel*fraction);
-  }
-  for(uint t=0u;t<4u;t++)if(t!=p[a].info.z&&team[t].life.x!=2u){
-   float r=zero64(team[t].shield_gun.xy)?team[t].core.z:shield_radius(t);float hit;vec2 normal;
-   if(swept_hit(from,to,team[t].core.xy,r+radius,hit,normal))stop=min(stop,start+travel*hit);
-  }
-  for(uint word=0u;word<2u;word++){uint bits=prefix_balls[word];while(bits!=0u){uint b=cap()+word*32u+uint(findLSB(bits));bits&=bits-1u;
-    vec2 ball_from=mix(p[b].geom.zw,p[b].pv.xy,duration>0.0?start/duration:0.0);float hit;vec2 normal;
-    if(swept_hit(from-ball_from,to-p[b].pv.xy,vec2(0),radius+p[b].geom.x,hit,normal))stop=min(stop,start+travel*hit);
-  }}
-  if(p[a].aux.w==1u){
-   for(uint k=0u;k<count&&stop>start;k++)stop=prefix_pair_time(a,active_id(k),stop);
-  }else{
-   uint cell=cell_index(pair_endpoint(a));ivec2 center=ivec2(int(cell%cols()),int(cell/cols()));
-   ivec4 query=p[a].aux.w==2u?projectile_query_bounds(a,par[4].x,par[1].y,cols()):ivec4(center-ivec2(1),center+ivec2(1));
-   for(int y=query.y;y<=query.w&&stop>start;y++)for(int x=query.x;x<=query.z&&stop>start;x++){ivec2 q=ivec2(x,y);
-    if(any(lessThan(q,ivec2(0)))||any(greaterThanEqual(q,ivec2(cols()))))continue;
-    uint bucket=uint(q.y)*cols()+uint(q.x);
-    for(uint t=0u;t<4u&&stop>start;t++){int b=head[t*cols()*cols()+bucket];while(b>=0&&stop>start){stop=prefix_pair_time(a,uint(b),stop);b=next_id[b];}}
+ float start=clamp(motion_start(a),0.0,duration),stop=duration,travel=duration-start;
+ vec2 from=p[a].geom.zw,to=p[a].pv.xy,ray=to-from;float radius=p[a].geom.x;uint limiter=PREFIX_NO_PARTICLE;
+ for(int axis=0;axis<2;axis++)if(abs(ray[axis])>0.0000001){
+  float boundary=ray[axis]>0.0?world()-radius:radius;float fraction=(boundary-from[axis])/ray[axis];
+  if(fraction>=0.0&&fraction<=1.0)stop=min(stop,start+travel*fraction);
+ }
+ for(uint t=0u;t<4u;t++)if(t!=p[a].info.z&&team[t].life.x!=2u){
+  float r=zero64(team[t].shield_gun.xy)?team[t].core.z:shield_radius(t);float hit;vec2 normal;
+  if(swept_hit(from,to,team[t].core.xy,r+radius,hit,normal))stop=min(stop,start+travel*hit);
+ }
+ uvec2 prefix_balls=terrain_prefix[total()];
+ for(uint word=0u;word<2u;word++){uint bits=prefix_balls[word];while(bits!=0u){uint b=cap()+word*32u+uint(findLSB(bits));bits&=bits-1u;
+   vec2 ball_from=mix(p[b].geom.zw,p[b].pv.xy,duration>0.0?start/duration:0.0);float hit;vec2 normal;
+   if(swept_hit(from-ball_from,to-p[b].pv.xy,vec2(0),radius+p[b].geom.x,hit,normal))stop=min(stop,start+travel*hit);
+ }}
+ if(p[a].aux.w==1u){
+  for(uint k=0u;k<count&&stop>start;k++)prefix_consider_pair(a,active_id(k),stop,limiter);
+ }else{
+  uint cell=cell_index(pair_endpoint(a));ivec2 center=ivec2(int(cell%cols()),int(cell/cols()));
+  ivec4 query=p[a].aux.w==2u?projectile_query_bounds(a,par[4].x,par[1].y,cols()):ivec4(center-ivec2(1),center+ivec2(1));
+  for(int y=query.y;y<=query.w&&stop>start;y++)for(int x=query.x;x<=query.z&&stop>start;x++){ivec2 q=ivec2(x,y);
+   if(any(lessThan(q,ivec2(0)))||any(greaterThanEqual(q,ivec2(cols()))))continue;
+   uint bucket=uint(q.y)*cols()+uint(q.x);
+   for(uint t=0u;t<4u&&stop>start;t++){
+    if(t==p[a].info.z&&(p[a].info.w==2u||par[12].w<0.5))continue;
+    int b=head[t*cols()*cols()+bucket];while(b>=0&&stop>start){prefix_consider_pair(a,uint(b),stop,limiter);b=next_id[b];}
    }
-   if(has_wide){ivec4 wide_query=projectile_query_bounds(a,SNIPER_MAX_RADIUS,32.0,WIDE_COLUMNS);
-    for(int y=wide_query.y;y<=wide_query.w&&stop>start;y++)for(int x=wide_query.x;x<=wide_query.z&&stop>start;x++){
-     uint bucket=uint(y)*WIDE_COLUMNS+uint(x);
-     for(uint t=0u;t<4u&&stop>start;t++){uint b=wide_space[t*WIDE_COLUMNS*WIDE_COLUMNS+bucket];while(b!=0xffffffffu&&stop>start){stop=prefix_pair_time(a,b,stop);b=wide_space[WIDE_HEADS+b];}}
+  }
+  if(terrain_prefix[total()+1u].x!=0u){ivec4 wide_query=projectile_query_bounds(a,SNIPER_MAX_RADIUS,32.0,WIDE_COLUMNS);
+   for(int y=wide_query.y;y<=wide_query.w&&stop>start;y++)for(int x=wide_query.x;x<=wide_query.z&&stop>start;x++){
+    uint bucket=uint(y)*WIDE_COLUMNS+uint(x);
+    for(uint t=0u;t<4u&&stop>start;t++){
+     if(t==p[a].info.z)continue;
+     uint b=wide_space[t*WIDE_COLUMNS*WIDE_COLUMNS+bucket];while(b!=0xffffffffu&&stop>start){prefix_consider_pair(a,b,stop,limiter);b=wide_space[WIDE_HEADS+b];}
     }
    }
-   uint fast=stat[30];while(fast!=0xffffffffu&&stop>start){stop=prefix_pair_time(a,fast,stop);fast=uint(next_id[fast]);}
   }
-  stop=clamp(stop,start,duration);float fraction=travel>0.0000001?(stop-start)/travel:0.0;
-  p[a].pv.xy=mix(from,to,fraction);terrain_events(a);terrain_paid_until[a]=stop;
-  // 耗尽者保留真实最后染色位置；存活者恢复整段几何供原有碰撞pass使用。
+  uint fast=stat[30];while(fast!=0xffffffffu&&stop>start){prefix_consider_pair(a,fast,stop,limiter);fast=uint(next_id[fast]);}
+ }
+ return uvec2(floatBitsToUint(clamp(stop,start,duration)),limiter);
+}
+void compute_contact_prefix(uint ordinal) {
+ if(ordinal>=active_count())return;uint a=active_id(ordinal);
+ if(p[a].info.w!=1u&&p[a].info.w!=2u){terrain_prefix[a]=uvec2(floatBitsToUint(-1.0),PREFIX_NO_PARTICLE);return;}
+ terrain_prefix[a]=query_contact_prefix(a);
+}
+void apply_contact_prefixes() {
+ uint count=active_count();float duration=max(pc.clock.x,0.0);
+ for(uint ordinal=0u;ordinal<count;ordinal++){
+  uint a=active_id(ordinal);if(p[a].info.w!=1u&&p[a].info.w!=2u)continue;
+  uvec2 probe=terrain_prefix[a];
+  // 早先的染地可能已耗尽限制前缀的候选；此时重查，保持原串行死亡过滤顺序。
+  if(probe.y<cap()&&p[probe.y].info.w==0u)probe=query_contact_prefix(a);
+  float start=clamp(motion_start(a),0.0,duration),stop=clamp(uintBitsToFloat(probe.x),start,duration),travel=duration-start;
+  vec2 from=p[a].geom.zw,to=p[a].pv.xy;float fraction=travel>0.0000001?(stop-start)/travel:0.0;
+  // 按当刻权威归属检查整个原始胶囊AABB；全己色可省去精确TOI/堆，但仍记录已处理前缀。
+  if(!terrain_bounds_all_owned(a)){p[a].pv.xy=mix(from,to,fraction);terrain_events(a);}
+  terrain_prefix[a].x=floatBitsToUint(stop);
   if(p[a].info.w!=0u)p[a].pv.xy=to;
   p[a].geom.zw=from;
  }
 }
 void terrain_events_after_prefix(uint i,float begin,float end) {
- float paid=terrain_paid_until[i];if(paid>=0.0&&paid>=end)return;
+ float paid=uintBitsToFloat(terrain_prefix[i].x);if(paid>=0.0&&paid>=end)return;
  vec2 original=p[i].geom.zw;
  bool clipped=paid>=0.0&&paid>=begin;
  if(clipped&&end>begin)p[i].geom.zw=mix(original,p[i].pv.xy,clamp((paid-begin)/(end-begin),0.0,1.0));
@@ -1140,6 +1185,16 @@ void render(uint i) {uint n=render_size();if(i>=n*n)return;uint x=i%n,y=i/n;vec2
  }
  float edge=min(min(q.x,q.y),min(world()-q.x,world()-q.y));if(edge<2.0)c=vec3(0.43,0.58,0.73);imageStore(output_image,ivec2(x,y),vec4(clamp(c,0.0,1.0),1.0));
 }
-void main(){uint i=gl_GlobalInvocationID.x;uint mode=pc.control.x;
- if(mode==0u)initialize(i);else if(mode==1u){if(i==0u)prepare();}else if(mode==2u){if(i<active_count()+balls())move_particle(i<active_count()?active_id(i):cap()+i-active_count());}else if(mode==3u){if(i<WIDE_HEADS)wide_space[i]=0xffffffffu;if(i<cols()*cols()*4u)head[i]=-1;if(i==0u)stat[30]=0xffffffffu;if(i<4u){team[i].accounting.x=0xffffffffu;team[i].life.w=0xffffffffu;}}else if(mode==4u){if(i<active_count())build_space(active_id(i));}else if(mode==5u)collision_cell(i);else if(mode==6u){if(i==0u)events();}else if(mode==7u){if(i==0u)statistics();}else if(mode==8u){if(i<render_size()*render_size())pixels[i]=0u;}else if(mode==9u){if(i<active_count()+balls())splat(i<active_count()?active_id(i):cap()+i-active_count());}else if(mode==10u)render(i);else if(mode==11u){if(i==0u)refresh_indirect();}else if(mode==12u){if(i==0u)compact_pool();}else if(mode==13u){if(i==0u)preclaim_contact_prefixes();}
+void clear_space(uint i) {
+ if(i<WIDE_HEADS)wide_space[i]=0xffffffffu;
+ if(i<cols()*cols()*4u)head[i]=-1;
+ if(i==0u){
+  stat[30]=0xffffffffu;uvec2 mask=uvec2(0u);
+  for(uint k=0u;k<balls();k++)if(p[cap()+k].info.w==3u)mask[k/32u]|=1u<<(k%32u);
+  terrain_prefix[total()]=mask;terrain_prefix[total()+1u]=uvec2(0u);
+ }
+ if(i<4u){team[i].accounting.x=0xffffffffu;team[i].life.w=0xffffffffu;}
+}
+void main(){uint i=gl_GlobalInvocationID.x;uint mode=KERNEL_MODE;
+ if(mode==0u)initialize(i);else if(mode==1u){if(i==0u)prepare();}else if(mode==2u){if(i<active_count()+balls())move_particle(i<active_count()?active_id(i):cap()+i-active_count());}else if(mode==3u)clear_space(i);else if(mode==4u){if(i<active_count())build_space(active_id(i));}else if(mode==5u)collision_cell(i);else if(mode==6u){if(i==0u)events();}else if(mode==7u){if(i==0u)statistics();}else if(mode==8u){if(i<render_size()*render_size())pixels[i]=0u;}else if(mode==9u){if(i<active_count()+balls())splat(i<active_count()?active_id(i):cap()+i-active_count());}else if(mode==10u)render(i);else if(mode==11u){if(i==0u)refresh_indirect();}else if(mode==12u){if(i==0u)compact_pool();}else if(mode==13u)compute_contact_prefix(i);else if(mode==14u){if(i==0u)apply_contact_prefixes();}
 }

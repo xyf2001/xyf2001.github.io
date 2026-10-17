@@ -27,6 +27,7 @@ const WEAPON_STRIDE := 160
 const WEAPON_STATE_BYTES := 4 * WEAPON_STRIDE
 const POOL_HEADER_WORDS := 16
 const DIAGNOSTIC_WORDS := 32
+const KERNEL_MODE_COUNT := 15
 
 var texture: Texture2DRD = Texture2DRD.new()
 var active := false
@@ -52,7 +53,9 @@ var _cached_debug: Dictionary = {}
 var _rt_settings: Dictionary = {}
 var _rd: RenderingDevice
 var _shader: RID
+# mode0的兼容别名：旧只读调试入口仍用它检查资源是否已创建。
 var _pipeline: RID
+var _pipelines: Array[RID] = []
 var _uniform_set: RID
 var _output: RID
 var _buffers: Array[RID] = []
@@ -344,19 +347,28 @@ func _initialize_rd(generation: int, configuration: Dictionary) -> void:
 		_fail_rd("GPU 计算着色器创建失败。", generation)
 		return
 	_resource_rids.append(_shader)
-	_pipeline = _rd.compute_pipeline_create(_shader)
-	if not _pipeline.is_valid():
-		_fail_rd("GPU 计算管线创建失败：请检查 Vulkan 驱动及存储缓冲支持。", generation)
-		return
-	_resource_rids.append(_pipeline)
+	# 每条管线固定一个specialization mode；驱动可裁掉其他模式的私有堆和分支。
+	# 所有模式仍引用同一shader/SSBO布局，保留原来的pass依赖和屏障。
+	for mode: int in KERNEL_MODE_COUNT:
+		var kernel_mode := RDPipelineSpecializationConstant.new()
+		kernel_mode.constant_id = 0
+		kernel_mode.value = mode
+		var constants: Array[RDPipelineSpecializationConstant] = [kernel_mode]
+		var pipeline := _rd.compute_pipeline_create(_shader, constants)
+		if not pipeline.is_valid():
+			_fail_rd("GPU 计算管线创建失败（模式 %d）：请检查 Vulkan 驱动及存储缓冲支持。" % mode, generation)
+			return
+		_pipelines.append(pipeline)
+		_resource_rids.append(pipeline)
+	_pipeline = _pipelines[0]
 	var sizes := [required_particle_bytes, 4 * TEAM_STRIDE, grid_size * grid_size * 4, GRID_HEADS * 4, (capacity + BIG_CAPACITY) * 4, (RING_CAPACITY + 12) * COMMAND_STRIDE, METRICS_WORDS * 4, render_size * render_size * 4, PARAM_FLOATS * 4]
 	# Indices 9/10/11 map to bindings 10/11/12. The pool keeps stable physical
 	# IDs; indirect dispatch dimensions remain on the GPU with no count readback.
 	sizes.append(WEAPON_STATE_BYTES)
 	sizes.append((POOL_HEADER_WORDS + capacity * 2) * 4)
 	sizes.append(DIAGNOSTIC_WORDS * 4)
-	# binding13：每物理槽4B首接触染色游标，仅存活槽逐步重置。
-	sizes.append((capacity + BIG_CAPACITY) * 4)
+	# binding13：每物理槽8B的uvec2首接触记录，末尾两条保存大球/宽弹摘要。
+	sizes.append((capacity + BIG_CAPACITY + 2) * 8)
 	# binding14：宽狙击弹32单位粗格头与独立next链，普通九色布局不变。
 	sizes.append((4 * 32 * 32 + capacity + BIG_CAPACITY) * 4)
 	_buffers.clear()
@@ -429,6 +441,7 @@ func _release_rd() -> void:
 				_rd.free_rid(rid)
 	_resource_rids.clear()
 	_buffers.clear()
+	_pipelines.clear()
 	_shader = RID()
 	_pipeline = RID()
 	_uniform_set = RID()
@@ -441,8 +454,6 @@ func _initialize_dispatch(configuration: Dictionary) -> void:
 	var params := _make_params(configuration)
 	_rd.buffer_update(_buffers[8], 0, params.size(), params)
 	var list := _rd.compute_list_begin()
-	_rd.compute_list_bind_compute_pipeline(list, _pipeline)
-	_rd.compute_list_bind_uniform_set(list, _uniform_set, 0)
 	var largest := maxi(int(configuration.grid_size) * int(configuration.grid_size), int(configuration.render_size) * int(configuration.render_size))
 	largest = maxi(largest, int(configuration.particle_capacity) + BIG_CAPACITY)
 	largest = maxi(largest, GRID_HEADS)
@@ -524,8 +535,6 @@ func _execute_rd(generation_id: int, batch: Array, upload: Array, rescues: Array
 	if batch.is_empty() and upload.is_empty() and rescues.is_empty():
 		if request_stats:
 			var stats_list := _rd.compute_list_begin()
-			_rd.compute_list_bind_compute_pipeline(stats_list, _pipeline)
-			_rd.compute_list_bind_uniform_set(stats_list, _uniform_set, 0)
 			_statistics_dispatch(stats_list, tail, float(stats.get("sim_time", 0.0)))
 			_rd.compute_list_end()
 			_schedule_stats_read(generation_id)
@@ -533,8 +542,6 @@ func _execute_rd(generation_id: int, batch: Array, upload: Array, rescues: Array
 	_metrics_dirty_rd = true
 	_rd.capture_timestamp("颜色大战_开始")
 	var list := _rd.compute_list_begin()
-	_rd.compute_list_bind_compute_pipeline(list, _pipeline)
-	_rd.compute_list_bind_uniform_set(list, _uniform_set, 0)
 	if batch.is_empty():
 		_dispatch(list, 1, 1, 0, tail, 0.0, float(stats.get("sim_time", 0.0)))
 		_dispatch(list, 11, 1, 0, tail, 0.0, float(stats.get("sim_time", 0.0)))
@@ -545,8 +552,9 @@ func _execute_rd(generation_id: int, batch: Array, upload: Array, rescues: Array
 		_dispatch(list, 2, int(_rt_settings.particle_capacity) + BIG_CAPACITY, 0, tail, timing.x, timing.y)
 		_dispatch(list, 3, GRID_HEADS, 0, tail, timing.x, timing.y)
 		_dispatch(list, 4, int(_rt_settings.particle_capacity), 0, tail, timing.x, timing.y)
-		# 单写者先支付首接触前的领土，随后才允许并行粒子抵消；不提前染穿盾/墙。
-		_dispatch(list, 13, 1, 0, tail, timing.x, timing.y)
+		# 首接触查询只读共享几何并行执行；屏障后单写者扣账染地，最后才做粒子抵消。
+		_dispatch(list, 13, int(_rt_settings.particle_capacity), 0, tail, timing.x, timing.y)
+		_dispatch(list, 14, 1, 0, tail, timing.x, timing.y)
 		for color: int in 9:
 			_dispatch(list, 5, CollisionRules.PHASE_WIDTH * CollisionRules.PHASE_WIDTH, color, tail, timing.x, timing.y)
 		_dispatch(list, 6, 1, 0, tail, timing.x, timing.y)
@@ -563,6 +571,11 @@ func _execute_rd(generation_id: int, batch: Array, upload: Array, rescues: Array
 		_schedule_stats_read(generation_id)
 
 func _dispatch(list: int, mode: int, elements: int, color: int, tail: int, dt: float, sim_time: float, flags: int = 0) -> void:
+	if mode < 0 or mode >= _pipelines.size() or not _pipelines[mode].is_valid():
+		push_error("GPU 计算模式 %d 缺少专用管线。" % mode)
+		return
+	_rd.compute_list_bind_compute_pipeline(list, _pipelines[mode])
+	_rd.compute_list_bind_uniform_set(list, _uniform_set, 0)
 	var push := PackedByteArray()
 	push.resize(32)
 	push.encode_u32(0, mode)
@@ -572,8 +585,8 @@ func _dispatch(list: int, mode: int, elements: int, color: int, tail: int, dt: f
 	push.encode_float(16, dt)
 	push.encode_float(20, sim_time)
 	_rd.compute_list_set_push_constant(list, push, push.size())
-	if mode == 2 or mode == 4 or mode == 9:
-		_rd.compute_list_dispatch_indirect(list, _buffers[11], 0 if mode == 4 else 12)
+	if mode == 2 or mode == 4 or mode == 9 or mode == 13:
+		_rd.compute_list_dispatch_indirect(list, _buffers[11], 0 if mode == 4 or mode == 13 else 12)
 	else:
 		_rd.compute_list_dispatch(list, maxi(1, (elements + 63) / 64), 1, 1)
 	_rd.compute_list_add_barrier(list)
@@ -744,8 +757,6 @@ func _debug_read_rd(generation_id: int, kind: String, sequence: int) -> void:
 	_last_blocking_readback_ms = 0.0
 	# 独立测试要求即时精确总数，不能误取上次0.25秒遥测快照；正式路径不走此入口。
 	var list := _rd.compute_list_begin()
-	_rd.compute_list_bind_compute_pipeline(list, _pipeline)
-	_rd.compute_list_bind_uniform_set(list, _uniform_set, 0)
 	_statistics_dispatch(list, _ring_tail, float(stats.get("sim_time", 0.0)))
 	_rd.compute_list_end()
 	var combined := {"generation":generation_id, "parts":{}, "debug":true, "request_id":sequence, "kind":kind, "expected":9, "read_started_us":Time.get_ticks_usec(), "cpu_submit_ms":_last_submit_cpu_ms, "substeps":_last_substep_count}
