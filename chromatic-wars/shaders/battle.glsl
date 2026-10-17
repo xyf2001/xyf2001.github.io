@@ -53,7 +53,10 @@ uvec2 divide64_small(uvec2 dividend,uint divisor,out uint remainder) {
 }
 float value64(uvec2 a) { return float(a.y)*4294967296.0+float(a.x); }
 uvec2 energy(uint i) { return p[i].info.xy; }
-void set_energy(uint i,uvec2 e) { p[i].info.xy=e; if(zero64(e)) p[i].info.w=0u; }
+void set_energy(uint i,uvec2 e) {
+ p[i].info.xy=e;
+ if(zero64(e)){if(i<cap()&&p[i].info.w!=0u)atomicOr(pool[4],1u);p[i].info.w=0u;}
+}
 void spend(uint i,uvec2 amount) { set_energy(i,sub64(energy(i),amount)); }
 void consumed(uvec2 e) { uvec2 v=add64(uvec2(stat[17],stat[18]),e); stat[17]=v.x;stat[18]=v.y; }
 void consumed_atomic(uvec2 e) { uint old=atomicAdd(stat[17],e.x);uint high_add=e.y+uint(old+e.x<old);uint old_high=atomicAdd(stat[18],high_add);if(old_high+high_add>0x7fffffffu||old_high+high_add<old_high)atomicOr(stat[15],1u); }
@@ -93,12 +96,14 @@ void refresh_indirect() {
  dispatch_data[10]=active_count();dispatch_data[11]=pool[1];dispatch_data[12]=pool[2];
 }
 void compact_pool() {
+ // No pooled particle died: preserve the list and update newborn dispatch counts only.
+ if(pool[4]==0u){refresh_indirect();return;}
  uint count=active_count(),write_index=0u;
  for(uint k=0u;k<count;k++){uint i=active_id(k);if(p[i].info.w!=0u){pool[16u+write_index++]=i;continue;}
   uint base=16u+cap();if(i<cap()-8u)pool[base+pool[1]++]=i;else pool[base+cap()-8u+pool[2]++]=i;
   pool[3]++;
  }
- pool[0]=write_index;refresh_indirect();
+ pool[0]=write_index;pool[4]=0u;refresh_indirect();
 }
 // 小粒子的geom.y保存出生速率；大球仍用geom.y锁定体积门槛。
 // 大球的next_id尾部槽保存最近有效航向，普通粒子的链表区间不变。
@@ -205,14 +210,14 @@ bool execute_command(Command c) {uint op=c.a.x;uint t=c.a.y;if(op==0u)return tru
  // 批内较晚落槽的武器只在对应模拟步生效；负时间保留测试/死亡余波的立即语义。
  if(op>=1u&&op<=5u){float at_time=uintBitsToFloat(c.b.w);if(at_time>=0.0&&pc.clock.y+0.00001<at_time)return false;}
  // 独立测试入口：正常UI不会提交10..16号命令。所有修改仍在GPU内完成。
- if(op==14u){for(uint k=0u;k<active_count();k++)p[active_id(k)].info.w=0u;for(uint i=cap();i<total();i++)p[i].info.w=0u;compact_pool();stat[20]=0u;stat[21]=0u;big_pool_exhausted=false;return true;}
+ if(op==14u){for(uint k=0u;k<active_count();k++)p[active_id(k)].info.w=0u;for(uint i=cap();i<total();i++)p[i].info.w=0u;pool[4]=1u;compact_pool();stat[20]=0u;stat[21]=0u;big_pool_exhausted=false;return true;}
  if(op==15u){uint n=max(c.b.x,1u);for(uint k=0u;k<n&&c.a.z+k<terrain_size()*terrain_size();k++)set_territory_owner(c.a.z+k,t);return true;}
  if(op==16u){for(uint i=0u;i<terrain_size()*terrain_size();i++)owner[i]=t;for(uint k=0u;k<4u;k++)stat[8u+k]=k==t?terrain_size()*terrain_size():0u;return true;}
  if(t>=4u)return true;
  if(op==17u){uint count=c.b.z==0u?cap():min(c.b.z,cap());uint width=uint(ceil(sqrt(float(count))));float spacing=world()/float(width);vec2 velocity=uintBitsToFloat(c.b.xy);if(dot(velocity,velocity)<0.00001)velocity=vec2(30.0,17.0);
   for(uint k=0u;k<active_count();k++)p[active_id(k)].info.w=0u;
   for(uint i=0u;i<count;i++){vec2 position=(vec2(i%width,i/width)+0.5)*spacing;position=clamp(position,vec2(par[4].x),vec2(world()-par[4].x));p[i].pv=vec4(position,velocity);p[i].info=uvec4(zero64(c.a.zw)?uvec2(1u,0u):c.a.zw,t,1u);p[i].geom=vec4(par[4].x,max(length(velocity),1.0),position);p[i].aux=uvec4(0u,hash32(i),0u,0u);pool[16u+i]=i;}
-  pool[0]=count;pool[1]=0u;pool[2]=0u;
+  pool[0]=count;pool[1]=0u;pool[2]=0u;pool[4]=0u;
   for(uint i=count;i<cap();i++){uint base=16u+cap();if(i<cap()-8u)pool[base+pool[1]++]=i;else pool[base+cap()-8u+pool[2]++]=i;}
   refresh_indirect();stat[20]=0u;return true;}
  if(op==10u){team[t].shield_gun=uvec4(c.a.zw,c.b.xy);team[t].life.x=c.b.z;team[t].clocks.x=uintBitsToFloat(c.b.w);team[t].storm_sniper=uvec4(0u);team[t].misc.y=0u;team[t].visual=vec4(0.0);initialize_weapons(t);return true;}
@@ -739,6 +744,7 @@ void resolve_sniper_splits(uint event_count) {
  }
 }
 void events() {
+ bool pending_sniper_split=false;
  coarse_balls_ready=false;
  for(uint b=0u;b<64u;b++){pending_ball_push[b]=vec2(0.0);uint i=cap()+b;pending_ball_mass[b]=b<balls()&&p[i].info.w==3u?contact_mass(i):1.0;}
  // 超出九色网格安全位移的少量粒子单独串行回退，不限速、不丢步、不截断候选。
@@ -760,6 +766,7 @@ void events() {
    // 按TOI依次找实体，领土/盾先到就立即截断，不能隔空给后方己球补能。
    // 高能普通弹击散敌球后可带余能继续，同一子步不能漏掉路径上的下一颗大球。
    uvec2 candidates=any(notEqual(active_balls,uvec2(0u)))?coarse_ball_candidates(a):uvec2(0u),visited=uvec2(0u);
+   if(any(notEqual(candidates,uvec2(0u)))){
    for(uint contact=0u;contact<balls()&&p[a].info.w!=0u;contact++){
     int first_ball=-1;float first_time=2.0;
     for(uint bw=0u;bw<2u;bw++){uint remaining_b=candidates[bw]&~visited[bw];while(remaining_b!=0u){uint slot=bw*32u+uint(findLSB(remaining_b));uint b=cap()+slot;remaining_b&=remaining_b-1u;
@@ -771,10 +778,14 @@ void events() {
     uint slot=uint(first_ball)-cap();visited[slot/32u]|=1u<<(slot&31u);
     particle_ball_pair(a,uint(first_ball));
    }
+   }
    // 立即落地真正的领土/盾事件，使后续粒子读取最新归属，不缓存失效的查询结果。
    if(p[a].info.w!=0u){shield_core_events(a);confine_after_contact(a);maintain_motion(a);}
    p[a].aux.z&=0x7fffffffu;
-  }else if(p[a].info.w==2u){sniper_entity_events(a);confine_after_contact(a);maintain_motion(a);}
+  }else if(p[a].info.w==2u){
+   sniper_entity_events(a);confine_after_contact(a);maintain_motion(a);
+   if(p[a].info.w==2u&&(p[a].aux.z&0x40000000u)!=0u)pending_sniper_split=true;
+  }
  }}
  for(uint b=0u;b<balls();b++){uint i=cap()+b;if(p[i].info.w==3u)shield_core_events(i);}
  for(uint b=0u;b<balls();b++){uint i=cap()+b;if(p[i].info.w!=3u)continue;
@@ -787,7 +798,7 @@ void events() {
   // 碰撞/整步机枪冲量结束只缓存航向并约束位置；基础推进留到下一子步移动前。
   maintain_motion(i);confine_after_contact(i);maintain_motion(i);
  }
- resolve_sniper_splits(event_count);
+ if(pending_sniper_split)resolve_sniper_splits(event_count);
  update_shields();
 }
 void statistics() {
