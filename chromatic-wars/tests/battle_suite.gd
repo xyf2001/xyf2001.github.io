@@ -1,5 +1,5 @@
 extends "res://tests/test_harness.gd"
-## 正式默认分辨率/真实弹药成本的左右系统长局。不得以旧64格/4096能量包冒充正常对局。
+## 正式默认分辨率/高能粒子规则的左右系统长局。不得以旧64格/4096能量包冒充正常对局。
 ## --speed 1/2/4 为真实时钟目标倍率；软件Vulkan追不上时保留固定步，不跳过物理。
 var world: GPUWorld
 var pinball: PinballPhysics
@@ -26,7 +26,6 @@ func run_suite() -> void:
 	config["terrain_resolution"] = 512
 	config["render_resolution"] = 768
 	config["precision_mode"] = "exact"
-	config["packet_energy"] = 1
 	config["seed"] = int(options.get("seed", "20261017"))
 	var speed := clampf(float(options.get("speed","1")),0.25,4.0)
 	config["time_scale"]=speed

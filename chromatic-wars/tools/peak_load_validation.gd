@@ -90,8 +90,9 @@ func peak_teams(configuration: Dictionary) -> PackedByteArray:
 func peak_weapons() -> PackedByteArray:
 	var bytes := PackedByteArray()
 	bytes.resize(GPUWorld.WEAPON_STATE_BYTES)
+	var weapon_stride: int = bytes.size() / 4
 	for team_id: int in 4:
-		var offset := team_id * 128
+		var offset := team_id * weapon_stride
 		bytes.encode_u32(offset, 1)
 		bytes.encode_u32(offset + 8, 0xffffffff)
 		bytes.encode_float(offset + 80, 1000000.0)
@@ -306,7 +307,7 @@ func peak_case(scenario: String, count: int, capacity: int) -> void:
 		await process_frame
 
 func finish() -> void:
-	var report := {"version":1, "project_version":ProjectSettings.get_setting("application/config/version", "unknown"), "driver":RenderingServer.get_current_rendering_driver_name(), "fixture_not_real_battle":true, "physical_gpu_claim":false, "fixture":"full-capacity reset before every synthetic peak pulse; production compute after reset", "reset_outside_TOTAL":true, "statistics_probes_outside_TOTAL":true, "mode7_probe_excluded_from_stage_sums":true, "consumed_energy_preserved_between_pulses":true, "normal_game_fps_claim":false, "fps_note":"drawn FPS and wall times include full reset uploads and pre/post probes; they are synthetic harness rates, not normal-game FPS", "profiling_enabled":str(options.get("profiling", "false")) == "true", "candidate_note":"null when optional counters are off; pair/confirmed counters use uint32 modulo deltas", "LP_NUM_THREADS":OS.get_environment("LP_NUM_THREADS"), "physical_vram_bytes":null, "failed":failed, "results":results}
+	var report := {"version":3, "fixture_schema_version":3, "intended_current_rule_version":"1.5.1-energy-magazine", "comparison_note":"current-rule peak and integer-ledger validation only; historical cost-rule peak is not a same-rules optimization baseline", "project_version":ProjectSettings.get_setting("application/config/version", "unknown"), "driver":RenderingServer.get_current_rendering_driver_name(), "fixture_not_real_battle":true, "physical_gpu_claim":false, "fixture":"full-capacity reset before every synthetic peak pulse; production compute after reset", "reset_outside_TOTAL":true, "statistics_probes_outside_TOTAL":true, "mode7_probe_excluded_from_stage_sums":true, "consumed_energy_preserved_between_pulses":true, "normal_game_fps_claim":false, "fps_note":"drawn FPS and wall times include full reset uploads and pre/post probes; they are synthetic harness rates, not normal-game FPS", "profiling_enabled":str(options.get("profiling", "false")) == "true", "candidate_note":"null when optional counters are off; pair/confirmed counters use uint32 modulo deltas", "LP_NUM_THREADS":OS.get_environment("LP_NUM_THREADS"), "physical_vram_bytes":null, "failed":failed, "results":results}
 	var path: String = str(options.get("json", "res://artifacts/validation/peak-load.json"))
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:

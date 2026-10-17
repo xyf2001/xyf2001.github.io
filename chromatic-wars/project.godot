@@ -16,7 +16,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="颜色大战 · 显存战场"
 config/description="真实弹球增幅 × GPU 常驻颜色领土战争"
-config/version="1.5.0-validated"
+config/version="1.5.1-energy-magazine"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 

@@ -9,18 +9,21 @@ func run_suite() -> void:
 		return
 	Engine.max_fps=0
 	world=World.new()
-	world.configure({"particle_capacity":4096,"grid_size":64,"render_size":256,"seed":20261017,"gun_rate":0.0,"intro_gun":0.0,"intro_shield":0.0,"particle_cost_delay":0.0,"particle_cost_growth":0.0,"sniper_speed":620.0,"ball_speed":92.0,"friendly_particle_collisions":true})
+	world.configure({"particle_capacity":4096,"grid_size":64,"render_size":256,"seed":20261017,"gun_rate":0.0,"intro_gun":0.0,"intro_shield":0.0,"sniper_speed":620.0,"ball_speed":92.0,"friendly_particle_collisions":true})
 	world.debug_snapshot_ready.connect(_on_snapshot)
 	world.failed.connect(func(message:String):runtime_error=message)
 	root.add_child(world)
 	world.start()
-	var deadline:=Time.get_ticks_msec()+120000
+	var deadline:=Time.get_ticks_msec()+240000
 	while not world.active and runtime_error.is_empty() and Time.get_ticks_msec()<deadline:await process_frame
 	if not check(world.active,"武器真实Compute初始化",runtime_error):
 		await _shutdown_world()
 		finish()
 		return
 	await _test_gun_lock_and_cadence()
+	await _test_gun_sparse_and_large_integer()
+	await _test_gun_refill_phase_and_deadline()
+	await _test_gun_full_pool_backpressure()
 	await _test_gun_aim_and_switch()
 	await _test_gun_target_invalidation_and_reuse()
 	await _test_storm_circles()
@@ -63,36 +66,124 @@ func accounted(data:Dictionary)->int:
 
 func _test_gun_lock_and_cadence()->void:
 	await reset_weapons()
-	world.update_settings({"gun_rate":1200.0,"particle_cost_delay":0.0,"particle_cost_growth":1.0})
+	check(is_equal_approx(float(world.settings.get("gun_discharge_duration",-1.0)),10.0),"机枪库存分摊默认周期为10模拟秒","读取真实默认配置，不以缺失键的测试默认值替代",{"duration":world.settings.get("gun_discharge_duration",-1.0)})
+	world.update_settings({"gun_rate":1200.0,"gun_discharge_duration":10.0})
 	sim_time=100.0
 	var before:Dictionary=await _snapshot()
 	var baseline:=accounted(before)
-	world.output(0,4,50000.0)
+	world.debug_command({"op":5,"team":0,"energy":50003})
+	# 首个真实子步建立库存计划，之后独立量测连续射频，不混入命令生效边界。
+	await _advance(1,1.0/480.0)
 	await _advance(12)
 	var first:Dictionary=await _snapshot()
 	var first_count:=int(first.get("metrics",[0])[0])
-	check(int(weapon(first).get("gun_shot_energy",-1))==101 and first_count==120,"机枪固定1200发每模拟秒且库存持续发射","0.1模拟秒实际生成120颗，不按风暴或进程提高射速",{"active":first_count,"weapon":weapon(first),"team":first.get("teams",[])[0]})
-	check(accounted(first)-baseline==50000,"机枪发射整数总能量守恒","在场+剩余枪库存+累计消耗增量等于50000",{"accounted_delta":accounted(first)-baseline})
-	sim_time=200.0
-	await _advance()
+	check(int(weapon(first).get("gun_plan_slots",-1))==12000 and int(weapon(first).get("gun_shot_energy",-1))==4 and int(weapon(first).get("gun_plan_remainder",-1))==2003 and first_count==120,"机枪固定1200射频按库存和T分摊整数能量","E50003、T10、N12000，商4余2003；0.1模拟秒实际发120颗",{"active":first_count,"weapon":weapon(first)})
+	check(accounted(first)-baseline==50003,"机枪发射整数总能量守恒","在场+剩余枪库存+累计消耗增量等于50003",{"accounted_delta":accounted(first)-baseline})
+	var plan_deadline:=float(weapon(first).get("gun_plan_deadline",-1.0))
+	await _advance(120)
 	var progressed:Dictionary=await _snapshot()
-	check(int(weapon(progressed).get("gun_shot_energy",-1))==101,"机枪单发能量补弹前锁定","世界进程跨越100模拟秒，既有库存单发成本仍101",{"weapon":weapon(progressed)})
-	world.output(0,4,1000.0)
-	await _advance()
-	var refilled:Dictionary=await _snapshot()
-	check(int(weapon(refilled).get("gun_shot_energy",-1))==201,"机枪补弹重算当前单发能量","新补弹按201锁定整个当前库存批次",{"weapon":weapon(refilled)})
+	check(int(weapon(progressed).get("gun_plan_energy",-1))==50003 and int(weapon(progressed).get("gun_plan_slots",-1))==12000 and int(weapon(progressed).get("gun_shot_energy",-1))==4 and int(weapon(progressed).get("gun_plan_remainder",-1))==2003 and is_equal_approx(float(weapon(progressed).get("gun_plan_deadline",-2.0)),plan_deadline),"机枪无新补给时不随世界进程重新定价","跨越1模拟秒只推进既有计划，原总E/N/商余/截止时刻保持",{"first":weapon(first),"later":weapon(progressed)})
 	await reset_weapons()
-	sim_time=300.0
-	world.output(0,4,1.0)
+	world.update_settings({"gun_rate":30.0,"gun_discharge_duration":10.0})
+	before=await _snapshot();baseline=accounted(before)
+	world.debug_command({"op":5,"team":0,"energy":903})
 	await _advance()
-	var tail:Dictionary=await _snapshot()
-	check(int(tail.teams[0].gun)==0 and normal_energy(tail)==1,"机枪不足整发成本的末发仍发出","库存1、当时成本301；末发携带1能量，枪不因尾数永久停火",{"team":tail.teams[0],"particles":tail.get("particles",[])})
-	world.update_settings({"gun_rate":0.0,"particle_cost_growth":0.0})
+	var planned:Dictionary=await _snapshot()
+	check(int(weapon(planned).get("gun_plan_slots",-1))==300 and int(weapon(planned).get("gun_shot_energy",-1))==3 and int(weapon(planned).get("gun_plan_remainder",-1))==3,"机枪默认10秒周期实际规划完整库存","低射频30用于隔离容量背压，903均匀分给300个固定时间槽",{"weapon":weapon(planned)})
+	await _advance(1200)
+	var drained:Dictionary=await _snapshot()
+	var energies_valid:=true;var plus_one:=0
+	for particle:Dictionary in drained.get("particles",[]):
+		energies_valid=energies_valid and int(particle.energy) in [3,4]
+		if int(particle.energy)==4:plus_one+=1
+	check(int(drained.teams[0].gun)==0 and int(drained.metrics[0])==300 and normal_energy(drained)==903 and energies_valid and plus_one==3,"机枪真实10模拟秒内完整发完903库存","全部300颗保持正整数3或4，仅3颗携带余数，场内总能量903",{"weapon":weapon(drained),"active":drained.metrics[0],"energy":normal_energy(drained),"extra_energy_shots":plus_one,"sim_time":sim_time})
+	check(accounted(drained)-baseline==903,"机枪完整默认周期整数总量守恒","没有删除已发实体腾槽；真实模拟10秒后场内+消耗仍为903",{"accounted_delta":accounted(drained)-baseline})
+	var stopped_spawn:=int(drained.metrics[16])
+	await _advance(12)
+	var no_refill:Dictionary=await _snapshot()
+	check(int(no_refill.teams[0].gun)==0 and int(no_refill.metrics[16])==stopped_spawn,"机枪库存耗尽不会自动补能或重新开价","无新输入再运行0.1秒，不额外发射或产生新库存",{"spawn_before":stopped_spawn,"spawn_after":no_refill.metrics[16]})
+	world.update_settings({"gun_rate":0.0,"gun_discharge_duration":10.0})
+
+func _test_gun_sparse_and_large_integer()->void:
+	await reset_weapons()
+	world.update_settings({"gun_rate":1200.0,"gun_discharge_duration":0.1})
+	var before:Dictionary=await _snapshot();var baseline:=accounted(before)
+	world.debug_command({"op":5,"team":0,"energy":7})
+	await _advance(6)
+	var middle:Dictionary=await _snapshot()
+	check(int(weapon(middle).get("gun_plan_slots",-1))==120 and int(weapon(middle).get("gun_shot_energy",-1))==0 and int(weapon(middle).get("gun_plan_remainder",-1))==7 and normal_energy(middle)>0 and normal_energy(middle)<7 and int(middle.teams[0].gun)>0,"机枪E小于计划发数时均匀稀疏发射正能量","E7/N120，周期一半时只发部分正能量，不能前七槽提前耗光或创建0能粒子",{"weapon":weapon(middle),"active_energy":normal_energy(middle),"gun":middle.teams[0].gun})
+	await _advance(7)
+	var sparse:Dictionary=await _snapshot();var all_positive:=true
+	for particle:Dictionary in sparse.get("particles",[]):all_positive=all_positive and int(particle.energy)==1
+	check(int(sparse.teams[0].gun)==0 and int(sparse.metrics[0])==7 and normal_energy(sparse)==7 and all_positive and accounted(sparse)-baseline==7,"机枪稀疏计划截止后恰有七颗1能实体","空时间槽不占物理池，全部7能量在T窗分配，没有零能实体或尾数丢失",{"active":sparse.metrics[0],"energy":normal_energy(sparse),"gun":sparse.teams[0].gun,"accounted_delta":accounted(sparse)-baseline})
+	await reset_weapons()
+	world.update_settings({"gun_rate":1200.0,"gun_discharge_duration":0.1})
+	before=await _snapshot();baseline=accounted(before)
+	var huge:int=(1<<53)+12345
+	var expected_q:int=huge/120;var expected_r:int=huge%120
+	# 必须走整数命令编码，不能先传入World.output的float接口而抹掉低位。
+	world.debug_command({"op":5,"team":0,"energy":huge})
+	await _advance()
+	var huge_plan:Dictionary=await _snapshot()
+	check(int(weapon(huge_plan).get("gun_plan_energy",-1))==huge and int(weapon(huge_plan).get("gun_shot_energy",-1))==expected_q and int(weapon(huge_plan).get("gun_plan_remainder",-1))==expected_r,"机枪超过2的53次方整数库存精确商余规划","E=2^53+12345直接按u64命令上传，N120的商余不得经过float舍入",{"expected_energy":huge,"expected_q":expected_q,"expected_r":expected_r,"weapon":weapon(huge_plan)})
+	await _advance(12)
+	var huge_end:Dictionary=await _snapshot();var huge_valid:=true;var plus_one:=0
+	for particle:Dictionary in huge_end.get("particles",[]):
+		huge_valid=huge_valid and int(particle.energy) in [expected_q,expected_q+1]
+		if int(particle.energy)==expected_q+1:plus_one+=1
+	check(int(huge_end.teams[0].gun)==0 and int(huge_end.metrics[0])==120 and normal_energy(huge_end)==huge and huge_valid and plus_one==expected_r and accounted(huge_end)-baseline==huge,"机枪64位库存全部发完仍逐发整数守恒","120颗各为商或商加1，余数颗数精确匹配，总和仍包含2^53以上低位",{"active":huge_end.metrics[0],"energy":normal_energy(huge_end),"expected_energy":huge,"extra_energy_shots":plus_one,"expected_r":expected_r,"accounted_delta":accounted(huge_end)-baseline})
+	world.update_settings({"gun_rate":0.0,"gun_discharge_duration":10.0})
+
+func _test_gun_refill_phase_and_deadline()->void:
+	var locked:Dictionary=await _gun_target_fixture(Vector2(456,256),Vector2(-40,0))
+	# 相位属于连续射击，不假设前一夹具恰好以0结束；用真实短步推进到0.5。
+	var phase_to_half:=fposmod(0.5-float(locked.teams[0].get("gun_phase",-1000.0)),1.0)
+	if phase_to_half>0.000001:await _advance(1,phase_to_half/1200.0)
+	var aimed:Dictionary=await _snapshot();var before_phase:=float(aimed.teams[0].get("gun_phase",-1000.0));var before_spawn:=int(aimed.metrics[16])
+	world.debug_command({"op":5,"team":0,"energy":1000})
+	await _advance(1,1.0/480.0)
+	var refilled_aim:Dictionary=await _snapshot()
+	var expected_phase:=fposmod(before_phase+1200.0/480.0,1.0)
+	check(absf(before_phase-0.5)<0.0001 and absf(float(refilled_aim.teams[0].get("gun_phase",-1000.0))-expected_phase)<0.0001 and int(refilled_aim.metrics[16])-before_spawn==3,"机枪补弹不重置连续射击小数相位","phase0.5再推进2.5槽应发3颗并回0；若补弹清phase只会错误发2颗",{"before_phase":before_phase,"after_phase":refilled_aim.teams[0].get("gun_phase",-1000.0),"spawn_delta":int(refilled_aim.metrics[16])-before_spawn})
+	check(int(weapon(refilled_aim).get("gun_target",-1))==int(weapon(aimed).get("gun_target",-2)) and int(weapon(refilled_aim).get("gun_target_generation",-1))==int(weapon(aimed).get("gun_target_generation",-2)) and is_equal_approx(float(weapon(refilled_aim).get("target_switch_ready",0)),float(weapon(aimed).get("target_switch_ready",-1))),"机枪补弹重规划库存不重置瞄准身份和CD","补弹仅更换库存分摊计划，当前有效目标与0.5秒切换期限保留",{"before":weapon(aimed),"after":weapon(refilled_aim)})
+	await reset_weapons()
+	world.update_settings({"gun_rate":1200.0,"gun_discharge_duration":0.1})
+	var initial:Dictionary=await _snapshot();var baseline:=accounted(initial)
+	world.debug_command({"op":5,"team":0,"energy":903})
+	await _advance(1,1.0/480.0)
+	var before:Dictionary=await _snapshot();var remaining:=int(before.teams[0].gun);before_spawn=int(before.metrics[16])
+	world.debug_command({"op":5,"team":0,"energy":600})
+	await _advance(1,1.0/480.0)
+	var planned:Dictionary=await _snapshot();var old_step_energy:=normal_energy(planned)-normal_energy(before);var total:=remaining+600-old_step_energy
+	check(int(weapon(planned).get("gun_plan_energy",-1))==total and int(weapon(planned).get("gun_plan_slots",-1))==120 and int(weapon(planned).get("gun_shot_energy",-1))==int(total/120) and int(weapon(planned).get("gun_plan_remainder",-1))==total%120 and float(weapon(planned).get("gun_plan_deadline",0))>float(weapon(before).get("gun_plan_deadline",0)),"机枪补弹按剩余库存加新输入重新分摊并重启T窗","已经发出的粒子不回收；只对当前剩余加600重算120槽商余和新截止",{"remaining_before":remaining,"input":600,"expected_total":total,"before":weapon(before),"after":weapon(planned)})
+	var new_plan_spawn:=int(planned.metrics[16])
+	await _advance(13)
+	var ended:Dictionary=await _snapshot()
+	check(int(ended.teams[0].gun)==0 and int(ended.metrics[16])-new_plan_spawn==120 and normal_energy(ended)==1503 and accounted(ended)-baseline==1503,"机枪重新分摊的全部余量在新T窗内发完","补弹子步先完成旧计划到期发射；随后新计划恰发120颗，总能量仍903+600",{"weapon":weapon(ended),"new_plan_spawn_delta":int(ended.metrics[16])-new_plan_spawn,"old_step_spawn_delta":new_plan_spawn-before_spawn,"old_step_energy":old_step_energy,"energy":normal_energy(ended),"accounted_delta":accounted(ended)-baseline})
+	world.update_settings({"gun_rate":0.0,"gun_discharge_duration":10.0})
+
+func _test_gun_full_pool_backpressure()->void:
+	await reset_weapons()
+	world.update_settings({"gun_rate":1200.0,"gun_discharge_duration":0.1})
+	var initial:Dictionary=await _snapshot();var baseline:=accounted(initial);var consumed_before:=int(initial.get("consumed_energy",0))
+	world.debug_command({"op":17,"team":0,"count":4096,"energy":1,"vx":0.01,"vy":0.0})
+	world.debug_command({"op":5,"team":0,"energy":367})
+	await _advance(24)
+	var blocked:Dictionary=await _snapshot()
+	check(int(blocked.metrics[0])==4096 and int(blocked.teams[0].gun)==367 and accounted(blocked)-baseline==4463,"机枪满池超过计划T仍保留全部未发能量","真实4096实体满池，0.2秒超过T0.1时不得丢367库存、强行吞槽或假发零能实体",{"active":blocked.metrics[0],"gun":blocked.teams[0].gun,"weapon":weapon(blocked),"accounted_delta":accounted(blocked)-baseline})
+	world.debug_command({"op":15,"team":1,"energy":0,"count":1})
+	await _advance(1,1.0/480.0)
+	var freed:Dictionary=await _snapshot()
+	check(int(freed.metrics[0])==4095 and int(freed.teams[0].gun)==367 and int(freed.consumed_energy)-consumed_before==1,"机枪等待事件末真实回收空槽","一颗1能粒子实际染敌格退出，prepare不能提前使用尚未回收的槽",{"active":freed.metrics[0],"gun":freed.teams[0].gun,"consumed_delta":int(freed.consumed_energy)-consumed_before})
+	await _advance(1,1.0/480.0)
+	var resumed:Dictionary=await _snapshot();var spent:=367-int(resumed.teams[0].gun)
+	check(int(resumed.metrics[0])==4096 and spent in [3,4] and int(resumed.metrics[16])-int(freed.metrics[16])==1 and accounted(resumed)-baseline==4463,"机枪空槽释放后恢复未发计划且整数守恒","只复用一个真实回收槽，发出原商余3或4能量，超过T的背压不丢弹药",{"active":resumed.metrics[0],"gun_spent":spent,"spawn_delta":int(resumed.metrics[16])-int(freed.metrics[16]),"accounted_delta":accounted(resumed)-baseline})
+	world.update_settings({"gun_rate":0.0,"gun_discharge_duration":10.0})
 
 func _test_gun_aim_and_switch()->void:
 	await reset_weapons()
 	check(is_equal_approx(float(world.settings.get("gun_target_switch_cd",-1.0)),0.5),"机枪默认目标切换CD为0.5模拟秒","验证正式配置默认值，不用夹具覆盖旧0.08值冒充新默认",{"configured_cd":world.settings.get("gun_target_switch_cd",-1.0)})
-	world.update_settings({"gun_rate":1200.0,"particle_cost_delay":0.0,"particle_cost_growth":0.0,"gun_target_switch_cd":0.5})
+	world.update_settings({"gun_rate":1200.0,"gun_discharge_duration":10.0,"gun_target_switch_cd":0.5})
 	world.output(0,4,1000000.0)
 	await _advance()
 	var safe:Dictionary=await _snapshot()
@@ -128,7 +219,8 @@ func _test_gun_aim_and_switch()->void:
 	var tracked_angle:=float(tracked.teams[0].get("gun_target_angle",0))
 	check(int(weapon(tracked).get("gun_target",-1))==first_target and sim_time<ready_time and absf(angle_difference(before_angle,tracked_angle))>0.005 and absf(angle_difference(float(tracked.teams[0].gun_angle),tracked_angle))<0.08,"机枪0.5秒锁定身份期间持续追踪移动目标","原目标横向位移使目标角和实际炮口角连续改变，不锁死旧角度",{"before_angle":before_angle,"tracked_angle":tracked_angle,"team":tracked.teams[0],"weapon":weapon(tracked)})
 	var fired:=int(tracked.metrics[16])-before_spawn
-	check(fired==240 and before_gun-int(tracked.teams[0].gun)==240,"机枪锁定和目标切换CD不降低1200固定射速","0.2模拟秒真实发出240颗，枪库存恰好减少240",{"fired":fired,"gun_spent":before_gun-int(tracked.teams[0].gun)})
+	var gun_spent:=before_gun-int(tracked.teams[0].gun)
+	check(fired==240 and gun_spent>0 and gun_spent==normal_energy(tracked)-normal_energy(urgent),"机枪锁定和目标切换CD不降低1200固定射速","0.2模拟秒真实发出240颗；单发由库存T计划决定，枪减少能量等于真实发出能量",{"fired":fired,"gun_spent":gun_spent,"active_energy_added":normal_energy(tracked)-normal_energy(urgent)})
 	check(accounted(tracked)==before_energy,"机枪目标保持期间整数能量守恒","无新增输入的追踪窗口，在场+库存+累计实际消耗保持相等",{"before":before_energy,"after":accounted(tracked)})
 	var steps_to_ready:=maxi(1,int(ceil((ready_time-sim_time)/(1.0/120.0)))+1)
 	await _advance(steps_to_ready)
@@ -139,7 +231,7 @@ func _test_gun_aim_and_switch()->void:
 
 func _gun_target_fixture(position:Vector2,velocity:Vector2)->Dictionary:
 	await reset_weapons()
-	world.update_settings({"gun_rate":1200.0,"particle_cost_delay":0.0,"particle_cost_growth":0.0,"gun_target_switch_cd":0.5})
+	world.update_settings({"gun_rate":1200.0,"gun_discharge_duration":10.0,"gun_target_switch_cd":0.5})
 	world.output(0,4,1000000.0)
 	_inject(1,1000.0,position,velocity,13)
 	await _advance()
@@ -270,9 +362,16 @@ func _test_storm_circles()->void:
 		check(accounted(state)-baseline==energy and normal_energy(state)==energy,"风暴%d整数分配守恒"%energy,"整数商加余数逐发分配，所有真实粒子能量和等于输入",{"accounted_delta":accounted(state)-baseline,"active_energy":normal_energy(state)})
 		check(interval_valid,"风暴%d圈间模拟时间间隔"%energy,"下一圈不得早于上一圈完成后的0.10模拟秒",{"sim_time":sim_time,"last_ready":ready_time})
 
+func _legal_right_wall_start()->Vector2:
+	# 1.5.1首轮旧1022.7夹具在r1.4时已越墙0.1；真实TOI必须从合法位置出发。
+	return Vector2(1024.0-float(world.settings.particle_radius)-0.1,400.0)
+
 func _test_sniper_integer_split()->void:
 	await reset_weapons()
-	_inject(0,100.0,Vector2(1022.7,400.0),Vector2(620.0,0.0),12)
+	var wall_start:=_legal_right_wall_start()
+	var radius:=float(world.settings.particle_radius)
+	check(wall_start.x+radius<1024.0 and wall_start.x+radius+620.0/480.0>1024.0,"狙击墙碰夹具合法且真实跨越边界","按当前真实半径从world-r-0.1出生，先不穿墙，1/480秒内确实撞实体墙",{"start_x":wall_start.x,"radius":radius,"gap":1024.0-wall_start.x-radius})
+	_inject(0,100.0,wall_start,Vector2(620.0,0.0),12)
 	await _advance()
 	var first:Dictionary=await _snapshot()
 	var energies:Array=[]
@@ -297,7 +396,7 @@ func _test_sniper_integer_split()->void:
 	for shot:Dictionary in capped.get("snipers",[]):total_energy+=int(shot.energy)
 	check(capped.get("snipers",[]).size()==4 and total_energy==100,"三级狙击后续墙碰不再分裂","再运行2模拟秒，保持4颗和整数总能量100",{"snipers":capped.get("snipers",[])})
 	await reset_weapons()
-	_inject(0,3.0,Vector2(1022.7,400.0),Vector2(620.0,0.0),12)
+	_inject(0,3.0,_legal_right_wall_start(),Vector2(620.0,0.0),12)
 	await _advance()
 	var tiny:Dictionary=await _snapshot()
 	var shots:Array=tiny.get("snipers",[])
@@ -311,7 +410,7 @@ func _test_sniper_full_pool_retry()->void:
 	# 4095个真实普通实体占满常规池与七个保留槽，最后一个保留槽注入狙击。
 	# .01避免op17把近零向量回退为(30,17)；这几步仍留在原格。
 	world.debug_command({"op":17,"team":0,"count":4095,"energy":1,"vx":0.01,"vy":0.0})
-	_inject(0,100.0,Vector2(1022.7,400.0),Vector2(620.0,0.0),12)
+	_inject(0,100.0,_legal_right_wall_start(),Vector2(620.0,0.0),12)
 	# 1/480秒只产生一个真实GPU物理子步，能区分事件阶段和后续回收阶段。
 	var one_substep:=1.0/480.0
 	await _advance(1,one_substep)

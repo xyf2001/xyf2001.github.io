@@ -20,6 +20,10 @@ def source_hashes(project: Path, extra_files: tuple[str, ...] = ()) -> dict[str,
     names = dict.fromkeys(SOURCE_FILES + extra_files)
     return {name: hashlib.sha256((project / name).read_bytes()).hexdigest() for name in names}
 
+def execution_tool_hashes(project: Path) -> dict[str, str]:
+    names = ("tools/run_validation_matrix.py", "tools/run_tests.py")
+    return {name: hashlib.sha256((project / name).read_bytes()).hexdigest() for name in names}
+
 def git_metadata(project: Path) -> dict:
     try:
         commit = subprocess.run(["git", "-C", str(project), "rev-parse", "HEAD"], capture_output=True, text=True, check=False)
@@ -68,7 +72,15 @@ def main() -> int:
         evidence = relative.stem + "_fixture" + relative.suffix
         (output / evidence).write_bytes(contents)
         asset_metadata[relative.as_posix()] = {"sha256":hashlib.sha256(contents).hexdigest(),"evidence_file":evidence}
-    report = {"started_utc":stamp,"fixture_sha256":hashlib.sha256(fixture).hexdigest(),
+    frozen_execution_tools = execution_tool_hashes(project_root)
+    for name in frozen_execution_tools:
+        (output / Path(name).name).write_bytes((project_root / name).read_bytes())
+    report = {"started_utc":stamp,"fixture_schema_version":3,
+              "intended_current_rule_version":"1.5.1-energy-magazine",
+              "throughput_schema":"v2: measured completed steps / full measured wall interval",
+              "behavior_note":"current rules include real mechanical CCD corrections; historical peak ratios are not pure optimization comparisons",
+              "execution_tool_sha256_before":frozen_execution_tools,
+              "fixture_sha256":hashlib.sha256(fixture).hexdigest(),
               "fixture_relative_path":fixture_relative.as_posix(),"fixture_assets":asset_metadata,
               "samples":args.samples,"warmup":args.warmup,"cases":args.cases,
               "profiling":args.profiling,"affinity":args.affinity,"LP_NUM_THREADS":args.threads,
@@ -116,12 +128,15 @@ def main() -> int:
         errors=[line for line in raw.splitlines() if line.startswith("ERROR:") or "SCRIPT ERROR:" in line or "SHADER ERROR:" in line or "Parse Error:" in line]
         data=json.loads(result_path.read_text()) if result_path.exists() else {}
         hashes_after = source_hashes(project,(fixture_relative.as_posix(),))
-        ok=hashes_before==hashes_after and code==0 and not timed_out and not errors and data.get("results") and not data.get("failed",True)
+        execution_tools_after = execution_tool_hashes(project_root)
+        ok=hashes_before==hashes_after and frozen_execution_tools==execution_tools_after and code==0 and not timed_out and not errors and data.get("results") and not data.get("failed",True)
         run={"label":label,"project":str(project),"returncode":code,"timed_out":timed_out,
              "elapsed_wall_seconds":time.monotonic()-started,"status":"PASS" if ok else "FAIL",
              "cgroup_cpu_before":cgroup_before,"cgroup_cpu_after":cpu_stat.read_text() if cpu_stat.exists() else None,
              "git_before":git_before,"git_after":git_metadata(project),
              "source_sha256_before":hashes_before,"source_sha256_after":hashes_after,"sources_unchanged_during_run":hashes_before==hashes_after,
+             "execution_tool_sha256_after":execution_tools_after,
+             "execution_tools_unchanged_during_run":frozen_execution_tools==execution_tools_after,
              "engine_errors":errors,"raw_log":str(log_path),"json":str(result_path),"summary":[]}
         for case in data.get("results",[]):
             totals=[float(sample["stages"]["gpu_ms_by_mode"]["TOTAL"]) for sample in case.get("samples",[])

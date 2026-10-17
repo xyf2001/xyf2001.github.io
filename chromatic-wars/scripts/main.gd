@@ -235,9 +235,7 @@ func _clear_all_pegs() -> void:
 	_save_editor_layout()
 
 func _performance_preset() -> void:
-	# 只改变发射负载参数；不降低画面或领土精度。
-	settings["particle_cost_delay"] = 60.0
-	settings["particle_cost_growth"] = 0.25
+	# 只应用分圈风暴参数；不降低画面、领土精度或真实碰撞。
 	settings["storm_ring_particles"] = 360
 	settings["storm_ring_interval"] = 0.10
 	settings = GameSettings.validate(settings)

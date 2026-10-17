@@ -6,6 +6,11 @@ var phase := "waiting"
 var started := Time.get_ticks_msec()
 var report: Dictionary = {}
 var artifact_dir := "/tmp/chromatic-export-smoke"
+const EXPECTED_VERSION := "1.5.1-energy-magazine"
+const INITIAL_GUN_ENERGY := 1000000
+const MAGAZINE_SLOTS := 12000
+const MAGAZINE_QUOTIENT := 83
+const MAGAZINE_REMAINDER := 4000
 
 func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
@@ -15,6 +20,10 @@ func _initialize() -> void:
 	report["execution_os"] = OS.get_name()
 	report["execution_mode"] = "host_godot_loads_embedded_pck"
 	report["native_windows_exe_execution"] = "NOT TESTED"
+	report["app_version"] = str(ProjectSettings.get_setting("application/config/version", ""))
+	if str(report.app_version) != EXPECTED_VERSION:
+		_fail("待交付PCK版本不是" + EXPECTED_VERSION)
+		return
 	var engine_args := OS.get_cmdline_args()
 	# Godot消费--main-pack后不会保留在get_cmdline_args()中。Linux外部装包工具
 	# 读取当前进程的真实argv绑定实际文件；不能仅相信另传一个未经核对的文件名。
@@ -97,17 +106,24 @@ func _snapshot(data: Dictionary) -> void:
 	if phase == "initial":
 		report["device"] = game.world.stats.get("device", "UNKNOWN")
 		var valid: bool = data.get("teams", []).size() == 4 and game.pinball.balls.size() == 16
+		var default_cores := true
+		var team_index := 0
 		for team: Dictionary in data.get("teams", []):
 			valid = valid and bool(team.alive) and int(team.shield) == 1000000 and int(team.gun) == 1000000
+			default_cores = default_cores and float(team.get("x", NAN)) == (256.0 if team_index % 2 == 0 else 768.0) and float(team.get("y", NAN)) == (256.0 if team_index < 2 else 768.0)
+			team_index += 1
 		var metrics: Array = data.get("metrics", [])
 		var cells: int = int(game.settings.grid_size) * int(game.settings.grid_size) / 4
 		for i in 4: valid = valid and metrics.size() > 11 and int(metrics[8 + i]) == cells
 		valid = valid and game.world.texture.texture_rd_rid.is_valid()
 		var target_switch_cd: float = float(game.world.settings.get("gun_target_switch_cd", -1.0))
 		valid = valid and is_equal_approx(target_switch_cd, 0.5)
-		report["initial"] = {"valid":valid,"teams":data.get("teams", []),"shared_texture":game.world.texture.texture_rd_rid.is_valid(),"left_balls":game.pinball.balls.size(),"gun_target_switch_cd":target_switch_cd}
+		var costs_removed: bool = not game.settings.has("particle_cost_delay") and not game.settings.has("particle_cost_growth") and not game.world.settings.has("particle_cost_delay") and not game.world.settings.has("particle_cost_growth")
+		var magazine: Dictionary = _validate_initial_magazines(data)
+		valid = valid and default_cores and costs_removed and bool(magazine.valid)
+		report["initial"] = {"valid":valid,"teams":data.get("teams", []),"default_core_positions":default_cores,"shared_texture":game.world.texture.texture_rd_rid.is_valid(),"left_balls":game.pinball.balls.size(),"gun_target_switch_cd":target_switch_cd,"removed_cost_settings_absent":costs_removed,"magazine_validation":magazine}
 		if not valid:
-			_fail("导出开局状态/共享纹理不正确")
+			_fail("导出开局状态/共享纹理/新版整数弹匣计划不正确")
 			return
 		phase = "running"
 		game.paused = false
@@ -115,10 +131,11 @@ func _snapshot(data: Dictionary) -> void:
 		var metrics: Array = data.get("metrics", [])
 		var valid: bool = metrics.size() > 15 and int(metrics[15]) == 0 and float(data.get("sim_time", 0.0)) >= 0.04 and int(metrics[0]) > 0 and float(data.get("sim_time", -1)) + game.active_dt * 0.51 >= game.elapsed
 		var entities: Dictionary = _validate_all_entities(data)
-		valid = valid and bool(entities.valid)
-		report["movement"] = {"valid":valid,"cpu_sim_time":game.elapsed,"gpu_sim_time":data.get("sim_time", 0.0),"active_particles":metrics[0] if not metrics.is_empty() else -1,"overflow":metrics[15] if metrics.size() > 15 else -1,"entity_validation":entities}
+		var transfer: Dictionary = _validate_initial_energy_transfer(data, entities)
+		valid = valid and bool(entities.valid) and bool(transfer.valid)
+		report["movement"] = {"valid":valid,"cpu_sim_time":game.elapsed,"gpu_sim_time":data.get("sim_time", 0.0),"active_particles":metrics[0] if not metrics.is_empty() else -1,"overflow":metrics[15] if metrics.size() > 15 else -1,"entity_validation":entities,"energy_transfer_validation":transfer}
 		if not valid:
-			_fail("导出Compute推进、实体完整性或generation检查失败")
+			_fail("导出Compute推进、实体完整性/generation或新版弹匣能量转移检查失败")
 			return
 		phase = "capturing"
 		await RenderingServer.frame_post_draw
@@ -148,6 +165,18 @@ func _snapshot(data: Dictionary) -> void:
 		phase = "done"
 		quit()
 
+func _validate_initial_magazines(data: Dictionary) -> Dictionary:
+	var weapons: Array = data.get("weapons", [])
+	var valid := weapons.size() == 4
+	var observed: Array[Dictionary] = []
+	for team_index: int in mini(4, weapons.size()):
+		var weapon: Dictionary = weapons[team_index]
+		var plan := {"team":team_index,"slots":int(weapon.get("gun_plan_slots", -1)),"ordinal":int(weapon.get("gun_plan_ordinal", -1)),"quotient":int(weapon.get("gun_shot_energy", -1)),"remainder":int(weapon.get("gun_plan_remainder", -1)),"carry":int(weapon.get("gun_plan_carry", -1)),"energy":int(weapon.get("gun_plan_energy", -1)),"start":float(weapon.get("gun_plan_start", NAN)),"deadline":float(weapon.get("gun_plan_deadline", NAN)),"rate":float(weapon.get("gun_plan_rate", NAN)),"duration":float(weapon.get("gun_plan_duration", NAN))}
+		plan["valid"] = plan.slots == MAGAZINE_SLOTS and plan.ordinal == 0 and plan.quotient == MAGAZINE_QUOTIENT and plan.remainder == MAGAZINE_REMAINDER and plan.carry == 0 and plan.energy == INITIAL_GUN_ENERGY and is_equal_approx(plan.start, 0.0) and is_equal_approx(plan.deadline, 10.0) and is_equal_approx(plan.rate, 1200.0) and is_equal_approx(plan.duration, 10.0)
+		valid = valid and bool(plan.valid)
+		observed.append(plan)
+	return {"valid":valid,"expected_slots":MAGAZINE_SLOTS,"expected_quotient":MAGAZINE_QUOTIENT,"expected_remainder":MAGAZINE_REMAINDER,"expected_energy":INITIAL_GUN_ENERGY,"expected_duration_sim_seconds":10.0,"plans":observed}
+
 func _validate_all_entities(data: Dictionary) -> Dictionary:
 	var normal_count := 0
 	var sniper_count := 0
@@ -155,6 +184,12 @@ func _validate_all_entities(data: Dictionary) -> Dictionary:
 	var invalid_finite := 0
 	var invalid_energy := 0
 	var invalid_generation := 0
+	var invalid_type := 0
+	var invalid_team := 0
+	var invalid_weight := 0
+	var outside_initial_team_region := 0
+	var energy_by_team: Array[int] = [0, 0, 0, 0]
+	var count_by_team: Array[int] = [0, 0, 0, 0]
 	var invalid_ids: Array[Dictionary] = []
 	for table: String in ["particles", "balls"]:
 		for entity: Dictionary in data.get(table, []):
@@ -169,15 +204,56 @@ func _validate_all_entities(data: Dictionary) -> Dictionary:
 				finite = finite and is_finite(float(entity.get(field, NAN)))
 			var positive_energy := int(entity.get("energy", 0)) > 0
 			var generation_valid := type != 1 and type != 2 or int(entity.get("particle_generation", entity.get("generation", 0))) > 0
+			var team_index := int(entity.get("team", -1))
+			var team_valid := team_index >= 0 and team_index < 4
+			var type_valid := type >= 1 and type <= 3
+			var energy := int(entity.get("energy", 0))
+			var weight_valid := type == 1 and (energy == MAGAZINE_QUOTIENT or energy == MAGAZINE_QUOTIENT + 1)
+			var own_region := false
+			if team_valid:
+				energy_by_team[team_index] += energy
+				count_by_team[team_index] += 1
+				var center := Vector2(256.0 if team_index % 2 == 0 else 768.0, 256.0 if team_index < 2 else 768.0)
+				var position := Vector2(float(entity.get("x", NAN)), float(entity.get("y", NAN)))
+				# 此短启动夹具的默认四核心相距512；每颗粒子的外缘仍在自身核心128范围内。
+				# 因而敌方实体/敌盾/敌领土尚不可达，才能用库存+在场能量核对无损转移。
+				own_region = finite and position.distance_to(center) + float(entity.get("radius", NAN)) < 128.0 and (position.x < 512.0) == (team_index % 2 == 0) and (position.y < 512.0) == (team_index < 2)
 			if not finite: invalid_finite += 1
 			if not positive_energy: invalid_energy += 1
 			if not generation_valid: invalid_generation += 1
-			if (not finite or not positive_energy or not generation_valid) and invalid_ids.size() < 16:
-				invalid_ids.append({"table":table,"id":int(entity.get("id", -1)),"finite":finite,"positive_energy":positive_energy,"generation_positive":generation_valid})
+			if not type_valid: invalid_type += 1
+			if not team_valid: invalid_team += 1
+			if not weight_valid: invalid_weight += 1
+			if not own_region: outside_initial_team_region += 1
+			if (not finite or not positive_energy or not generation_valid or not type_valid or not team_valid or not weight_valid or not own_region) and invalid_ids.size() < 16:
+				invalid_ids.append({"table":table,"id":int(entity.get("id", -1)),"finite":finite,"positive_energy":positive_energy,"generation_positive":generation_valid,"type_valid":type_valid,"team_valid":team_valid,"energy":energy,"expected_weight":weight_valid,"inside_initial_team_region":own_region})
 	var metrics: Array = data.get("metrics", [])
 	var metric_normal := int(metrics[0]) if not metrics.is_empty() else -1
 	var metric_big := int(metrics[1]) if metrics.size() > 1 else -1
-	return {"valid":normal_count > 0 and normal_count == metric_normal and big_count == metric_big and invalid_finite == 0 and invalid_energy == 0 and invalid_generation == 0,"snapshot_kind":"all_particles","observed_nonbig_count":normal_count,"observed_sniper_count":sniper_count,"observed_big_count":big_count,"metric_nonbig_count":metric_normal,"metric_big_count":metric_big,"invalid_finite_count":invalid_finite,"invalid_energy_count":invalid_energy,"invalid_generation_count":invalid_generation,"invalid_id_examples":invalid_ids}
+	return {"valid":normal_count > 0 and normal_count == metric_normal and big_count == metric_big and invalid_finite == 0 and invalid_energy == 0 and invalid_generation == 0 and invalid_type == 0 and invalid_team == 0 and invalid_weight == 0 and outside_initial_team_region == 0,"snapshot_kind":"all_particles","observed_nonbig_count":normal_count,"observed_sniper_count":sniper_count,"observed_big_count":big_count,"metric_nonbig_count":metric_normal,"metric_big_count":metric_big,"invalid_finite_count":invalid_finite,"invalid_energy_count":invalid_energy,"invalid_generation_count":invalid_generation,"invalid_type_count":invalid_type,"invalid_team_count":invalid_team,"invalid_weight_count":invalid_weight,"outside_initial_team_region_count":outside_initial_team_region,"energy_by_team":energy_by_team,"count_by_team":count_by_team,"invalid_id_examples":invalid_ids}
+
+func _validate_initial_energy_transfer(data: Dictionary, entities: Dictionary) -> Dictionary:
+	var teams: Array = data.get("teams", [])
+	var weapons: Array = data.get("weapons", [])
+	var sim_time := float(data.get("sim_time", NAN))
+	var no_left_output := int(game.pinball.output_events) == 0
+	var initial_time_window := is_finite(sim_time) and sim_time >= 0.04 and sim_time <= 0.125
+	var consumed_energy := int(data.get("consumed_energy", -1))
+	var isolated_initial_state := no_left_output and initial_time_window and consumed_energy == 0 and int(entities.outside_initial_team_region_count) == 0 and int(entities.observed_big_count) == 0 and int(entities.observed_sniper_count) == 0
+	var valid := isolated_initial_state and teams.size() == 4 and weapons.size() == 4
+	var observed: Array[Dictionary] = []
+	for team_index: int in mini(4, mini(teams.size(), weapons.size())):
+		var team: Dictionary = teams[team_index]
+		var weapon: Dictionary = weapons[team_index]
+		var remaining := int(team.get("gun", -1))
+		var in_flight := int(entities.energy_by_team[team_index])
+		var count := int(entities.count_by_team[team_index])
+		var ordinal := int(weapon.get("gun_plan_ordinal", -1))
+		var expected_emitted := ordinal * MAGAZINE_QUOTIENT + (ordinal * MAGAZINE_REMAINDER) / MAGAZINE_SLOTS
+		var team_valid := remaining >= 0 and in_flight > 0 and remaining + in_flight == INITIAL_GUN_ENERGY and ordinal == count and in_flight == expected_emitted and int(weapon.get("gun_plan_carry", -1)) == (ordinal * MAGAZINE_REMAINDER) % MAGAZINE_SLOTS and int(weapon.get("gun_plan_slots", -1)) == MAGAZINE_SLOTS and int(weapon.get("gun_shot_energy", -1)) == MAGAZINE_QUOTIENT and int(weapon.get("gun_plan_remainder", -1)) == MAGAZINE_REMAINDER and int(team.get("shield", -1)) == INITIAL_GUN_ENERGY and int(team.get("storm", -1)) == 0 and int(team.get("sniper", -1)) == 0
+		valid = valid and team_valid
+		observed.append({"team":team_index,"valid":team_valid,"remaining_gun_energy":remaining,"in_flight_energy":in_flight,"combined_energy":remaining + in_flight,"particle_count":count,"plan_ordinal":ordinal,"expected_emitted_energy":expected_emitted,"plan_carry":int(weapon.get("gun_plan_carry", -1))})
+	return {"valid":valid,"scope":"initial_short_window_before_left_output_or_enemy_contact","preconditions_valid":isolated_initial_state,"window_at_most_sim_seconds":0.125,"no_left_output":no_left_output,"left_output_events":int(game.pinball.output_events),"consumed_energy":consumed_energy,"all_particles_inside_own_core_radius":int(entities.outside_initial_team_region_count) == 0,"own_core_region_radius":128.0,"default_core_separation":512.0,"team_energy_transfers":observed}
 
 func _close_game() -> bool:
 	if game == null: return true

@@ -23,7 +23,8 @@ const METRICS_WORDS := 64
 const GRID_CELLS := 128 * 128
 const GRID_HEADS := GRID_CELLS * 4
 const PARAM_FLOATS := 64
-const WEAPON_STATE_BYTES := 4 * 128
+const WEAPON_STRIDE := 160
+const WEAPON_STATE_BYTES := 4 * WEAPON_STRIDE
 const POOL_HEADER_WORDS := 16
 const DIAGNOSTIC_WORDS := 32
 
@@ -79,7 +80,7 @@ func configure(value: Dictionary) -> void:
 	if not settings.has("gun_rate"):
 		var legacy_rate: Variant = settings.get("gun_end", 1200.0)
 		settings["gun_rate"] = 1200.0 if is_equal_approx(float(legacy_rate), 1400.0) else legacy_rate
-	var defaults := {"particle_capacity":10000, "grid_size":512, "render_size":768, "seed":2026, "intro_shield":1000000.0, "intro_gun":1000000.0, "gun_rate":1200.0, "gun_rotation_speed":1.7, "gun_target_switch_cd":0.5, "particle_cost_delay":60.0, "particle_cost_growth":0.25, "storm_ring_particles":360, "storm_ring_interval":0.10, "particle_speed":140.0, "ball_speed":42.0, "sniper_speed":600.0, "emergency_cd":180.0, "particle_radius":1.4, "packet_energy":1, "shield_scale":1.0, "precision_mode":"exact", "trail_length":0.55, "visual_density":1.0}
+	var defaults := {"particle_capacity":10000, "grid_size":512, "render_size":768, "seed":2026, "intro_shield":1000000.0, "intro_gun":1000000.0, "gun_rate":1200.0, "gun_rotation_speed":1.7, "gun_target_switch_cd":0.5, "storm_ring_particles":360, "storm_ring_interval":0.10, "particle_speed":140.0, "ball_speed":42.0, "sniper_speed":600.0, "emergency_cd":180.0, "particle_radius":1.4, "packet_energy":1, "shield_scale":1.0, "precision_mode":"exact", "trail_length":0.55, "visual_density":1.0}
 	for key: String in defaults:
 		if not settings.has(key):
 			settings[key] = defaults[key]
@@ -87,6 +88,7 @@ func configure(value: Dictionary) -> void:
 	settings["sniper_charge_time"] = float(settings.get("sniper_charge_time", 0.65))
 	settings["ball_min_speed"] = float(settings.get("ball_min_speed", 40.0))
 	settings["friendly_particle_collisions"] = bool(settings.get("friendly_particle_collisions", true))
+	settings["gun_discharge_duration"] = settings.get("gun_discharge_duration", 10.0)
 	for team_index: int in range(4):
 		settings["core_%d_x" % team_index] = float(settings.get("core_%d_x" % team_index, 768.0 if team_index % 2 else 256.0))
 		settings["core_%d_y" % team_index] = float(settings.get("core_%d_y" % team_index, 768.0 if team_index >= 2 else 256.0))
@@ -100,7 +102,7 @@ func configure(value: Dictionary) -> void:
 
 func update_settings(value: Dictionary) -> void:
 	## 容量、网格、输出纹理、随机种子、开局库存重开生效；其余物理参数立即生效。
-	var immediate: Array[String] = ["gun_rate", "gun_rotation_speed", "gun_target_switch_cd", "growth_curve_time", "sniper_split_angle", "gpu_profiling", "friendly_particle_collisions", "particle_cost_delay", "particle_cost_growth", "storm_ring_particles", "storm_ring_interval", "particle_speed", "ball_speed", "ball_min_speed", "sniper_speed", "sniper_charge_time", "shield_max_diameter", "emergency_cd", "particle_radius", "packet_energy", "shield_scale", "precision_mode", "trail_length", "visual_density", "growth_target", "growth_duration"]
+	var immediate: Array[String] = ["gun_rate", "gun_discharge_duration", "gun_rotation_speed", "gun_target_switch_cd", "growth_curve_time", "sniper_split_angle", "gpu_profiling", "friendly_particle_collisions", "storm_ring_particles", "storm_ring_interval", "particle_speed", "ball_speed", "ball_min_speed", "sniper_speed", "sniper_charge_time", "shield_max_diameter", "emergency_cd", "particle_radius", "packet_energy", "shield_scale", "precision_mode", "trail_length", "visual_density", "growth_target", "growth_duration"]
 	for key: String in immediate:
 		if value.has(key):
 			settings[key] = value[key]
@@ -116,10 +118,13 @@ func _normalize_emission_settings() -> void:
 	settings["gun_rotation_speed"] = clampf(float(settings.get("gun_rotation_speed", 1.7)), 0.1, 6.0)
 	var switch_cd: Variant = settings.get("gun_target_switch_cd", 0.5)
 	settings["gun_target_switch_cd"] = clampf(float(switch_cd), 0.0, 2.0) if (switch_cd is int or switch_cd is float) and is_finite(float(switch_cd)) else 0.5
+	var discharge_duration: Variant = settings.get("gun_discharge_duration", 10.0)
+	settings["gun_discharge_duration"] = clampf(float(discharge_duration), 0.1, 120.0) if (discharge_duration is int or discharge_duration is float) and is_finite(float(discharge_duration)) else 10.0
 	settings["gun_start"] = settings["gun_rate"]
 	settings["gun_end"] = settings["gun_rate"]
-	settings["particle_cost_delay"] = clampf(float(settings.get("particle_cost_delay", 60.0)), 0.0, 7200.0)
-	settings["particle_cost_growth"] = clampf(float(settings.get("particle_cost_growth", 0.25)), 0.0, 100.0)
+	# 旧存档的时间发射成本已废弃，直接配置同样不能重新启用。
+	settings.erase("particle_cost_delay")
+	settings.erase("particle_cost_growth")
 	settings["storm_ring_particles"] = 360
 	settings["storm_ring_interval"] = clampf(float(settings.get("storm_ring_interval", 0.10)), 0.02, 2.0)
 	settings["ball_min_speed"] = clampf(float(settings.get("ball_min_speed", 40.0)), 1.0, maxf(1.0, float(settings.get("ball_speed", 92.0))))
@@ -397,7 +402,7 @@ func _initialized_main(generation: int, output_rid: RID, device: String, memory:
 		return
 	texture.texture_rd_rid = output_rid
 	active = true
-	stats = {"device":device, "memory_mb":float(memory) / 1048576.0, "gpu_ms":-1.0, "precision_mode":str(settings.precision_mode), "active_particles":0, "big_balls":0, "queue_energy":0, "overflow_count":0, "current_particle_cost":1, "teams":[]}
+	stats = {"device":device, "memory_mb":float(memory) / 1048576.0, "gpu_ms":-1.0, "precision_mode":str(settings.precision_mode), "active_particles":0, "big_balls":0, "queue_energy":0, "overflow_count":0, "teams":[]}
 	initialized.emit()
 
 func _fail_rd(message: String, generation: int) -> void:
@@ -476,14 +481,15 @@ func _make_params(configuration: Dictionary) -> PackedByteArray:
 	bytes.encode_float(196, float(configuration.get("sniper_charge_time", 0.65)))
 	bytes.encode_float(200, float(configuration.get("ball_min_speed", 40.0)))
 	bytes.encode_float(204, 1.0 if bool(configuration.get("friendly_particle_collisions", true)) else 0.0)
-	# 参数块13：按模拟时间增长的逐粒子成本，以及风暴环粒子数/环间隔。
-	bytes.encode_float(208, float(configuration.get("particle_cost_delay", 60.0)))
-	bytes.encode_float(212, float(configuration.get("particle_cost_growth", 0.25)))
+	# 参数块13：保留布局前两项为0；后两项为风暴环粒子数/环间隔。
+	bytes.encode_float(208, 0.0)
+	bytes.encode_float(212, 0.0)
 	bytes.encode_float(216, float(configuration.get("storm_ring_particles", 360)))
 	bytes.encode_float(220, float(configuration.get("storm_ring_interval", 0.10)))
 	bytes.encode_float(224, float(configuration.get("gun_target_switch_cd", 0.5)))
 	bytes.encode_float(228, float(configuration.get("growth_curve_time", 1200.0)))
 	bytes.encode_float(232, float(configuration.get("sniper_split_angle", 8.0)))
+	bytes.encode_float(236, float(configuration.get("gun_discharge_duration", 10.0)))
 	return bytes
 
 func _execute_rd(generation_id: int, batch: Array, upload: Array, rescues: Array, tail: int, request_stats: bool) -> void:
@@ -647,7 +653,7 @@ func _decode_energy(bytes: PackedByteArray, offset: int) -> int:
 func _decode_team(bytes: PackedByteArray, index: int, sim_time: float) -> Dictionary:
 	var offset := index * TEAM_STRIDE
 	var state := int(bytes.decode_u32(offset + 32))
-	return {"team":index, "shield":_decode_energy(bytes, offset), "gun":_decode_energy(bytes, offset + 8), "storm":_decode_energy(bytes, offset + 16), "sniper":_decode_energy(bytes, offset + 24), "state":state, "alive":state != 2, "pending":state == 1, "request_nonce":int(bytes.decode_u32(offset + 36)), "death_nonce":int(bytes.decode_u32(offset + 40)), "rescue_cd":maxf(0.0, bytes.decode_float(offset + 48) - sim_time), "ready_time":bytes.decode_float(offset + 48), "gun_angle":bytes.decode_float(offset + 56), "gun_target_angle":bytes.decode_float(offset + 116), "gun_mode":bytes.decode_float(offset + 120), "x":bytes.decode_float(offset + 80), "y":bytes.decode_float(offset + 84), "core_radius":bytes.decode_float(offset + 88), "shield_radius":bytes.decode_float(offset + 92)}
+	return {"team":index, "shield":_decode_energy(bytes, offset), "gun":_decode_energy(bytes, offset + 8), "storm":_decode_energy(bytes, offset + 16), "sniper":_decode_energy(bytes, offset + 24), "state":state, "alive":state != 2, "pending":state == 1, "request_nonce":int(bytes.decode_u32(offset + 36)), "death_nonce":int(bytes.decode_u32(offset + 40)), "rescue_cd":maxf(0.0, bytes.decode_float(offset + 48) - sim_time), "ready_time":bytes.decode_float(offset + 48), "gun_phase":bytes.decode_float(offset + 52), "gun_angle":bytes.decode_float(offset + 56), "gun_target_angle":bytes.decode_float(offset + 116), "gun_mode":bytes.decode_float(offset + 120), "x":bytes.decode_float(offset + 80), "y":bytes.decode_float(offset + 84), "core_radius":bytes.decode_float(offset + 88), "shield_radius":bytes.decode_float(offset + 92)}
 
 func _decode_particles(bytes: PackedByteArray, first_id: int = 0) -> Array[Dictionary]:
 	var particles: Array[Dictionary] = []
@@ -669,12 +675,15 @@ func _decode_diagnostics(bytes: PackedByteArray) -> Dictionary:
 
 func _decode_weapon_states(bytes: PackedByteArray) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for index: int in mini(4, bytes.size() / 128):
-		var offset := index * 128
+	for index: int in mini(4, bytes.size() / WEAPON_STRIDE):
+		var offset := index * WEAPON_STRIDE
 		var words: Array[int] = []
-		for word: int in 32:
+		for word: int in range(WEAPON_STRIDE >> 2):
 			words.append(int(bytes.decode_u32(offset + word * 4)))
-		result.append({"gun_shot_energy":_decode_energy(bytes, offset), "gun_target":int(bytes.decode_u32(offset + 8)), "gun_target_generation":int(bytes.decode_u32(offset + 12)), "target_switch_ready":bytes.decode_float(offset + 16), "gun_paint_target_cell":int(bytes.decode_float(offset + 20)), "gun_paint_cursor":int(bytes.decode_float(offset + 24)), "gun_paint_scan_cells":int(bytes.decode_float(offset + 28)), "storm_total_shots":int(bytes.decode_u32(offset + 32)), "storm_next_shot":int(bytes.decode_u32(offset + 36)), "storm_rings":int(bytes.decode_u32(offset + 40)), "storm_ring":int(bytes.decode_u32(offset + 44)), "storm_base_energy":_decode_energy(bytes, offset + 48), "storm_remainder":_decode_energy(bytes, offset + 56), "next_ring_time":bytes.decode_float(offset + 64), "last_ring_complete_time":bytes.decode_float(offset + 72), "storm_completed_events":int(bytes.decode_u32(offset + 112)), "storm_completed_rings":int(bytes.decode_u32(offset + 116)), "sniper_split_count":int(bytes.decode_u32(offset + 120)), "shield_reference_energy":bytes.decode_float(offset + 80), "shield_expansion_radius":bytes.decode_float(offset + 84), "raw_words":words})
+		var quotient := _decode_energy(bytes, offset)
+		var plan_slots := int(bytes.decode_u32(offset + 128))
+		var plan_remainder := int(bytes.decode_u32(offset + 136))
+		result.append({"gun_shot_energy":quotient, "gun_target":int(bytes.decode_u32(offset + 8)), "gun_target_generation":int(bytes.decode_u32(offset + 12)), "target_switch_ready":bytes.decode_float(offset + 16), "gun_paint_target_cell":int(bytes.decode_float(offset + 20)), "gun_paint_cursor":int(bytes.decode_float(offset + 24)), "gun_paint_scan_cells":int(bytes.decode_float(offset + 28)), "storm_total_shots":int(bytes.decode_u32(offset + 32)), "storm_next_shot":int(bytes.decode_u32(offset + 36)), "storm_rings":int(bytes.decode_u32(offset + 40)), "storm_ring":int(bytes.decode_u32(offset + 44)), "storm_base_energy":_decode_energy(bytes, offset + 48), "storm_remainder":_decode_energy(bytes, offset + 56), "next_ring_time":bytes.decode_float(offset + 64), "last_ring_complete_time":bytes.decode_float(offset + 72), "storm_completed_events":int(bytes.decode_u32(offset + 112)), "storm_completed_rings":int(bytes.decode_u32(offset + 116)), "sniper_split_count":int(bytes.decode_u32(offset + 120)), "shield_reference_energy":bytes.decode_float(offset + 80), "shield_expansion_radius":bytes.decode_float(offset + 84), "gun_plan_slots":plan_slots, "gun_plan_ordinal":int(bytes.decode_u32(offset + 132)), "gun_plan_remainder":plan_remainder, "gun_plan_carry":int(bytes.decode_u32(offset + 140)), "gun_plan_energy":quotient * plan_slots + plan_remainder, "gun_plan_start":bytes.decode_float(offset + 144), "gun_plan_deadline":bytes.decode_float(offset + 148), "gun_plan_rate":bytes.decode_float(offset + 152), "gun_plan_duration":bytes.decode_float(offset + 156), "gun_refill_pending":int(bytes.decode_u32(offset + 124)), "raw_words":words})
 	return result
 
 func _stats_main(combined: Dictionary, gpu_ms: float) -> void:
@@ -700,10 +709,9 @@ func _stats_main(combined: Dictionary, gpu_ms: float) -> void:
 	var queued_energy := cpu_queue_energy + float(_decode_energy(metrics, 100))
 	for team: Dictionary in teams:
 		queued_energy += float(team.storm) + float(team.sniper)
-	# 普通粒子出生能量由时间成本决定，能量>1不再代表近似粒子包。
+	# 粒子保存自身的真实整数能量；能量>1不会追溯改变或引入时间成本。
 	var actual_precision := str(settings.precision_mode)
 	stats = {"device":_device_name, "memory_mb":float(_memory_bytes) / 1048576.0, "gpu_ms":gpu_ms, "precision_mode":actual_precision, "rejected_dead_commands":int(metrics.decode_u32(112)), "active_particles":int(metrics.decode_u32(0)), "big_balls":int(metrics.decode_u32(4)), "collisions":int(metrics.decode_u32(8)), "captures":int(metrics.decode_u32(12)), "command_head":_ring_head, "queue_commands":int(metrics.decode_u32(20)) + _queued.size(), "command_ring_occupancy":int(metrics.decode_u32(108)), "queue_energy":queued_energy, "max_cell_occupancy":int(metrics.decode_u32(24)), "step":int(metrics.decode_u32(28)), "overflow_count":int(metrics.decode_u32(60)), "packing_count":int(metrics.decode_u32(56)), "packing_ratio":float(metrics.decode_u32(88)) / float(maxi(1, int(metrics.decode_u32(0)))), "active_packet_energy":_decode_energy(metrics, 92), "consumed_energy":_decode_energy(metrics, 68), "sim_time":sim_time, "teams":teams, "balls":_decode_particles(combined.parts.balls), "grid_size":int(settings.grid_size), "particle_capacity":int(settings.particle_capacity), "packet_energy":int(settings.packet_energy)}
-	stats["current_particle_cost"] = 1 + int(floor(maxf(0.0, sim_time - float(settings.particle_cost_delay)) * float(settings.particle_cost_growth)))
 	stats.merge(_decode_diagnostics(_last_read_diagnostics), true)
 	stats["substeps_in_last_batch"] = _last_substep_count
 	stats["cpu_submit_ms"] = _last_submit_cpu_ms

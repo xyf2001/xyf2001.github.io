@@ -8,7 +8,7 @@ func run_suite() -> void:
 		finish()
 		return
 	world = World.new()
-	world.configure({"particle_capacity": 1024, "grid_size": 64, "render_size": 256, "seed": 20261017, "intro_gun": 0, "intro_shield": 0, "gun_rate": 1200.0, "particle_speed": 140.0, "sniper_speed": 600.0, "ball_speed": 42.0, "ball_min_speed": 1.0, "growth_target": 100.0, "particle_cost_growth": 0.0, "friendly_particle_collisions": true})
+	world.configure({"particle_capacity": 1024, "grid_size": 64, "render_size": 256, "seed": 20261017, "intro_gun": 0, "intro_shield": 0, "gun_rate": 1200.0, "particle_speed": 140.0, "sniper_speed": 600.0, "ball_speed": 42.0, "ball_min_speed": 1.0, "growth_target": 100.0, "friendly_particle_collisions": true})
 	world.debug_snapshot_ready.connect(_on_snapshot)
 	world.failed.connect(func(message: String): runtime_error = message)
 	root.add_child(world)
@@ -33,6 +33,8 @@ func run_suite() -> void:
 	await _test_collision_toggle()
 	await _test_sniper_direction()
 	await _test_sniper_terrain_before_entities()
+	await _test_ordinary_terrain_before_entities()
+	await _test_ordinary_reflected_path()
 	await _test_sniper_entity_toi_order()
 	await _test_ball_snapshot_impulse()
 	await _test_ball_grazing_contact()
@@ -135,16 +137,90 @@ func _test_sniper_terrain_before_entities() -> void:
 	world.debug_command({"op": 15, "team": 1, "energy": 6 * 64 + 7, "count": 1})
 	_inject_int(0, 1, Vector2(100, 100), Vector2(40000, 0), 12)
 	_inject_int(0, 4, Vector2(140, 100), Vector2.ZERO, 13)
+	var before: Dictionary = await _snapshot()
 	await _advance(1, 0.001)
 	var after: Dictionary = await _snapshot()
-	check(_physical_particles(after).is_empty() and _energy(after, true) == 4, "敌格先耗尽狙击则不能隔空给后方己球补能", "1能狙击先穿x112敌格耗尽，x140友球仍4", {"particles": _physical_particles(after), "balls": after.get("balls", [])})
+	check(_physical_particles(after).is_empty() and _energy(after, true) == 4 and int(after.consumed_energy) - int(before.consumed_energy) == 1 and _accounted(before, after) == 5, "敌格先耗尽狙击则不能隔空给后方己球补能", "1能狙击先穿x112敌格扣1耗尽，x140友球仍4；余能4+消耗1严格等于输入5", {"particles": _physical_particles(after), "balls": after.get("balls", []), "accounted": _accounted(before, after), "consumed_delta": int(after.consumed_energy) - int(before.consumed_energy)})
 	await _reset_fixture(0)
 	world.debug_command({"op": 10, "team": 1, "energy": 10, "gun": 0, "state": 0})
 	world.debug_command({"op": 15, "team": 1, "energy": 16 * 64 + 45, "count": 1})
 	_inject_int(0, 1, Vector2(710, 256), Vector2(50000, 0), 12)
+	before = await _snapshot()
 	await _advance(1, 0.001)
 	after = await _snapshot()
-	check(_physical_particles(after).is_empty() and int(after.teams[1].shield) == 10, "敌格先耗尽狙击则不能隔空伤盾", "x720敌格在护盾实体之前，护盾10完整保留", {"particles": _physical_particles(after), "team": after.teams[1]})
+	check(_physical_particles(after).is_empty() and int(after.teams[1].shield) == 10 and int(after.consumed_energy) - int(before.consumed_energy) == 1 and _accounted(before, after) == 1, "敌格先耗尽狙击则不能隔空伤盾", "x720敌格在护盾实体之前固定扣1；护盾10完整保留，粒子1全部进入消耗账本", {"particles": _physical_particles(after), "team": after.teams[1], "accounted": _accounted(before, after), "consumed_delta": int(after.consumed_energy) - int(before.consumed_energy)})
+
+func _test_ordinary_terrain_before_entities() -> void:
+	# Ordinary packets share terrain-before-entity TOI ordering, but never
+	# split like a sniper. Input1 expires on the first cell; input8 reaches
+	# the actual downstream target with exactly7, without an early-cell veto.
+	for incoming in [1, 8]:
+		await _reset_fixture(0)
+		var cell: int = 6 * 64 + 7
+		world.debug_command({"op": 15, "team": 1, "energy": cell, "count": 1})
+		_inject_int(0, incoming, Vector2(100, 100), Vector2(40000, 0))
+		_inject_int(0, 4, Vector2(140, 100), Vector2.ZERO, 13)
+		var before: Dictionary = await _snapshot()
+		await _advance(1, 0.001)
+		var after: Dictionary = await _snapshot()
+		var terrain: Dictionary = await _snapshot("terrain:%d:1" % cell)
+		var balls: Array = after.get("balls", [])
+		var expected_ball: int = 4 + maxi(incoming - 1, 0)
+		var spent: int = int(after.consumed_energy) - int(before.consumed_energy)
+		var valid: bool = _physical_particles(after).is_empty() and balls.size() == 1 and int(balls[0].team) == 0 and int(balls[0].energy) == expected_ball and spent == 1 and _accounted(before, after) == incoming + 4 and terrain.get("terrain", []) == [0]
+		check(valid, "普通粒子先过敌格再结算后方友球-E%d" % incoming, "1能先染格耗尽不能隔空补球；8能染格扣1后余7真实补给4能友球成11，无狙击分裂；总账严格等于输入", {"input_particle": incoming, "balls": balls, "particles": _physical_particles(after), "terrain": terrain.get("terrain", []), "consumed_delta": spent, "accounted": _accounted(before, after)})
+
+		await _reset_fixture(0)
+		world.debug_command({"op": 10, "team": 1, "energy": 10, "gun": 0, "state": 0})
+		cell = 16 * 64 + 45
+		world.debug_command({"op": 15, "team": 1, "energy": cell, "count": 1})
+		_inject_int(0, incoming, Vector2(710, 256), Vector2(50000, 0))
+		before = await _snapshot()
+		await _advance(1, 0.001)
+		after = await _snapshot()
+		terrain = await _snapshot("terrain:%d:1" % cell)
+		var remaining_hit: int = maxi(incoming - 1, 0)
+		var expected_shield: int = 10 - remaining_hit
+		spent = int(after.consumed_energy) - int(before.consumed_energy)
+		var shield: int = int(after.teams[1].shield)
+		valid = _physical_particles(after).is_empty() and shield == expected_shield and int(after.teams[1].state) == 0 and spent == 1 + 2 * remaining_hit and shield + _accounted(before, after) == 10 + incoming and terrain.get("terrain", []) == [0]
+		check(valid, "普通粒子先过敌格再结算后方敌盾-E%d" % incoming, "1能只染格不伤盾；8能染格后余7只能将10盾扣至3，双方等消14加染格1，无普通弹分裂或穿盾杀核", {"input_particle": incoming, "shield": shield, "particles": _physical_particles(after), "terrain": terrain.get("terrain", []), "consumed_delta": spent, "shield_plus_accounted": shield + _accounted(before, after)})
+
+func _test_ordinary_reflected_path() -> void:
+	# An analytic one-wall trajectory: x4 travels40, reaches the real left
+	# radius boundary, then ends at2*r+40-4. Only cells0,1,2 are traversed.
+	await _reset_fixture(0)
+	var first_cell: int = 6 * 64
+	world.debug_command({"op": 15, "team": 1, "energy": first_cell, "count": 4})
+	_inject_int(0, 8, Vector2(4, 104), Vector2(-40000, 0))
+	var before: Dictionary = await _snapshot()
+	await _advance(1, 0.001)
+	var after: Dictionary = await _snapshot()
+	var terrain: Dictionary = await _snapshot("terrain:%d:4" % first_cell)
+	var ps: Array = _physical_particles(after)
+	var spent: int = int(after.consumed_energy) - int(before.consumed_energy)
+	var free_valid: bool = ps.size() == 1 and int(ps[0].type) == 1 and int(ps[0].energy) == 5 and spent == 3 and _accounted(before, after) == 8 and terrain.get("terrain", []) == [0, 0, 0, 1]
+	if ps.size() == 1:
+		var expected_x: float = 2.0 * float(ps[0].radius) + 40.0 - 4.0
+		free_valid = free_valid and absf(float(ps[0].x) - expected_x) < 0.05 and _velocity(ps[0]).distance_to(Vector2(40000, 0)) < 0.02
+	var free_observation: Dictionary = {"particles": ps, "terrain": terrain.get("terrain", []), "consumed_delta": spent, "accounted": _accounted(before, after), "valid": free_valid}
+
+	# With56 total travel the reflected leg reaches a friendly ball atx56.
+	# Its front is pastx32, so three actual hostile cells must be paid first.
+	# The ball itself never overlaps those hostile cell centres initially.
+	await _reset_fixture(0)
+	world.debug_command({"op": 15, "team": 1, "energy": first_cell, "count": 3})
+	world.debug_command({"op": 15, "team": 1, "energy": first_cell + 4, "count": 1})
+	_inject_int(0, 8, Vector2(4, 104), Vector2(-56000, 0))
+	_inject_int(0, 4, Vector2(56, 104), Vector2.ZERO, 13)
+	before = await _snapshot()
+	await _advance(1, 0.001)
+	after = await _snapshot()
+	terrain = await _snapshot("terrain:%d:5" % first_cell)
+	var bs: Array = after.get("balls", [])
+	spent = int(after.consumed_energy) - int(before.consumed_energy)
+	var feed_valid: bool = _physical_particles(after).is_empty() and bs.size() == 1 and int(bs[0].team) == 0 and int(bs[0].energy) == 9 and spent == 3 and _accounted(before, after) == 12 and terrain.get("terrain", []) == [0, 0, 0, 0, 1]
+	check(free_valid and feed_valid, "普通高能同子步墙反射保速且反射余程先染格后补球", "无目标时反射终点符合总路程且40000出生速度保留；有目标时8先真实染3格，再将余5补给4能友球成9；未到达格不染、无双反射或普通弹分裂", {"free_reflection": free_observation, "reflected_feed": {"balls": bs, "particles": _physical_particles(after), "terrain": terrain.get("terrain", []), "consumed_delta": spent, "accounted": _accounted(before, after), "valid": feed_valid}})
 
 func _test_sniper_entity_toi_order() -> void:
 	await _reset_fixture(0)

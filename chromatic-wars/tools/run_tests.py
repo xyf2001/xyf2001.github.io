@@ -16,12 +16,42 @@ import sys
 import time
 
 RESULT_PREFIX = "CHROMATIC_TEST "
-SOURCE_FILES = ("project.godot", "shaders/battle.glsl", "scripts/gpu_world.gd", "scripts/game_settings.gd", "scripts/gpu_collisions.gd", "scripts/gpu_emitters.gd", "scripts/gpu_render.gd", "scripts/pinball_physics.gd", "tests/test_harness.gd", "tests/gpu_suite.gd")
+SOURCE_FILES = ("project.godot", "shaders/battle.glsl", "scripts/gpu_world.gd", "scripts/game_settings.gd", "scripts/gpu_collisions.gd", "scripts/gpu_emitters.gd", "scripts/gpu_render.gd", "scripts/pinball_physics.gd", "tests/test_harness.gd", "tests/gpu_suite.gd", "tools/run_tests.py")
 
 
 def source_hashes(project: Path, suites: list[str]) -> dict[str, str]:
-    names = dict.fromkeys(SOURCE_FILES + tuple("tests/" + suite + "_suite.gd" for suite in suites))
+    formal = []
+    for pattern in ("scripts/**/*.gd", "scenes/**/*.tscn"):
+        formal.extend(path.relative_to(project).as_posix() for path in project.glob(pattern) if path.is_file())
+    shader_suffixes = {".glsl", ".gdshader", ".gdshaderinc", ".glslinc", ".vert", ".frag", ".comp", ".inc", ".h"}
+    formal.extend(path.relative_to(project).as_posix() for path in (project / "shaders").rglob("*")
+                  if path.is_file() and path.suffix in shader_suffixes)
+    if (project / "export_presets.cfg").is_file():
+        formal.append("export_presets.cfg")
+    names = dict.fromkeys(SOURCE_FILES + tuple(sorted(formal)) + tuple("tests/" + suite + "_suite.gd" for suite in suites))
     return {name: hashlib.sha256((project / name).read_bytes()).hexdigest() for name in names if (project / name).is_file()}
+
+
+def archive_sources(project: Path, output_dir: Path, expected: dict[str, str]) -> dict:
+    """Keep the actual startup bytes, including failed fixtures later corrected."""
+    archive = output_dir / "frozen_runtime_source"
+    archive.mkdir(parents=True, exist_ok=True)
+    # A source archive can contain class_name scripts but is evidence, not game resources.
+    (archive / ".gdignore").write_text("", encoding="utf-8")
+    entries, errors = {}, []
+    for name, expected_sha256 in expected.items():
+        try:
+            content = (project / name).read_bytes()
+            observed_sha256 = hashlib.sha256(content).hexdigest()
+            target = archive / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(content)
+            entries[name] = {"sha256": observed_sha256, "file": str(target.relative_to(output_dir))}
+            if observed_sha256 != expected_sha256:
+                errors.append(f"启动快照期间源码发生变化：{name}")
+        except OSError as error:
+            errors.append(f"无法保存启动源码：{name}: {error}")
+    return {"status": "FAIL" if errors else "PASS", "entries": entries, "errors": errors}
 
 
 def read_results(output: str) -> list[dict]:
@@ -115,6 +145,7 @@ def main(argv: list[str] | None = None) -> int:
               "requested_speed":args.speed,"wall_budget_seconds":args.wall_seconds,"particle_capacity":args.capacity,
               "host": {"platform": sys.platform}, "godot": args.godot}
     report["source_sha256_before"] = source_hashes(args.project, suites)
+    report["source_snapshot"] = archive_sources(args.project, output_dir, report["source_sha256_before"])
     env = os.environ.copy()
     # Godot/fontconfig need writable user directories in cloud sandboxes.
     for key, child in [("XDG_CACHE_HOME", "cache"), ("XDG_CONFIG_HOME", "config"), ("XDG_DATA_HOME", "data")]:
@@ -122,7 +153,9 @@ def main(argv: list[str] | None = None) -> int:
             directory = output_dir / "runtime" / child
             directory.mkdir(parents=True, exist_ok=True)
             env[key] = str(directory)
-    if not args.godot:
+    if report["source_snapshot"]["status"] != "PASS":
+        report["suites"].append({"name": "source_snapshot", "status": "FAIL", "reason": "; ".join(report["source_snapshot"]["errors"])})
+    elif not args.godot:
         report["suites"].append({"name": "runtime", "status": "NOT TESTED", "reason": "找不到 Godot 4 可执行文件"})
     else:
         binary = str(Path(args.godot).resolve()) if "/" in args.godot else args.godot

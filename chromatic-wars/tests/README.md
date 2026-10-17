@@ -13,7 +13,7 @@ python3 tools/run_tests.py --godot /路径/Godot --suite battle --duration 1200 
 
 `all`包括设置、通道底墙、CPU长局、弹球属性、GPU碰撞/能量、池完整性、武器和基础GPU回归。武器套件包括真实满池狙击分裂延期、染格消耗后回收槽位、无新碰撞重试以及不重复分裂。`stress`、`battle`须显式选择。CPU/设置套件使用headless；GPU套件必须普通窗口Forward+ / Vulkan，不能用headless假代替。Linux可用现成DISPLAY或`--wrapper 'xvfb-run -a'`。Xvfb仅提供显示服务；仍须有Vulkan。软件Vulkan结果不代表RTX 5060 Ti实际性能。
 
-结果保存在`artifacts/tests/<UTC时间>/`：原始`.log`、`results.json`、`REPORT.md`。退出码0为所请求范围通过，1为失败，77为含未测试项目。每项断言均输出`CHROMATIC_TEST` JSON。正式遥测和性能矩阵只读小表/有限采样；物理规则测试的独立小夹具<=4096槽显式使用all_particles调试读回核对全部状态，防止free pool复用非前64物理ID造成遗漏。规则测试的调试读回成本不用于性能对比。
+结果保存在`artifacts/tests/<UTC时间>/`：原始`.log`、`results.json`、`REPORT.md`及`frozen_runtime_source/`内经启动SHA256核对的源码和所选夹具原文。源码快照自带`.gdignore`，不作为游戏资源重复导入；修复失败夹具后仍能追溯实际执行的旧字节。退出码0为所请求范围通过，1为失败，77为含未测试项目。每项断言均输出`CHROMATIC_TEST` JSON。正式遥测和性能矩阵只读小表/有限采样；物理规则测试的独立小夹具<=4096槽显式使用all_particles调试读回核对全部状态，防止free pool复用非前64物理ID造成遗漏。规则测试的调试读回成本不用于性能对比。
 
 runner同时记录关键源码和本次测试脚本前后SHA256；运行中改变这些文件会报告版本完整性失败。`--include-gpu`只用于单独的weapon_validation，将基础GPU回归放在同一Godot进程；`--include-atomic`只用于contact_energy，增加并行64位进位验证。
 
@@ -34,4 +34,4 @@ Godot --path . --rendering-method forward_plus --rendering-driver vulkan --audio
 
 冻结baseline和修改后必须使用完全相同夹具、采样、地图、分辨率、时间步长、发射模式、后端、CPU affinity和线程数。共享主机调度波动在原始样本中保留，不用短样本的中位数宣称精确优化百分比。
 
-`battle`保持真实10000容量、512领土格、768渲染像素和正式弹药成本，绘制左右系统。`--speed 1/2/4`是按真实时钟累积的目标倍率；软件设备追不上时不跳过固定物理。达到wall budget但未达到目标模拟时长时报告NOT TESTED，并记录实际时长。最终小表GPU完成栅栏避免把CPU排队时间冒称已完成GPU对局。禁止再以旧64格地图/4096能量包小规模长局冒充默认对局。
+`battle`保持真实10000容量、512领土格、768渲染像素和正式高能粒子规则，绘制左右系统。`--speed 1/2/4`是按真实时钟累积的目标倍率；软件设备追不上时不跳过固定物理。达到wall budget但未达到目标模拟时长时报告NOT TESTED，并记录实际时长。最终小表GPU完成栅栏避免把CPU排队时间冒称已完成GPU对局。禁止再以旧64格地图/4096能量包小规模长局冒充默认对局。达到1200模拟秒只证明耐久采样时长；没有自然胜负时不得称完成自然对局。

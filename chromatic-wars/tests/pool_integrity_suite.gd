@@ -93,10 +93,51 @@ func run() -> void:
 			var particle: Dictionary = data.particles[0]
 			var initial_x := 1024.0 / ceil(sqrt(48.0)) * 0.5
 			_check(absf(float(particle.x) - initial_x - 17.0 / 120.0) < 0.001, "new live ID moves without a count readback or one-step delay")
-		# Turning every cell hostile makes each ordinary particle claim exactly
-		# one cell and leave physics during the next real GPU event pass.
-		data = await _submit([{"op":16, "team":1}], true)
-		_pool_check(data, 0, capacity, "reclaimed %d" % capacity)
+		# This is a deterministic death-progress fixture, not a performance case.
+		# Preserve the original 19E births and (17,11) motion. Some columns cross
+		# a 16-unit territory boundary within 19 steps, so making the whole map
+		# hostile would correctly spend 2E in that crossing step. Instead dye only
+		# each current cell hostile through the existing op15 interface; all other
+		# cells remain friendly. Real DDA then spends exactly 1E per live particle
+		# per 1/120-s step, without changing velocity or bypassing physics.
+		var original_ids: Dictionary = {}
+		var reclaimed_before := 0
+		if not data.is_empty():
+			reclaimed_before = int(data.pool_header[3])
+			for particle: Dictionary in data.particles:
+				original_ids[int(particle.id)] = true
+			_check(original_ids.size() == 48, "all original 19E physical IDs are observable before depletion")
+		for depletion_round: int in range(1, 20):
+			if data.is_empty():
+				break
+			var hostile_cells: Dictionary = {}
+			var dye_commands: Array = []
+			var grid_size := int(world.settings.grid_size)
+			for particle: Dictionary in data.particles:
+				var cell_x := clampi(int(floor(float(particle.x) / 1024.0 * grid_size)), 0, grid_size - 1)
+				var cell_y := clampi(int(floor(float(particle.y) / 1024.0 * grid_size)), 0, grid_size - 1)
+				var cell := cell_y * grid_size + cell_x
+				if not hostile_cells.has(cell):
+					hostile_cells[cell] = true
+					dye_commands.append({"op":15, "team":1, "energy":cell, "count":1})
+			_check(hostile_cells.size() == 48, "depletion round %d starts with 48 separate occupied cells" % depletion_round)
+			data = await _submit(dye_commands, true)
+			var remaining := 19 - depletion_round
+			var expected_live := 48 if remaining > 0 else 0
+			var description := "reclaimed %d" % capacity if remaining == 0 else "depletion %d round %d" % [capacity, depletion_round]
+			_pool_check(data, expected_live, capacity, description)
+			if data.is_empty():
+				break
+			var active_energy: int = int(data.metrics[23]) | (int(data.metrics[24]) << 32)
+			_check(active_energy == 48 * remaining, description + ": active integer energy decreases by exactly 48")
+			_check(int(data.consumed_energy) == 48 * depletion_round, description + ": consumed ledger increases by exactly 48")
+			_check(active_energy + int(data.consumed_energy) == 48 * 19, description + ": original 912E conserved")
+			_check(int(data.pool_header[1]) == capacity - 8 - expected_live and int(data.pool_header[2]) == 8, description + ": ordinary free stack changes only on actual death")
+			_check(int(data.pool_header[3]) == reclaimed_before + (48 if remaining == 0 else 0), description + ": original IDs reclaimed once only after the nineteenth claim")
+			for particle: Dictionary in data.particles:
+				_check(original_ids.has(int(particle.id)), description + ": surviving physical ID is unchanged")
+				_check(int(particle.energy) == remaining, description + ": each original particle spends exactly one energy")
+			observations.back().merge({"depletion_round":depletion_round, "expected_energy_per_particle":remaining, "active_energy":active_energy, "consumed_energy":int(data.consumed_energy), "manually_dyed_current_cells":hostile_cells.size()}, true)
 		if not data.is_empty():
 			_check(int(data.consumed_energy) == 48 * 19, "reclamation preserves consumed-energy accounting")
 		# New allocations must reuse reclaimed physical IDs without duplicates.

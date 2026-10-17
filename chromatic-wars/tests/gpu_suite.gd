@@ -27,10 +27,10 @@ func run_suite() -> void:
 	view.texture = world.texture
 	root.add_child(view)
 	world.start()
-	var deadline: int = Time.get_ticks_msec() + 120000
+	var deadline: int = Time.get_ticks_msec() + 240000
 	while not world.active and runtime_error.is_empty() and Time.get_ticks_msec() < deadline:
 		await process_frame
-	if not check(world.active, "真实Compute管线初始化", runtime_error if not runtime_error.is_empty() else "初始化截止120秒", {"driver": RenderingServer.get_current_rendering_driver_name()}):
+	if not check(world.active, "真实Compute管线初始化", runtime_error if not runtime_error.is_empty() else "初始化截止240秒（含冷Shader编译预算）", {"driver": RenderingServer.get_current_rendering_driver_name()}):
 		await _shutdown_world()
 		finish()
 		return
@@ -43,6 +43,8 @@ func run_suite() -> void:
 	await _test_render()
 	await _test_gpu_statistics()
 	await _test_territory_and_wall()
+	await _test_unit_territory_energy()
+	await _test_high_energy_territory("开局阶段")
 	await _test_particle_collisions()
 	await _test_fine_grid_boundaries()
 	await _test_dense_cell()
@@ -55,6 +57,7 @@ func run_suite() -> void:
 	await _test_precision_transition()
 	await _test_priority_shield()
 	await _test_timed_outputs()
+	await _test_high_energy_territory("1200模拟秒之后")
 	await _shutdown_world()
 	await process_frame
 	await process_frame
@@ -159,15 +162,119 @@ func _test_territory_and_wall() -> void:
 	_inject(0, 8.0, Vector2(104.0, 104.0))
 	var before: Dictionary = await _snapshot()
 	await _advance()
-	var after: Dictionary = await _snapshot("terrain:%d:1" % cell)
+	var after: Dictionary = await _snapshot()
+	var terrain: Dictionary = await _snapshot("terrain:%d:1" % cell)
 	var captures: int = int(after.get("consumed_energy", 0)) - int(before.get("consumed_energy", 0))
-	check(_energy(after) == 0 and after.get("terrain", []) == [0] and captures == 8, "普通粒子一颗只染一格并消耗完整出生能量", "中立格被染为0号队；8能普通粒子完成一格后退出物理系统，累计消耗增加8", {"remaining": _energy(after), "consumed_delta": captures})
+	check(_energy(after) == 7 and after.get("particles", []).size() == 1 and terrain.get("terrain", []) == [0] and captures == 1, "高能普通粒子染一格只耗1并保留余能", "中立格被染为0号队；8能普通粒子仍在物理系统内保留7，累计消耗增加1", {"remaining": _energy(after), "consumed_delta": captures, "particles": after.get("particles", [])})
 	await _reset_fixture(0)
 	_inject(0, 1.0, Vector2(2.0, 100.0), Vector2(-500.0, 0.0))
 	await _advance()
 	var wall: Dictionary = await _snapshot()
 	var particles: Array = wall.get("particles", [])
 	check(particles.size() == 1 and float(particles[0]["vx"]) > 0.0 and float(particles[0]["x"]) >= float(particles[0]["radius"]), "粒子真实墙壁反弹", "向左高速入墙后速度向右，位置仍在实体半径内侧", {"particles": particles})
+
+func _test_high_energy_territory(stage: String) -> void:
+	# 64格地图每格16单位。中心轨迹104→137.333穿过6、7、8三列；
+	# 真实子步/DDA必须逐格扣1，不能整包消失，也不能随世界时钟增价。
+	for kind in [{"op": 11, "label": "普通"}, {"op": 12, "label": "狙击"}]:
+		await _reset_fixture(0)
+		var first_cell := 6 * 64 + 6
+		world.debug_command({"op": 15, "team": 4, "energy": first_cell, "count": 3})
+		_inject(0, 8.0, Vector2(104.0, 104.0), Vector2(2000.0, 0.0), int(kind.op))
+		var before: Dictionary = await _snapshot()
+		await _advance(2)
+		var after: Dictionary = await _snapshot()
+		var terrain: Dictionary = await _snapshot("terrain:%d:3" % first_cell)
+		var consumed_delta := int(after.get("consumed_energy", 0)) - int(before.get("consumed_energy", 0))
+		var live: Array = after.get("particles", [])
+		var valid: bool = live.size() == 1 and _energy(after) == 5 and consumed_delta == 3 and terrain.get("terrain", []) == [0, 0, 0]
+		if live.size() == 1:
+			valid = valid and float(live[0].x) >= 128.0 and float(live[0].x) < 144.0 and Vector2(float(live[0].vx), float(live[0].vy)).distance_to(Vector2(2000.0, 0.0)) < 0.001
+		check(valid, "%s高能%s连续三格各耗1且不改方向" % [stage, str(kind.label)], "真实Compute推进两个固定步；8=场内5+染格3，狙击领土接触不分裂；与游戏进程无关", {"sim_time": sim_time, "particles": live, "consumed_delta": consumed_delta, "terrain": terrain.get("terrain", [])})
+	await _reset_fixture(0)
+	var cell := 6 * 64 + 6
+	world.debug_command({"op": 15, "team": 4, "energy": cell, "count": 3})
+	_inject(0, 2.0, Vector2(104.0, 104.0), Vector2(2000.0, 0.0))
+	var before: Dictionary = await _snapshot()
+	await _advance(2)
+	var after: Dictionary = await _snapshot()
+	var terrain: Dictionary = await _snapshot("terrain:%d:3" % cell)
+	var spent := int(after.get("consumed_energy", 0)) - int(before.get("consumed_energy", 0))
+	check(after.get("particles", []).is_empty() and _energy(after) == 0 and spent == 2 and terrain.get("terrain", []) == [0, 0, 4], "%s能量归零立即退出且不能多染一格" % stage, "真实2能普通粒子最多染前两格；第三格保持中立，视觉残影不能再产生物理结果", {"remaining": _energy(after), "consumed_delta": spent, "terrain": terrain.get("terrain", [])})
+
+func _territory_fixture_snapshot(start: int, count: int) -> Dictionary:
+	# Terrain-only snapshots sample the first64 slots. Read the complete
+	# explicitly small fixture so reused high IDs cannot disappear in tests.
+	var state: Dictionary = await _snapshot()
+	var cells: Dictionary = await _snapshot("terrain:%d:%d" % [start, count])
+	state["terrain"] = cells.get("terrain", [])
+	return state
+
+func _territory_fixture_entities(data: Dictionary, op: int) -> Array:
+	var entities: Array = []
+	var seen: Dictionary = {}
+	for entity: Dictionary in data.get("particles", []) + data.get("snipers", []) + data.get("balls", []):
+		var id: int = int(entity["id"])
+		if int(entity["type"]) == op - 10 and not seen.has(id):
+			seen[id] = true
+			entities.append(entity)
+	return entities
+
+func _test_unit_territory_energy() -> void:
+	# The earlier/later standard-speed cases exercise the normal grid path.
+	# These deliberately fast fixtures additionally cover the overflow/TOI
+	# path and the big-ball capsule; per-step reads prove no repeated charges.
+	var clock_before: float = sim_time
+	var first_cell: int = 6 * 64 + 7
+	for fixture in [{"op": 11, "label": "普通高能粒子"}, {"op": 12, "label": "狙击"}, {"op": 13, "label": "大球"}]:
+		var op: int = fixture["op"]
+		var all_times_valid := true
+		var observations: Array = []
+		# A conditional array expression is an untyped Array at runtime even
+		# when both branches contain floats; build the typed list directly.
+		var sample_times: Array[float] = [3600.0]
+		if op == 13:
+			sample_times.push_front(0.0)
+		for at_time in sample_times:
+			await _reset_fixture(0)
+			sim_time = at_time
+			# Only cells7..9 are hostile. Each16-unit move reaches exactly the
+			# next centre for DDA particles and the swept big-ball capsule.
+			world.debug_command({"op": 15, "team": 1, "energy": first_cell, "count": 3})
+			_inject(0, 8.0, Vector2(104.0, 104.0), Vector2(16000.0, 0.0), op)
+			var chain_before: Dictionary = await _snapshot()
+			var consumed_before: int = chain_before.get("consumed_energy", 0)
+			var steps: Array = []
+			for step_index in range(4):
+				await _advance(1, 0.001)
+				var chain_state: Dictionary = await _territory_fixture_snapshot(first_cell, 3)
+				var chain_entities: Array = _territory_fixture_entities(chain_state, op)
+				var remaining: int = int(chain_entities[0]["energy"]) if chain_entities.size() == 1 else -1
+				var claimed: int = mini(step_index + 1, 3)
+				var expected_cells: Array[int] = []
+				for cell_index in range(3):
+					expected_cells.append(0 if cell_index < claimed else 1)
+				var chain_consumed: int = int(chain_state.get("consumed_energy", 0)) - consumed_before
+				var chain_valid: bool = chain_entities.size() == 1 and remaining == 8 - claimed and chain_consumed == claimed and remaining + chain_consumed == 8 and chain_state.get("terrain", []) == expected_cells
+				all_times_valid = all_times_valid and chain_valid
+				steps.append({"step": step_index + 1, "remaining": remaining, "consumed_delta": chain_consumed, "terrain": chain_state.get("terrain", []), "expected_terrain": expected_cells, "entities": chain_entities, "valid": chain_valid})
+			observations.append({"start_sim_time": at_time, "steps": steps})
+		check(all_times_valid, "%s高速逐步染格固定每格1能量且己格免费" % fixture["label"], "真实fast/胶囊路径逐步8→7→6→5，再经过己格仍5；大球另对照t=0/3600，普通和狙击另有标准网格早晚对照；每次变色与消耗严格一一对应", {"observations": observations})
+
+		await _reset_fixture(0)
+		sim_time = 3600.0
+		world.debug_command({"op": 15, "team": 1, "energy": first_cell, "count": 4})
+		_inject(0, 2.0, Vector2(104.0, 104.0), Vector2(64000.0, 0.0), op)
+		var depletion_before: Dictionary = await _snapshot()
+		await _advance(1, 0.001)
+		var exhausted: Dictionary = await _territory_fixture_snapshot(first_cell, 4)
+		var depletion_consumed: int = int(exhausted.get("consumed_energy", 0)) - int(depletion_before.get("consumed_energy", 0))
+		var depletion_valid: bool = _territory_fixture_entities(exhausted, op).is_empty() and exhausted.get("terrain", []) == [0, 0, 1, 1] and depletion_consumed == 2
+		await _advance(2, 0.001)
+		var later: Dictionary = await _territory_fixture_snapshot(first_cell, 4)
+		depletion_valid = depletion_valid and _territory_fixture_entities(later, op).is_empty() and later.get("terrain", []) == [0, 0, 1, 1] and int(later.get("consumed_energy", 0)) == int(exhausted.get("consumed_energy", 0))
+		check(depletion_valid, "%s耗尽只完成最后付费格并立即退出物理" % fixture["label"], "2能高速扫过4敌格，只能染前2格；后2格保持敌色，后续2步不得继续染色或重复计损耗", {"terrain": exhausted.get("terrain", []), "consumed_delta": depletion_consumed, "entities_after_exhaustion": _territory_fixture_entities(exhausted, op), "later_terrain": later.get("terrain", [])})
+	sim_time = clock_before
 
 func _test_particle_collisions() -> void:
 	await _reset_fixture(0)

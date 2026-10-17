@@ -234,7 +234,7 @@ func _build_settings() -> void:
 	close.pressed.connect(func(): _panel.hide())
 	heading.add_child(close)
 	var note := Label.new()
-	note.text = "青色参数即时更新，武器速度用于新发射；金色参数在新开局后生效。\n所有游戏时长均按模拟秒计算，暂停时停止计时。\n物理长度统一为游戏单位，与画面像素及窗口缩放无关。"
+	note.text = "青色参数即时发送；机枪正射速与发完时长在下次真实补弹时锁定，武器速度用于新发射。金色参数在新开局后生效。\n所有游戏时长均按模拟秒计算，暂停时停止计时。\n物理长度统一为游戏单位，与画面像素及窗口缩放无关。"
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.add_theme_font_size_override("font_size", 12)
 	note.add_theme_color_override("font_color", MUTED)
@@ -275,17 +275,18 @@ func _build_settings() -> void:
 	_number(items, "intro_shield", "初始唯一护盾", 0, 1000000000, 1000, "能量")
 	_number(items, "intro_gun", "初始机枪库存", 0, 1000000000, 1000, "能量")
 	_number(items, "gun_rate", "机枪固定射速（0调试停火）", 0, 10000, 10, "粒子/模拟秒")
+	_inputs["gun_rate"].tooltip_text = "正射速在下次真实补弹时锁定到本弹匣；设为0立即调试停火。恢复正值后继续原弹匣锁定的射速，停火会延长实际发完时间。"
 	_number(items, "gun_rotation_speed", "机枪旋转速度", 0.1, 6, 0.05, "弧度/模拟秒")
 	_number(items, "gun_target_switch_cd", "机枪目标切换冷却", 0, 2, 0.01, "模拟秒")
-	_number(items, "particle_cost_delay", "粒子成本开始增长", 0, 7200, 1, "模拟秒")
-	_number(items, "particle_cost_growth", "每模拟秒粒子成本增量", 0, 100, 0.01, "弹药/模拟秒")
+	_number(items, "gun_discharge_duration", "机枪补弹后发完时长", 0.1, 120, 0.1, "模拟秒")
+	_inputs["gun_discharge_duration"].tooltip_text = "新时长在下次真实补弹时锁定；按剩余库存加新入能量，在固定射速槽之间商余均匀分配，不把余数全装进尾发。补弹重新计时，不重置射击相位或瞄准；调试停火或粒子池背压会延长实际发完时间。"
 	_number(items, "storm_ring_interval", "风暴圈间隔", 0.02, 2, 0.01, "模拟秒")
-	var cost_note := Label.new()
-	cost_note.text = "机枪射速固定，补弹时锁定单发能量；尾发用尽不足一发的余量。\n正常射速下库存耗尽才停火。风暴每圈固定 360 颗、最多 3 圈，整数分配输入。"
-	cost_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	cost_note.add_theme_font_size_override("font_size", 12)
-	cost_note.add_theme_color_override("font_color", MUTED)
-	items.add_child(cost_note)
+	var energy_note := Label.new()
+	energy_note.text = "机枪每次真实补弹时锁定正射速与发完时长；总库存按固定时间槽商余均匀分配，余数均匀分散。\n补弹重新计时，不重置射击相位或瞄准；更改正射速或时长等待下次真实补弹。\n射速0立即调试停火。能量少时有稀疏空槽；停火或物理池背压会延长实际发完时间，库存仍保留。\n普通高能粒子每染一格消耗 1 能量，剩余继续。风暴最多 3 圈，按输入整数分配。"
+	energy_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	energy_note.add_theme_font_size_override("font_size", 12)
+	energy_note.add_theme_color_override("font_color", MUTED)
+	items.add_child(energy_note)
 	_number(items, "ball_speed", "大球发射速度", 10, 500, 2, "游戏单位/模拟秒")
 	_number(items, "ball_min_speed", "大球最低移速", 1, 500, 1, "游戏单位/模拟秒")
 	_number(items, "sniper_speed", "狙击高能弹速度", 50, 2000, 10, "游戏单位/模拟秒")
@@ -303,7 +304,7 @@ func _build_settings() -> void:
 	_section(items, "04  GPU 性能与画面 · 容量受设备能力约束")
 	var performance_button := Button.new()
 	performance_button.text = "应用流畅预设并新开局"
-	performance_button.tooltip_text = "应用逐步增长的粒子成本和分圈风暴参数；保留当前领土网格、画面分辨率、粒子可视密度与拖尾。"
+	performance_button.tooltip_text = "应用分圈风暴参数；保留当前领土网格、画面分辨率、粒子可视密度、真实碰撞与拖尾。"
 	performance_button.pressed.connect(func(): performance_preset_requested.emit())
 	items.add_child(performance_button)
 	_choice(items, "particle_capacity", "GPU 粒子容量", [["1 万", 10000], ["5 万", 50000], ["10 万", 100000], ["30 万（高显存）", 300000], ["100 万（压力测试）", 1000000]])
@@ -316,7 +317,7 @@ func _build_settings() -> void:
 	_choice(items, "fixed_dt", "固定模拟步长", [["1/60 模拟秒", 1.0 / 60], ["1/120 模拟秒", 1.0 / 120], ["1/240 模拟秒", 1.0 / 240]])
 	_number(items, "fps_limit", "显示帧率上限", 0, 240, 10, "0 = 不限制")
 	var warning := Label.new()
-	warning.text = "容量、网格、渲染分辨率、步长与随机种子需要新开局。\n已发射粒子保留自身整数能量，机枪单发能量在补弹时更新。\n流畅预设保留分辨率和真实碰撞；容量增加会占用更多显存。"
+	warning.text = "容量、网格、渲染分辨率、步长与随机种子需要新开局。\n粒子按自身剩余整数能量参与碰撞、补给与消耗。\n流畅预设保留分辨率和真实碰撞；容量增加会占用更多显存。"
 	warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	warning.add_theme_font_size_override("font_size", 12)
 	warning.add_theme_color_override("font_color", MUTED)
@@ -382,9 +383,9 @@ func update_state(data: Dictionary) -> void:
 	var stats: Dictionary = data.get("stats", {})
 	var pinball: Dictionary = data.get("pinball", {})
 	var active := bool(data.get("gpu_active", false))
-	var current_cost := 1 + int(floor(maxf(time - float(_config["particle_cost_delay"]), 0.0) * float(_config["particle_cost_growth"])))
-	current_cost = int(stats.get("current_particle_cost", current_cost))
-	_status.text = ("● GPU 常驻 · Texture2DRD 直显" if active else "● GPU 管线未就绪") + "  |  当前粒子基准成本 %s 弹药" % _number_text(current_cost)
+	var particle_energy: Variant = stats.get("active_packet_energy", null)
+	var energy_text := _compact(float(particle_energy)) if particle_energy != null else "等待遥测"
+	_status.text = ("● GPU 常驻 · Texture2DRD 直显" if active else "● GPU 管线未就绪") + "  |  粒子实际能量 " + energy_text
 	_status.add_theme_color_override("font_color", ACCENT if active else Color("ffb66e"))
 	var gpu_ms := float(stats.get("gpu_ms", data.get("gpu_ms", -1.0)))
 	var timing := "GPU %.2f ms" % gpu_ms if gpu_ms >= 0 else "GPU 计时不可用"
@@ -414,7 +415,7 @@ func update_state(data: Dictionary) -> void:
 	_error.visible = not error_text.is_empty()
 	_error.text = "模拟已停止\n" + error_text + "\n\n请修正参数或新开局。图形错误需要 Godot 4.3+、Forward+、Vulkan显卡与驱动。" if not error_text.is_empty() else ""
 	var balls: Variant = pinball.get("balls", [])
-	var diag := "GPU: %s\n活跃弹药球 %d / 16\n粒子基准成本 %s 弹药\n机枪补弹锁能 · 整数结算\n固定步长 %.3f 模拟毫秒\n" % [device, int(pinball.get("active_count", pinball.get("active_balls", 16))), _number_text(current_cost), float(data.get("fixed_dt", _config["fixed_dt"])) * 1000]
+	var diag := "GPU: %s\n活跃弹药球 %d / 16\n在场粒子实际能量 %s\n高能权重 · 整数能量结算\n固定步长 %.3f 模拟毫秒\n" % [device, int(pinball.get("active_count", pinball.get("active_balls", 16))), energy_text, float(data.get("fixed_dt", _config["fixed_dt"])) * 1000]
 	if balls is Array and not balls.is_empty():
 		if _details_panel.visible:
 			_update_ball_table(balls)
@@ -428,7 +429,7 @@ func update_state(data: Dictionary) -> void:
 	_diagnostic_text = JSON.stringify({"version": ProjectSettings.get_setting("application/config/version", "initial"), "device": device, "fps": float(data.get("fps", 0.0)),
 		"gpu_ms": gpu_ms, "sim_time": time, "paused": bool(data.get("paused", false)),
 		"time_scale": data.get("settings", _config).get("time_scale", 0.25), "time_backlog": data.get("time_backlog", 0.0),
-		"fixed_dt": data.get("fixed_dt", _config["fixed_dt"]), "particle_model": "source_locked_integer_energy", "current_particle_cost": current_cost,
+		"fixed_dt": data.get("fixed_dt", _config["fixed_dt"]), "particle_model": "weighted_integer_energy", "active_particle_energy": particle_energy,
 		"friendly_particle_collisions": _config["friendly_particle_collisions"],
 		"active_particles": count, "particle_capacity": stats.get("particle_capacity", _config["particle_capacity"]),
 		"big_balls": big, "queue_energy": queue, "grid_size": grid,
@@ -545,7 +546,10 @@ func _parameter_row(parent: VBoxContainer, key: String, title: String) -> HBoxCo
 	label.text = title
 	label.custom_minimum_size.x = 218
 	label.add_theme_font_size_override("font_size", 13)
-	label.tooltip_text = "即时生效" if key in Settings.LIVE_KEYS else "新开局后生效"
+	if key == "gun_rate" or key == "gun_discharge_duration":
+		label.tooltip_text = "参数即时发送；下次真实补弹时锁定。射速0立即调试停火。"
+	else:
+		label.tooltip_text = "即时生效" if key in Settings.LIVE_KEYS else "新开局后生效"
 	label.add_theme_color_override("font_color", ACCENT if key in Settings.LIVE_KEYS else Color("eac475"))
 	row.add_child(label)
 	return row
